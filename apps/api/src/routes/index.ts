@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import authRoutes from './auth';
+import contentRoutes from './content';
+import creatorRoutes from './creators';
+import subscriptionRoutes from './subscriptions';
+import adminRoutes from './admin';
+
+export const router = Router();
+
+router.use('/auth', authRoutes);
+router.use('/content', contentRoutes);
+router.use('/creators', creatorRoutes);
+router.use('/subscriptions', subscriptionRoutes);
+router.use('/admin', adminRoutes);

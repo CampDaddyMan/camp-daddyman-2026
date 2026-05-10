@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id          String  @id @default(cuid())
+  email       String  @unique
+  username    String  @unique
+  password    String
+  displayName String?
+  avatar      String?
+  bio         String?
+  isAdmin     Boolean @default(false)
+  isCreator   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content      Content[]
+  subscription Subscription?
+  likes        Like[]
+  comments     Comment[]
+  watchHistory WatchHistory[]
+}
+
+// ── Content ───────────────────────────────────────────────────────────────────
+
+model Content {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  type        ContentType
+  status      ContentStatus @default(PROCESSING)
+  privacy     Privacy       @default(PUBLIC)
+
+  mediaUrl     String?
+  thumbnailUrl String?
+  duration     Int? // seconds
+
+  tags String[]
+
+  views Int @default(0)
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  likes        Like[]
+  comments     Comment[]
+  watchHistory WatchHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([type, status, privacy])
+}
+
+enum ContentType {
+  FILM
+  MUSIC
+  PODCAST
+  SPOKEN_WORD
+}
+
+enum ContentStatus {
+  PROCESSING
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum Privacy {
+  PUBLIC
+  PRIVATE
+  SUBSCRIBERS_ONLY
+}
+
+// ── Subscriptions ─────────────────────────────────────────────────────────────
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan   SubscriptionPlan
+  status SubscriptionStatus @default(ACTIVE)
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  TRIALING
+}
+
+// ── Engagement ────────────────────────────────────────────────────────────────
+
+model Like {
+  id        String  @id @default(cuid())
+  userId    String
+  contentId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contentId])
+}
+
+model Comment {
+  id        String  @id @default(cuid())
+  text      String
+  userId    String
+  contentId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([contentId])
+}
+
+model WatchHistory {
+  id        String  @id @default(cuid())
+  userId    String
+  contentId String
+  progress  Int     @default(0) // seconds watched
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  watchedAt DateTime @default(now())
+
+  @@unique([userId, contentId])
+  @@index([userId])
+}

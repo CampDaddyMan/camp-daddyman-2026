@@ -66,6 +66,7 @@ model Content {
   privacy     Privacy       @default(PUBLIC)
 
   mediaUrl     String?
+  hlsUrl       String?
   thumbnailUrl String?
   duration     Int? // seconds
 

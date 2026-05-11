@@ -25,6 +25,7 @@ export interface Content {
   status: ContentStatus;
   privacy: Privacy;
   mediaUrl?: string;
+  hlsUrl?: string;
   thumbnailUrl?: string;
   duration?: number;
   tags: string[];

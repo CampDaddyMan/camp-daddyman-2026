@@ -11,6 +11,66 @@ import Button from '@/components/ui/Button';
 
 const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
 
+// Native HLS player using hls.js (falls back to native <video> on Safari)
+function HlsVideoPlayer({
+  hlsUrl,
+  onReady,
+  onProgress,
+  videoRef,
+}: {
+  hlsUrl: string;
+  onReady: () => void;
+  onProgress: (seconds: number) => void;
+  videoRef: React.RefObject<HTMLVideoElement>;
+}) {
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let hls: any;
+
+    async function init() {
+      if (!video) return;
+      const Hls = (await import('hls.js')).default;
+      if (Hls.isSupported()) {
+        hls = new Hls({ enableWorker: true });
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video!.play().catch(() => {});
+          onReady();
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari native HLS
+        video.src = hlsUrl;
+        video.addEventListener('loadedmetadata', () => {
+          video!.play().catch(() => {});
+          onReady();
+        }, { once: true });
+      }
+    }
+
+    init();
+
+    const handleTimeUpdate = () => onProgress(video.currentTime);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+
+    return () => {
+      hls?.destroy();
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, [hlsUrl, onReady, onProgress, videoRef]);
+
+  return (
+    <video
+      ref={videoRef}
+      controls
+      className="w-full h-full"
+      playsInline
+    />
+  );
+}
+
 interface PreviewContent {
   title: string;
   description?: string;
@@ -153,6 +213,7 @@ export default function WatchPage() {
   const [showResumeBanner, setShowResumeBanner] = useState(false);
   const [hasResumed, setHasResumed] = useState(false);
   const playerRef = useRef<any>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const currentProgressRef = useRef(0);
   const saveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -228,17 +289,26 @@ export default function WatchPage() {
     <div className="text-center py-20 text-gray-400">{error || 'Content not found.'}</div>
   );
 
+  const isHls = !!(content.hlsUrl);
+
+  function seekTo(seconds: number) {
+    if (isHls) {
+      if (videoRef.current) videoRef.current.currentTime = seconds;
+    } else {
+      playerRef.current?.seekTo(seconds, 'seconds');
+    }
+  }
+
   function handlePlayerReady() {
     if (hasResumed || savedProgress <= 0) return;
-    // If user dismissed the banner we auto-resume; if banner is gone we already seeked
     if (!showResumeBanner) {
-      playerRef.current?.seekTo(savedProgress, 'seconds');
+      seekTo(savedProgress);
       setHasResumed(true);
     }
   }
 
   function handleResume() {
-    playerRef.current?.seekTo(savedProgress, 'seconds');
+    seekTo(savedProgress);
     setHasResumed(true);
     setShowResumeBanner(false);
   }
@@ -252,16 +322,30 @@ export default function WatchPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Player */}
       <div className="aspect-video bg-black rounded-2xl overflow-hidden mb-3 relative">
-        <ReactPlayer
-          ref={playerRef}
-          url={content.mediaUrl}
-          controls
-          width="100%"
-          height="100%"
-          playing
-          onReady={handlePlayerReady}
-          onProgress={({ playedSeconds }) => { currentProgressRef.current = playedSeconds; }}
-        />
+        {content.status === 'PROCESSING' ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-900">
+            <div className="w-10 h-10 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-400 text-sm">Processing video — check back in a few minutes</p>
+          </div>
+        ) : isHls ? (
+          <HlsVideoPlayer
+            hlsUrl={content.hlsUrl!}
+            videoRef={videoRef}
+            onReady={handlePlayerReady}
+            onProgress={(s) => { currentProgressRef.current = s; }}
+          />
+        ) : (
+          <ReactPlayer
+            ref={playerRef}
+            url={content.mediaUrl}
+            controls
+            width="100%"
+            height="100%"
+            playing
+            onReady={handlePlayerReady}
+            onProgress={({ playedSeconds }) => { currentProgressRef.current = playedSeconds; }}
+          />
+        )}
       </div>
 
       {/* Resume banner */}

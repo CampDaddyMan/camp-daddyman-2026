@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { router } from './routes';
+import { startTranscodeWorker } from './workers/transcoder';
 
 const app = express();
 
@@ -35,6 +36,10 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Camp DaddyMan API running on http://localhost:${PORT}`);
+  // Start HLS transcoder worker (no-ops gracefully if ffmpeg or Redis not available)
+  startTranscodeWorker().catch((err) => {
+    console.error('[Transcoder] Failed to start worker:', err.message);
+  });
 });
 
 export default app;

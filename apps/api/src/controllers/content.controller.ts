@@ -3,10 +3,12 @@ import { prisma } from '../config/database';
 import { uploadToS3, deleteFromS3, getSignedMediaUrl } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers } from '../utils/notifications';
+import { transcodeQueue } from '../config/queue';
 
 const CONTENT_SELECT = {
   id: true, title: true, description: true, type: true,
-  thumbnailUrl: true, duration: true, views: true, tags: true,
+  status: true, thumbnailUrl: true, hlsUrl: true,
+  duration: true, views: true, tags: true,
   privacy: true, createdAt: true,
   creator: { select: { username: true, displayName: true, avatar: true } },
   _count: { select: { likes: true, comments: true } },
@@ -154,6 +156,10 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     thumbnailUrl = await uploadToS3(files.thumbnail[0], 'thumbnails');
   }
 
+  // FILM starts as PROCESSING and gets activated by the transcoder.
+  // All other types (audio, images) go straight to ACTIVE.
+  const isVideo = type === 'FILM';
+
   const content = await prisma.content.create({
     data: {
       title,
@@ -164,7 +170,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
       thumbnailUrl,
       tags: tags ? String(tags).split(',').map((t: string) => t.trim()) : [],
       creatorId: req.user!.id,
-      status: 'ACTIVE',
+      status: isVideo ? 'PROCESSING' : 'ACTIVE',
     },
   });
 
@@ -173,8 +179,23 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     await prisma.user.update({ where: { id: req.user!.id }, data: { isCreator: true } });
   }
 
-  // Notify followers about new content (fire and forget)
-  notifyFollowers(req.user!.id, content.id);
+  // Enqueue transcoding (fire and forget — if Redis is down, fall back gracefully)
+  if (mediaUrl) {
+    transcodeQueue.add('transcode', {
+      contentId: content.id,
+      mediaUrl,
+      contentType: type,
+    }).catch(async (err) => {
+      console.error('[Upload] Failed to enqueue transcode job:', err.message);
+      // No Redis? Activate immediately so content isn't stuck.
+      await prisma.content.update({ where: { id: content.id }, data: { status: 'ACTIVE' } }).catch(() => {});
+    });
+  }
+
+  // Notify followers once content is live (for non-video, it's already ACTIVE)
+  if (!isVideo) {
+    notifyFollowers(req.user!.id, content.id);
+  }
 
   res.status(201).json({ content });
 }

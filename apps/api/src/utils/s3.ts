@@ -1,6 +1,8 @@
 import { Upload } from '@aws-sdk/lib-storage';
-import { DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'stream';
+import * as fs from 'fs';
 import { s3, R2_BUCKET, R2_PUBLIC_URL } from '../config/storage';
 
 export async function uploadToS3(file: Express.Multer.File, folder: string): Promise<string> {
@@ -35,8 +37,38 @@ export async function getSignedMediaUrl(fileUrl: string, expiresIn = 3600): Prom
   return getSignedUrl(s3, command, { expiresIn });
 }
 
+/** Download an R2 object to a local file path */
+export async function downloadFromS3(fileUrl: string, destPath: string): Promise<void> {
+  const key = extractKey(fileUrl);
+  if (!key) throw new Error(`Cannot extract key from URL: ${fileUrl}`);
+  const response = await s3.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: key }));
+  const stream = response.Body as Readable;
+  await new Promise<void>((resolve, reject) => {
+    const writer = fs.createWriteStream(destPath);
+    stream.pipe(writer);
+    writer.on('finish', resolve);
+    writer.on('error', reject);
+    stream.on('error', reject);
+  });
+}
+
+/** Upload a raw Buffer or file path to R2 under a specific key, return public URL */
+export async function uploadRawToS3(
+  body: Buffer,
+  key: string,
+  contentType: string,
+): Promise<string> {
+  await s3.send(new PutObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+  }));
+  return `${R2_PUBLIC_URL}/${key}`;
+}
+
 /** Strip the public base URL to get the object key */
-function extractKey(fileUrl: string): string {
+export function extractKey(fileUrl: string): string {
   if (R2_PUBLIC_URL && fileUrl.startsWith(R2_PUBLIC_URL)) {
     return fileUrl.slice(R2_PUBLIC_URL.length + 1); // +1 for the leading slash
   }

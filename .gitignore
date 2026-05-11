@@ -2,7 +2,10 @@ node_modules/
 dist/
 .next/
 .env
-.env.local
+.env.*
+!.env.example
 *.log
 .DS_Store
 Thumbs.db
+tsconfig.tsbuildinfo
+

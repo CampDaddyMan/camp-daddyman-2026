@@ -205,3 +205,42 @@ export async function setContentStatus(req: Request, res: Response) {
   });
   res.json({ content });
 }
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+export async function listReports(req: Request, res: Response) {
+  const { page = '1', limit = '20', status = 'PENDING' } = req.query;
+
+  const where: any = {};
+  if (status && status !== 'ALL') where.status = String(status).toUpperCase();
+
+  const [reports, total] = await Promise.all([
+    prisma.report.findMany({
+      where,
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      orderBy: { createdAt: 'desc' },
+      include: {
+        content: { select: { id: true, title: true, type: true, status: true, creator: { select: { username: true } } } },
+        reporter: { select: { username: true, email: true } },
+      },
+    }),
+    prisma.report.count({ where }),
+  ]);
+
+  res.json({ reports, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+}
+
+export async function resolveReport(req: Request, res: Response) {
+  const { action } = req.body; // 'REVIEWED' | 'DISMISSED'
+  if (!['REVIEWED', 'DISMISSED'].includes(action)) {
+    return res.status(400).json({ error: 'action must be REVIEWED or DISMISSED' });
+  }
+
+  const report = await prisma.report.update({
+    where: { id: req.params.id },
+    data: { status: action, resolvedAt: new Date() },
+    select: { id: true, status: true },
+  });
+  res.json({ report });
+}

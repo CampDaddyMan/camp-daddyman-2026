@@ -15,9 +15,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    if (typeof window !== 'undefined') {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+      if (err.response?.status === 403 && err.response?.data?.banned) {
+        localStorage.removeItem('token');
+        window.location.href = '/banned';
+      }
     }
     return Promise.reject(err);
   },

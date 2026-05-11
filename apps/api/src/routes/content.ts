@@ -7,12 +7,16 @@ import {
   getContent,
   uploadContent,
   deleteContent,
+  updateContent,
   likeContent,
   commentOnContent,
   deleteComment,
   getComments,
   saveProgress,
   getProgress,
+  getWatchHistory,
+  getRelatedContent,
+  reportContent,
 } from '../controllers/content.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -36,8 +40,10 @@ const upload = multer({
 router.get('/', readLimiter, listContent);
 router.get('/discover', readLimiter, getDiscovery);
 router.get('/search', searchLimiter, searchContent);
+router.get('/history', authMiddleware, readLimiter, getWatchHistory);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getContent);
 router.get('/:id/comments', readLimiter, getComments);
+router.get('/:id/related', readLimiter, getRelatedContent);
 
 // Authenticated
 router.post(
@@ -47,11 +53,13 @@ router.post(
   upload.fields([{ name: 'media', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]),
   uploadContent,
 );
+router.patch('/:id', authMiddleware, writeLimiter, updateContent);
 router.delete('/:id', authMiddleware, writeLimiter, deleteContent);
 router.post('/:id/like', authMiddleware, writeLimiter, likeContent);
 router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);
 router.delete('/:id/comment/:commentId', authMiddleware, writeLimiter, deleteComment);
 router.post('/:id/progress', authMiddleware, saveProgress);
 router.get('/:id/progress', authMiddleware, getProgress);
+router.post('/:id/report', authMiddleware, writeLimiter, reportContent);
 
 export default router;

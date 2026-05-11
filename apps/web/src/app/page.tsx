@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Content } from '@/types';
 import ContentRow from '@/components/content/ContentRow';
+import { useAuth } from '@/context/AuthContext';
 
 interface Creator {
   username: string;
@@ -79,8 +80,63 @@ function SearchBar() {
   );
 }
 
+interface HistoryItem extends Content {
+  watchProgress: number;
+  watchedAt: string;
+}
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function ContinueWatchingRow({ items }: { items: HistoryItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <section className="mb-10">
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="text-lg font-bold text-white">▶️ Continue Watching</h2>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+        {items.map((item) => {
+          const pct = item.duration ? Math.min(100, Math.round((item.watchProgress / item.duration) * 100)) : 0;
+          return (
+            <Link
+              key={item.id}
+              href={`/watch/${item.id}`}
+              className="snap-start flex-shrink-0 w-56 group"
+            >
+              <div className="relative aspect-video bg-surface-700 rounded-xl overflow-hidden mb-2">
+                {item.thumbnailUrl ? (
+                  <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-3xl">🎬</div>
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                {/* Progress bar */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
+                  <div className="h-full bg-brand-500" style={{ width: `${pct}%` }} />
+                </div>
+                {/* Resume position label */}
+                <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded">
+                  {formatTime(item.watchProgress)}
+                </div>
+              </div>
+              <p className="text-white text-xs font-medium truncate group-hover:text-brand-400 transition-colors">{item.title}</p>
+              <p className="text-gray-500 text-[11px] mt-0.5">{item.creator.displayName || item.creator.username}</p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
+  const { user } = useAuth();
   const [data, setData] = useState<DiscoveryData | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,6 +145,13 @@ export default function HomePage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    api.get('/content/history')
+      .then((r) => setHistory(r.data.items))
+      .catch(() => {});
+  }, [user]);
 
   const hasAnyContent = data && (
     data.trending.length > 0 ||
@@ -152,6 +215,8 @@ export default function HomePage() {
           </div>
         ) : (
           <>
+            <ContinueWatchingRow items={history} />
+
             {data!.trending.length > 0 && (
               <ContentRow
                 title="🔥 Trending"

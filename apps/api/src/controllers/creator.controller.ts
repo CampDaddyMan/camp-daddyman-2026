@@ -76,10 +76,17 @@ export async function getFollowingFeed(req: AuthRequest, res: Response) {
     return res.json({ items: [], total: 0, page: 1, pages: 0 });
   }
 
-  const where = {
+  // Paid subscribers can also see SUBSCRIBERS_ONLY content in their feed
+  const userSub = await prisma.subscription.findUnique({
+    where: { userId: req.user!.id },
+    select: { plan: true, status: true },
+  });
+  const isPaid = userSub && userSub.plan !== 'FREE' && userSub.status === 'ACTIVE';
+
+  const where: any = {
     creatorId: { in: followingIds },
     status: 'ACTIVE' as const,
-    privacy: 'PUBLIC' as const,
+    privacy: isPaid ? { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } : 'PUBLIC' as const,
   };
 
   const [items, total] = await Promise.all([
@@ -89,8 +96,8 @@ export async function getFollowingFeed(req: AuthRequest, res: Response) {
       skip: (Number(page) - 1) * Number(limit),
       take: Number(limit),
       select: {
-        id: true, title: true, description: true, type: true,
-        thumbnailUrl: true, duration: true, views: true, tags: true, createdAt: true,
+        id: true, title: true, description: true, type: true, status: true, privacy: true,
+        thumbnailUrl: true, hlsUrl: true, duration: true, views: true, tags: true, createdAt: true,
         creator: { select: { username: true, displayName: true, avatar: true } },
         _count: { select: { likes: true, comments: true } },
       },
@@ -121,8 +128,9 @@ export async function getCreatorContent(req: Request, res: Response) {
       skip: (Number(page) - 1) * Number(limit),
       take: Number(limit),
       select: {
-        id: true, title: true, description: true, type: true,
-        thumbnailUrl: true, duration: true, views: true, tags: true, createdAt: true,
+        id: true, title: true, description: true, type: true, status: true, privacy: true,
+        thumbnailUrl: true, hlsUrl: true, duration: true, views: true, tags: true, createdAt: true,
+        creator: { select: { username: true, displayName: true, avatar: true } },
         _count: { select: { likes: true, comments: true } },
       },
     }),

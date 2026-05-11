@@ -35,6 +35,7 @@ model User {
   notifications          Notification[] @relation("NotificationRecipient")
   triggeredNotifications Notification[] @relation("NotificationActor")
   tokens                 Token[]
+  reports                Report[]       @relation("ReportedBy")
 }
 
 model Token {
@@ -81,6 +82,7 @@ model Content {
   comments      Comment[]
   watchHistory  WatchHistory[]
   notifications Notification[]
+  reports       Report[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -223,4 +225,39 @@ enum NotificationType {
   NEW_LIKE      // someone liked your content
   NEW_COMMENT   // someone commented on your content
   NEW_FOLLOWER  // someone followed you
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+model Report {
+  id        String       @id @default(cuid())
+  contentId String
+  reporterId String
+  reason    ReportReason
+  detail    String?
+  status    ReportStatus @default(PENDING)
+
+  content  Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  reporter User    @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@unique([contentId, reporterId])
+  @@index([status, createdAt])
+}
+
+enum ReportReason {
+  SPAM
+  INAPPROPRIATE
+  COPYRIGHT
+  HATE_SPEECH
+  MISINFORMATION
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
 }

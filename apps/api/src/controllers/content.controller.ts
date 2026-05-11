@@ -92,27 +92,38 @@ export async function getContent(req: AuthRequest, res: Response) {
     return res.status(404).json({ error: 'Content not found' });
   }
 
+  // Gate private content — only the creator or an admin can see it
+  if (content.privacy === 'PRIVATE') {
+    if (!req.user || (req.user.id !== content.creatorId && !req.user.isAdmin)) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+  }
+
   // Gate subscriber-only content
   if (content.privacy === 'SUBSCRIBERS_ONLY') {
-    const plan = req.user?.subscription?.plan;
-    const status = req.user?.subscription?.status;
-    if (!plan || plan === 'FREE' || status !== 'ACTIVE') {
-      return res.status(403).json({
-        error: 'Subscriber-only content',
-        requiresSubscription: true,
-        preview: {
-          title: content.title,
-          description: content.description,
-          type: content.type,
-          thumbnailUrl: content.thumbnailUrl,
-          duration: content.duration,
-          tags: content.tags,
-          createdAt: content.createdAt,
-          views: content.views,
-          creator: content.creator,
-          _count: content._count,
-        },
-      });
+    // Creator and admins always have access
+    const isOwner = req.user?.id === content.creatorId;
+    if (!isOwner && !req.user?.isAdmin) {
+      const plan = req.user?.subscription?.plan;
+      const status = req.user?.subscription?.status;
+      if (!plan || plan === 'FREE' || status !== 'ACTIVE') {
+        return res.status(403).json({
+          error: 'Subscriber-only content',
+          requiresSubscription: true,
+          preview: {
+            title: content.title,
+            description: content.description,
+            type: content.type,
+            thumbnailUrl: content.thumbnailUrl,
+            duration: content.duration,
+            tags: content.tags,
+            createdAt: content.createdAt,
+            views: content.views,
+            creator: content.creator,
+            _count: content._count,
+          },
+        });
+      }
     }
   }
 
@@ -349,4 +360,141 @@ export async function getComments(req: Request, res: Response) {
   });
 
   res.json({ comments });
+}
+
+export async function updateContent(req: AuthRequest, res: Response) {
+  const content = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: { creatorId: true },
+  });
+
+  if (!content) return res.status(404).json({ error: 'Content not found' });
+  if (content.creatorId !== req.user!.id && !req.user!.isAdmin) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+
+  const { title, description, privacy, tags } = req.body;
+
+  const data: any = {};
+  if (title !== undefined)       data.title = String(title).trim();
+  if (description !== undefined) data.description = String(description).trim() || null;
+  if (privacy !== undefined && ['PUBLIC', 'PRIVATE', 'SUBSCRIBERS_ONLY'].includes(privacy)) {
+    data.privacy = privacy;
+  }
+  if (tags !== undefined) {
+    data.tags = String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
+  }
+
+  if (!data.title && data.title !== undefined) {
+    return res.status(400).json({ error: 'Title cannot be empty' });
+  }
+
+  const updated = await prisma.content.update({
+    where: { id: req.params.id },
+    data,
+    select: { id: true, title: true, description: true, privacy: true, tags: true },
+  });
+
+  res.json({ content: updated });
+}
+
+export async function getWatchHistory(req: AuthRequest, res: Response) {
+  const records = await prisma.watchHistory.findMany({
+    where: { userId: req.user!.id, progress: { gt: 5 } },
+    orderBy: { watchedAt: 'desc' },
+    take: 20,
+    include: {
+      content: {
+        select: {
+          id: true, title: true, type: true, status: true, privacy: true,
+          thumbnailUrl: true, duration: true, views: true, tags: true,
+          createdAt: true, hlsUrl: true,
+          creator: { select: { username: true, displayName: true, avatar: true } },
+          _count: { select: { likes: true, comments: true } },
+        },
+      },
+    },
+  });
+
+  // Filter out deleted/archived content and annotate with progress
+  const items = records
+    .filter((r) => r.content.status === 'ACTIVE')
+    .map((r) => ({ ...r.content, watchProgress: r.progress, watchedAt: r.watchedAt }));
+
+  res.json({ items });
+}
+
+export async function getRelatedContent(req: Request, res: Response) {
+  const content = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: { type: true, creatorId: true, tags: true },
+  });
+
+  if (!content) return res.status(404).json({ error: 'Content not found' });
+
+  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const, id: { not: req.params.id } };
+
+  // 1. More from the same creator
+  // 2. Same type, exclude same creator
+  const [fromCreator, sameType] = await Promise.all([
+    prisma.content.findMany({
+      where: { ...base, creatorId: content.creatorId },
+      orderBy: { views: 'desc' },
+      take: 4,
+      select: {
+        id: true, title: true, type: true, status: true, privacy: true,
+        thumbnailUrl: true, duration: true, views: true, tags: true,
+        createdAt: true, hlsUrl: true,
+        creator: { select: { username: true, displayName: true, avatar: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    }),
+    prisma.content.findMany({
+      where: { ...base, type: content.type, creatorId: { not: content.creatorId } },
+      orderBy: { views: 'desc' },
+      take: 8,
+      select: {
+        id: true, title: true, type: true, status: true, privacy: true,
+        thumbnailUrl: true, duration: true, views: true, tags: true,
+        createdAt: true, hlsUrl: true,
+        creator: { select: { username: true, displayName: true, avatar: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    }),
+  ]);
+
+  res.json({ fromCreator, sameType });
+}
+
+export async function reportContent(req: AuthRequest, res: Response) {
+  const VALID_REASONS = ['SPAM', 'INAPPROPRIATE', 'COPYRIGHT', 'HATE_SPEECH', 'MISINFORMATION', 'OTHER'];
+  const { reason, detail } = req.body;
+
+  if (!VALID_REASONS.includes(reason)) {
+    return res.status(400).json({ error: 'Invalid report reason' });
+  }
+
+  const content = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: { id: true },
+  });
+  if (!content) return res.status(404).json({ error: 'Content not found' });
+
+  // Upsert so a user can only report a piece once (update reason if they re-report)
+  await prisma.report.upsert({
+    where: { contentId_reporterId: { contentId: req.params.id, reporterId: req.user!.id } },
+    create: {
+      contentId: req.params.id,
+      reporterId: req.user!.id,
+      reason,
+      detail: detail ? String(detail).slice(0, 500) : null,
+    },
+    update: {
+      reason,
+      detail: detail ? String(detail).slice(0, 500) : null,
+      status: 'PENDING',
+    },
+  });
+
+  res.json({ reported: true });
 }

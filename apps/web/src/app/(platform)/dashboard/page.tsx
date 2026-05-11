@@ -109,6 +109,106 @@ function StatCard({ label, value, emoji }: { label: string; value: number; emoji
   );
 }
 
+// ── Edit content modal ────────────────────────────────────────────────────────
+
+function EditContentModal({
+  content,
+  onClose,
+  onSave,
+}: {
+  content: DashboardContent;
+  onClose: () => void;
+  onSave: (id: string, fields: { title: string; description: string; privacy: Privacy; tags: string }) => Promise<void>;
+}) {
+  const [title, setTitle]       = useState(content.title);
+  const [description, setDesc]  = useState('');
+  const [privacy, setPrivacy]   = useState<Privacy>(content.privacy);
+  const [tags, setTags]         = useState('');
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
+
+  // Load full content detail on mount
+  useEffect(() => {
+    api.get(`/content/${content.id}`)
+      .then((r) => {
+        setDesc(r.data.content.description || '');
+        setTags((r.data.content.tags || []).join(', '));
+      })
+      .catch(() => {});
+  }, [content.id]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) return setError('Title is required');
+    setSaving(true);
+    setError('');
+    try {
+      await onSave(content.id, { title: title.trim(), description, privacy, tags });
+    } catch {
+      setError('Failed to save. Please try again.');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={onClose}>
+      <div className="bg-surface-800 border border-surface-600 rounded-2xl p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-white font-semibold">Edit content</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="text-red-400 text-sm bg-red-400/10 px-3 py-2 rounded-lg">{error}</p>}
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Title *</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDesc(e.target.value)}
+              rows={3}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none"
+              placeholder="Describe your content..."
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Visibility</label>
+            <select
+              value={privacy}
+              onChange={(e) => setPrivacy(e.target.value as Privacy)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+            >
+              <option value="PUBLIC">Public — anyone can watch</option>
+              <option value="SUBSCRIBERS_ONLY">Members Only — subscribers only</option>
+              <option value="PRIVATE">Private — only you</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Tags (comma-separated)</label>
+            <input
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+              placeholder="reggae, motivation, live"
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <Button type="submit" size="sm" disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</Button>
+            <Button type="button" variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -119,6 +219,7 @@ export default function DashboardPage() {
   const [fetching, setFetching]     = useState(true);
   const [deleting, setDeleting]     = useState<string | null>(null);
   const [editOpen, setEditOpen]     = useState(false);
+  const [editingContent, setEditingContent] = useState<DashboardContent | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio]               = useState('');
   const [saving, setSaving]         = useState(false);
@@ -155,6 +256,24 @@ export default function DashboardPage() {
       stats: { ...prev.stats, totalContent: prev.stats.totalContent - 1 },
     } : prev);
     setDeleting(null);
+  }
+
+  async function handleSaveEdit(id: string, fields: { title: string; description: string; privacy: Privacy; tags: string }) {
+    await api.patch(`/content/${id}`, fields);
+    setData((prev) => prev ? {
+      ...prev,
+      content: prev.content.map((c) => c.id === id ? {
+        ...c,
+        title: fields.title,
+        privacy: fields.privacy,
+      } : c),
+      topContent: prev.topContent.map((c) => c.id === id ? {
+        ...c,
+        title: fields.title,
+        privacy: fields.privacy,
+      } : c),
+    } : prev);
+    setEditingContent(null);
   }
 
   async function handleSaveProfile() {
@@ -211,6 +330,15 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
+
+      {/* ── Edit modal ── */}
+      {editingContent && (
+        <EditContentModal
+          content={editingContent}
+          onClose={() => setEditingContent(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between flex-wrap gap-4 mb-10">
@@ -486,13 +614,21 @@ export default function DashboardPage() {
                         <td className="px-4 py-3 text-right text-gray-400 hidden sm:table-cell">{c._count.likes}</td>
                         <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{fmtDate(c.createdAt)}</td>
                         <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => handleDelete(c.id, c.title)}
-                            disabled={deleting === c.id}
-                            className="text-xs text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
-                          >
-                            {deleting === c.id ? '...' : 'Delete'}
-                          </button>
+                          <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setEditingContent(c)}
+                              className="text-xs text-gray-400 hover:text-brand-400 transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(c.id, c.title)}
+                              disabled={deleting === c.id}
+                              className="text-xs text-gray-600 hover:text-red-400 transition-colors disabled:opacity-50"
+                            >
+                              {deleting === c.id ? '...' : 'Delete'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

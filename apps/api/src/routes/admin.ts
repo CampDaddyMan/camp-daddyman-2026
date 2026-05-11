@@ -7,6 +7,8 @@ import {
   deleteUser,
   listAllContent,
   setContentStatus,
+  listReports,
+  resolveReport,
 } from '../controllers/admin.controller';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -21,5 +23,7 @@ router.post('/users/:id/toggle-ban',     writeLimiter, toggleBan);
 router.delete('/users/:id',              writeLimiter, deleteUser);
 router.get('/content',                   readLimiter,  listAllContent);
 router.post('/content/:id/status',       writeLimiter, setContentStatus);
+router.get('/reports',                   readLimiter,  listReports);
+router.post('/reports/:id/resolve',      writeLimiter, resolveReport);
 
 export default router;

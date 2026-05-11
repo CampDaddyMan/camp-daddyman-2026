@@ -196,6 +196,112 @@ function formatTime(seconds: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+interface RelatedContent extends Content {
+  mediaUrl?: string;
+}
+
+const REPORT_REASONS = [
+  { value: 'SPAM',           label: 'Spam or misleading' },
+  { value: 'INAPPROPRIATE',  label: 'Inappropriate content' },
+  { value: 'COPYRIGHT',      label: 'Copyright violation' },
+  { value: 'HATE_SPEECH',    label: 'Hate speech' },
+  { value: 'MISINFORMATION', label: 'Misinformation' },
+  { value: 'OTHER',          label: 'Other' },
+];
+
+function ReportModal({ contentId, onClose }: { contentId: string; onClose: () => void }) {
+  const [reason, setReason] = useState('INAPPROPRIATE');
+  const [detail, setDetail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.post(`/content/${contentId}/report`, { reason, detail });
+      setDone(true);
+    } catch {}
+    finally { setSubmitting(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={onClose}>
+      <div className="bg-surface-800 border border-surface-600 rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        {done ? (
+          <div className="text-center py-4">
+            <p className="text-3xl mb-3">✅</p>
+            <p className="text-white font-semibold">Report submitted</p>
+            <p className="text-gray-400 text-sm mt-1 mb-4">Our team will review it shortly.</p>
+            <Button size="sm" onClick={onClose}>Close</Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white font-semibold">Report content</h2>
+              <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs text-gray-400 block mb-2">Reason</label>
+                <div className="space-y-2">
+                  {REPORT_REASONS.map((r) => (
+                    <label key={r.value} className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="reason"
+                        value={r.value}
+                        checked={reason === r.value}
+                        onChange={() => setReason(r.value)}
+                        className="accent-brand-500"
+                      />
+                      <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{r.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Additional details (optional)</label>
+                <textarea
+                  value={detail}
+                  onChange={(e) => setDetail(e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none"
+                  placeholder="Add more context..."
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <Button type="submit" size="sm" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit report'}</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MiniContentCard({ item }: { item: RelatedContent }) {
+  return (
+    <Link href={`/watch/${item.id}`} className="group flex gap-3 items-start hover:bg-surface-800 rounded-xl p-2 -mx-2 transition-colors">
+      <div className="relative w-28 flex-shrink-0 aspect-video bg-surface-700 rounded-lg overflow-hidden">
+        {item.thumbnailUrl ? (
+          <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-xl">🎬</div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-xs font-medium line-clamp-2 group-hover:text-brand-400 transition-colors leading-relaxed">{item.title}</p>
+        <p className="text-gray-500 text-[11px] mt-1">{item.creator.displayName || item.creator.username}</p>
+        <p className="text-gray-600 text-[11px]">{item.views.toLocaleString()} views</p>
+      </div>
+    </Link>
+  );
+}
+
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -207,6 +313,8 @@ export default function WatchPage() {
   const [subRequired, setSubRequired] = useState(false);
   const [preview, setPreview] = useState<PreviewContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [related, setRelated] = useState<{ fromCreator: RelatedContent[]; sameType: RelatedContent[] }>({ fromCreator: [], sameType: [] });
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Resume playback state
   const [savedProgress, setSavedProgress] = useState(0);
@@ -237,6 +345,10 @@ export default function WatchPage() {
 
     api.get(`/content/${id}/comments`)
       .then((r) => setComments(r.data.comments))
+      .catch(() => {});
+
+    api.get(`/content/${id}/related`)
+      .then((r) => setRelated(r.data))
       .catch(() => {});
 
     // Load saved progress if logged in
@@ -389,8 +501,11 @@ export default function WatchPage() {
         </div>
       </div>
 
+      {/* Report modal */}
+      {reportOpen && <ReportModal contentId={id} onClose={() => setReportOpen(false)} />}
+
       {/* Actions */}
-      <div className="flex items-center gap-3 mb-8 pb-8 border-b border-surface-700">
+      <div className="flex items-center gap-3 mb-8 pb-8 border-b border-surface-700 flex-wrap">
         <Button variant={liked ? 'primary' : 'secondary'} size="sm" onClick={handleLike} disabled={!user}>
           {liked ? '👍 Liked' : '👍 Like'} · {(content._count?.likes || 0) + (liked ? 1 : 0)}
         </Button>
@@ -399,6 +514,16 @@ export default function WatchPage() {
             {content.creator.displayName || content.creator.username}
           </Button>
         </Link>
+        <div className="ml-auto">
+          {user && (
+            <button
+              onClick={() => setReportOpen(true)}
+              className="text-xs text-gray-500 hover:text-red-400 transition-colors flex items-center gap-1"
+            >
+              <span>⚑</span> Report
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Description */}
@@ -406,6 +531,32 @@ export default function WatchPage() {
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-300 mb-2">About</h3>
           <p className="text-gray-400 text-sm whitespace-pre-wrap">{content.description}</p>
+        </div>
+      )}
+
+      {/* Related content */}
+      {(related.fromCreator.length > 0 || related.sameType.length > 0) && (
+        <div className="mb-8">
+          {related.fromCreator.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                More from {content.creator.displayName || content.creator.username}
+              </h3>
+              <div className="space-y-2">
+                {related.fromCreator.map((item) => <MiniContentCard key={item.id} item={item} />)}
+              </div>
+            </div>
+          )}
+          {related.sameType.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                More {content.type.replace('_', ' ').toLowerCase()}
+              </h3>
+              <div className="space-y-2">
+                {related.sameType.slice(0, 4).map((item) => <MiniContentCard key={item.id} item={item} />)}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -30,7 +30,17 @@ interface AdminContent {
   _count: { likes: number; comments: number };
 }
 
-type Tab = 'overview' | 'users' | 'content';
+interface AdminReport {
+  id: string;
+  reason: string;
+  detail?: string | null;
+  status: string;
+  createdAt: string;
+  content: { id: string; title: string; type: string; status: string; creator: { username: string } };
+  reporter: { username: string; email: string };
+}
+
+type Tab = 'overview' | 'users' | 'content' | 'reports';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -475,6 +485,116 @@ function ContentTab() {
   );
 }
 
+// ── Reports tab ───────────────────────────────────────────────────────────────
+
+function ReportsTab() {
+  const [reports, setReports]   = useState<AdminReport[]>([]);
+  const [total, setTotal]       = useState(0);
+  const [pages, setPages]       = useState(1);
+  const [page, setPage]         = useState(1);
+  const [status, setStatus]     = useState('PENDING');
+  const [acting, setActing]     = useState<string | null>(null);
+
+  function load(p: number) {
+    const params: Record<string, string> = { page: String(p), limit: '20', status };
+    api.get('/admin/reports', { params })
+      .then((r) => { setReports(r.data.reports); setTotal(r.data.total); setPages(r.data.pages); setPage(p); })
+      .catch(() => {});
+  }
+
+  useEffect(() => { load(1); }, [status]); // eslint-disable-line
+
+  async function handleResolve(id: string, action: 'REVIEWED' | 'DISMISSED') {
+    setActing(id);
+    await api.post(`/admin/reports/${id}/resolve`, { action }).finally(() => setActing(null));
+    setReports((prev) => prev.map((r) => r.id === id ? { ...r, status: action } : r));
+  }
+
+  const REASON_LABEL: Record<string, string> = {
+    SPAM: 'Spam',
+    INAPPROPRIATE: 'Inappropriate',
+    COPYRIGHT: 'Copyright',
+    HATE_SPEECH: 'Hate speech',
+    MISINFORMATION: 'Misinformation',
+    OTHER: 'Other',
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-3 mb-5">
+        <select value={status} onChange={(e) => setStatus(e.target.value)}
+          className="bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+          <option value="PENDING">Pending</option>
+          <option value="REVIEWED">Reviewed</option>
+          <option value="DISMISSED">Dismissed</option>
+          <option value="ALL">All reports</option>
+        </select>
+        <span className="ml-auto text-sm text-gray-400 self-center">{total.toLocaleString()} reports</span>
+      </div>
+
+      {reports.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-4xl mb-3">✅</p>
+          <p>No {status.toLowerCase()} reports</p>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3">
+            {reports.map((r) => (
+              <div key={r.id} className="bg-surface-800 border border-surface-700 rounded-xl p-5">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        r.status === 'PENDING'   ? 'bg-yellow-500/20 text-yellow-400' :
+                        r.status === 'REVIEWED'  ? 'bg-green-500/20 text-green-400' :
+                                                   'bg-surface-600 text-gray-400'
+                      }`}>{r.status}</span>
+                      <span className="text-xs text-gray-400 bg-surface-700 px-2 py-0.5 rounded-full">
+                        {REASON_LABEL[r.reason] || r.reason}
+                      </span>
+                      <span className="text-xs text-gray-500">{fmtDate(r.createdAt)}</span>
+                    </div>
+                    <p className="text-white text-sm font-medium">
+                      <Link href={`/watch/${r.content.id}`} className="hover:text-brand-400 transition-colors">
+                        {r.content.title}
+                      </Link>
+                      <span className="text-gray-500 font-normal ml-2">by @{r.content.creator.username}</span>
+                    </p>
+                    <p className="text-gray-500 text-xs mt-0.5">Reported by @{r.reporter.username} ({r.reporter.email})</p>
+                    {r.detail && (
+                      <p className="text-gray-400 text-xs mt-2 bg-surface-700 rounded-lg px-3 py-2 italic">"{r.detail}"</p>
+                    )}
+                  </div>
+                  {r.status === 'PENDING' && (
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleResolve(r.id, 'REVIEWED')}
+                        disabled={acting === r.id}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40"
+                      >
+                        {acting === r.id ? '...' : 'Take action'}
+                      </button>
+                      <button
+                        onClick={() => handleResolve(r.id, 'DISMISSED')}
+                        disabled={acting === r.id}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition-colors disabled:opacity-40"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <Pager page={page} pages={pages} onChange={load} />
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -492,6 +612,7 @@ export default function AdminPage() {
     { key: 'overview', label: 'Overview', emoji: '📊' },
     { key: 'users',    label: 'Users',    emoji: '👥' },
     { key: 'content',  label: 'Content',  emoji: '🎵' },
+    { key: 'reports',  label: 'Reports',  emoji: '⚑' },
   ];
 
   return (
@@ -524,6 +645,7 @@ export default function AdminPage() {
       {tab === 'overview' && <OverviewTab />}
       {tab === 'users'    && <UsersTab />}
       {tab === 'content'  && <ContentTab />}
+      {tab === 'reports'  && <ReportsTab />}
     </div>
   );
 }

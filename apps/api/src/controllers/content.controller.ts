@@ -4,31 +4,77 @@ import { uploadToS3, deleteFromS3, getSignedMediaUrl } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers } from '../utils/notifications';
 
+const CONTENT_SELECT = {
+  id: true, title: true, description: true, type: true,
+  thumbnailUrl: true, duration: true, views: true, tags: true,
+  privacy: true, createdAt: true,
+  creator: { select: { username: true, displayName: true, avatar: true } },
+  _count: { select: { likes: true, comments: true } },
+} as const;
+
 export async function listContent(req: Request, res: Response) {
-  const { type, page = '1', limit = '12', creator } = req.query;
+  const { type, page = '1', limit = '12', creator, sort, tag } = req.query;
 
   const where: any = { status: 'ACTIVE', privacy: 'PUBLIC' };
   if (type) where.type = String(type).toUpperCase();
   if (creator) where.creator = { username: creator };
+  if (tag) where.tags = { has: String(tag).toLowerCase() };
+
+  const orderBy = sort === 'trending' ? { views: 'desc' as const } : { createdAt: 'desc' as const };
 
   const [items, total] = await Promise.all([
     prisma.content.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       skip: (Number(page) - 1) * Number(limit),
       take: Number(limit),
-      select: {
-        id: true, title: true, description: true, type: true,
-        thumbnailUrl: true, duration: true, views: true, tags: true,
-        createdAt: true,
-        creator: { select: { username: true, displayName: true, avatar: true } },
-        _count: { select: { likes: true, comments: true } },
-      },
+      select: CONTENT_SELECT,
     }),
     prisma.content.count({ where }),
   ]);
 
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+}
+
+export async function getDiscovery(_req: Request, res: Response) {
+  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const };
+
+  const [trending, newReleases, music, film, podcast, spokenWord, topCreators] = await Promise.all([
+    prisma.content.findMany({
+      where: base, orderBy: { views: 'desc' }, take: 8, select: CONTENT_SELECT,
+    }),
+    prisma.content.findMany({
+      where: base, orderBy: { createdAt: 'desc' }, take: 8, select: CONTENT_SELECT,
+    }),
+    prisma.content.findMany({
+      where: { ...base, type: 'MUSIC' }, orderBy: { createdAt: 'desc' }, take: 6, select: CONTENT_SELECT,
+    }),
+    prisma.content.findMany({
+      where: { ...base, type: 'FILM' }, orderBy: { createdAt: 'desc' }, take: 6, select: CONTENT_SELECT,
+    }),
+    prisma.content.findMany({
+      where: { ...base, type: 'PODCAST' }, orderBy: { createdAt: 'desc' }, take: 6, select: CONTENT_SELECT,
+    }),
+    prisma.content.findMany({
+      where: { ...base, type: 'SPOKEN_WORD' }, orderBy: { createdAt: 'desc' }, take: 6, select: CONTENT_SELECT,
+    }),
+    prisma.user.findMany({
+      where: { isCreator: true },
+      orderBy: { followers: { _count: 'desc' } },
+      take: 8,
+      select: {
+        username: true, displayName: true, avatar: true, bio: true,
+        _count: { select: { followers: true, content: true } },
+      },
+    }),
+  ]);
+
+  res.json({
+    trending,
+    newReleases,
+    byType: { MUSIC: music, FILM: film, PODCAST: podcast, SPOKEN_WORD: spokenWord },
+    creators: topCreators,
+  });
 }
 
 export async function getContent(req: AuthRequest, res: Response) {

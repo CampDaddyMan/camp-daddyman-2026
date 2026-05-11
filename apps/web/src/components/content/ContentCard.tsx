@@ -18,36 +18,53 @@ function formatDuration(seconds?: number) {
 
 export default function ContentCard({ item }: { item: Content }) {
   return (
-    <Link href={`/watch/${item.id}`} className="group block bg-surface-800 rounded-xl overflow-hidden hover:ring-1 hover:ring-brand-400/40 transition-all">
-      <div className="relative aspect-video bg-surface-700">
-        {item.thumbnailUrl ? (
-          <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl text-surface-500">
-            {item.type === 'MUSIC' ? '🎵' : item.type === 'FILM' ? '🎬' : item.type === 'PODCAST' ? '🎙️' : '🎤'}
-          </div>
-        )}
-        {item.duration && (
-          <span className="absolute bottom-2 right-2 bg-black/80 text-xs text-white px-1.5 py-0.5 rounded">
-            {formatDuration(item.duration)}
+    <div className="group bg-surface-800 rounded-xl overflow-hidden hover:ring-1 hover:ring-brand-400/40 transition-all">
+      <Link href={`/watch/${item.id}`} className="block">
+        <div className="relative aspect-video bg-surface-700">
+          {item.thumbnailUrl ? (
+            <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-4xl text-surface-500">
+              {item.type === 'MUSIC' ? '🎵' : item.type === 'FILM' ? '🎬' : item.type === 'PODCAST' ? '🎙️' : '🎤'}
+            </div>
+          )}
+          {item.duration && (
+            <span className="absolute bottom-2 right-2 bg-black/80 text-xs text-white px-1.5 py-0.5 rounded">
+              {formatDuration(item.duration)}
+            </span>
+          )}
+          <span className="absolute top-2 left-2 bg-brand-500/90 text-black text-xs font-semibold px-2 py-0.5 rounded-full">
+            {TYPE_LABELS[item.type]}
           </span>
-        )}
-        <span className="absolute top-2 left-2 bg-brand-500/90 text-black text-xs font-semibold px-2 py-0.5 rounded-full">
-          {TYPE_LABELS[item.type]}
-        </span>
-        {item.privacy === 'SUBSCRIBERS_ONLY' && (
-          <span className="absolute top-2 right-2 bg-surface-900/90 text-brand-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-brand-400/40">
-            Members
-          </span>
-        )}
-      </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-brand-400 transition-colors">
-          {item.title}
-        </h3>
-        <p className="text-xs text-gray-400 mt-1">{item.creator.displayName || item.creator.username}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{item.views.toLocaleString()} views</p>
-      </div>
-    </Link>
+          {item.privacy === 'SUBSCRIBERS_ONLY' && (
+            <span className="absolute top-2 right-2 bg-surface-900/90 text-brand-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-brand-400/40">
+              Members
+            </span>
+          )}
+        </div>
+        <div className="p-3 pb-2">
+          <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-brand-400 transition-colors">
+            {item.title}
+          </h3>
+          <p className="text-xs text-gray-400 mt-1">{item.creator.displayName || item.creator.username}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{item.views.toLocaleString()} views</p>
+        </div>
+      </Link>
+
+      {item.tags && item.tags.length > 0 && (
+        <div className="px-3 pb-3 flex flex-wrap gap-1">
+          {item.tags.slice(0, 3).map((tag) => (
+            <Link
+              key={tag}
+              href={`/browse?tag=${encodeURIComponent(tag)}`}
+              className="text-xs text-gray-500 hover:text-brand-400 hover:bg-brand-400/10 bg-surface-700 px-2 py-0.5 rounded-full transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              #{tag}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

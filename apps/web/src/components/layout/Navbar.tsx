@@ -28,11 +28,11 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6 text-sm">
-          <Link href="/" className="text-gray-300 hover:text-white transition-colors">Browse</Link>
-          <Link href="/?type=MUSIC" className="text-gray-300 hover:text-white transition-colors">Music</Link>
-          <Link href="/?type=FILM" className="text-gray-300 hover:text-white transition-colors">Film</Link>
-          <Link href="/?type=PODCAST" className="text-gray-300 hover:text-white transition-colors">Podcasts</Link>
-          <Link href="/?type=SPOKEN_WORD" className="text-gray-300 hover:text-white transition-colors">Spoken Word</Link>
+          <Link href="/browse" className="text-gray-300 hover:text-white transition-colors">Browse</Link>
+          <Link href="/browse?type=MUSIC" className="text-gray-300 hover:text-white transition-colors">Music</Link>
+          <Link href="/browse?type=FILM" className="text-gray-300 hover:text-white transition-colors">Film</Link>
+          <Link href="/browse?type=PODCAST" className="text-gray-300 hover:text-white transition-colors">Podcasts</Link>
+          <Link href="/browse?type=SPOKEN_WORD" className="text-gray-300 hover:text-white transition-colors">Spoken Word</Link>
         </div>
 
         {/* Desktop search */}
@@ -87,11 +87,11 @@ export default function Navbar() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-surface-800 border-t border-surface-700 px-4 py-4 flex flex-col gap-4 text-sm">
-          <Link href="/" onClick={() => setOpen(false)} className="text-gray-300">Browse</Link>
-          <Link href="/?type=MUSIC" onClick={() => setOpen(false)} className="text-gray-300">Music</Link>
-          <Link href="/?type=FILM" onClick={() => setOpen(false)} className="text-gray-300">Film</Link>
-          <Link href="/?type=PODCAST" onClick={() => setOpen(false)} className="text-gray-300">Podcasts</Link>
-          <Link href="/?type=SPOKEN_WORD" onClick={() => setOpen(false)} className="text-gray-300">Spoken Word</Link>
+          <Link href="/browse" onClick={() => setOpen(false)} className="text-gray-300">Browse</Link>
+          <Link href="/browse?type=MUSIC" onClick={() => setOpen(false)} className="text-gray-300">Music</Link>
+          <Link href="/browse?type=FILM" onClick={() => setOpen(false)} className="text-gray-300">Film</Link>
+          <Link href="/browse?type=PODCAST" onClick={() => setOpen(false)} className="text-gray-300">Podcasts</Link>
+          <Link href="/browse?type=SPOKEN_WORD" onClick={() => setOpen(false)} className="text-gray-300">Spoken Word</Link>
           {/* Mobile search */}
           <form onSubmit={handleSearch} className="flex gap-2">
             <input

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import {
   listContent,
+  getDiscovery,
   searchContent,
   getContent,
   uploadContent,
@@ -32,6 +33,7 @@ const upload = multer({
 
 // Public
 router.get('/', readLimiter, listContent);
+router.get('/discover', readLimiter, getDiscovery);
 router.get('/search', searchLimiter, searchContent);
 router.get('/:id', readLimiter, getContent);
 router.get('/:id/comments', readLimiter, getComments);

@@ -123,7 +123,16 @@ export async function getContent(req: AuthRequest, res: Response) {
     mediaUrl = await getSignedMediaUrl(mediaUrl);
   }
 
-  res.json({ content: { ...content, mediaUrl } });
+  // Check if the requesting user has liked this content
+  let isLiked = false;
+  if (req.user) {
+    const like = await prisma.like.findUnique({
+      where: { userId_contentId: { userId: req.user.id, contentId: content.id } },
+    });
+    isLiked = !!like;
+  }
+
+  res.json({ content: { ...content, mediaUrl }, isLiked });
 }
 
 export async function uploadContent(req: AuthRequest, res: Response) {

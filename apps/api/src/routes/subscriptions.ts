@@ -3,6 +3,7 @@ import {
   getPlans,
   getMySubscription,
   createCheckoutSession,
+  createPortalSession,
   cancelSubscription,
   stripeWebhook,
 } from '../controllers/subscription.controller';
@@ -16,6 +17,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook
 router.get('/plans', getPlans);
 router.get('/me', authMiddleware, getMySubscription);
 router.post('/checkout', authMiddleware, createCheckoutSession);
+router.post('/portal', authMiddleware, createPortalSession);
 router.post('/cancel', authMiddleware, cancelSubscription);
 
 export default router;

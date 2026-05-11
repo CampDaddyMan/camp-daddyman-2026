@@ -34,6 +34,24 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
   res.json({ url: session.url });
 }
 
+export async function createPortalSession(req: AuthRequest, res: Response) {
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId: req.user!.id },
+    select: { stripeCustomerId: true },
+  });
+
+  if (!subscription?.stripeCustomerId) {
+    return res.status(400).json({ error: 'No billing account found' });
+  }
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: subscription.stripeCustomerId,
+    return_url: `${process.env.FRONTEND_URL}/dashboard`,
+  });
+
+  res.json({ url: session.url });
+}
+
 export async function cancelSubscription(req: AuthRequest, res: Response) {
   const subscription = await prisma.subscription.findUnique({
     where: { userId: req.user!.id },

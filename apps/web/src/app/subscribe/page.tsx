@@ -40,6 +40,7 @@ export default function SubscribePage() {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   async function handleUpgrade(planKey: string) {
     if (!user) return router.push('/login');
@@ -52,13 +53,38 @@ export default function SubscribePage() {
     }
   }
 
+  async function handleManage() {
+    setPortalLoading(true);
+    try {
+      const { data } = await api.post('/subscriptions/portal');
+      window.location.href = data.url;
+    } catch {
+      setPortalLoading(false);
+    }
+  }
+
   const currentPlan = user?.subscription?.plan || 'FREE';
+  const isActivePaid = currentPlan !== 'FREE' && user?.subscription?.status === 'ACTIVE';
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-white mb-3">Choose your membership</h1>
         <p className="text-gray-400">Access all of Camp DaddyMan — music, film, teachings, and more.</p>
+        {isActivePaid && (
+          <div className="mt-6 inline-flex flex-col items-center gap-2">
+            <p className="text-sm text-gray-400">
+              You're on the <span className="text-brand-400 font-semibold">{currentPlan}</span> plan.
+            </p>
+            <button
+              onClick={handleManage}
+              disabled={portalLoading}
+              className="text-sm text-gray-300 hover:text-white border border-surface-600 hover:border-surface-500 px-5 py-2 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {portalLoading ? 'Redirecting...' : 'Manage billing & cancel →'}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">

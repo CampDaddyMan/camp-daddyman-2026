@@ -125,6 +125,7 @@ export default function DashboardPage() {
   const [resendSent, setResendSent] = useState(false);
   const [resending, setResending]   = useState(false);
   const [verifyDismissed, setVerifyDismissed] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -167,6 +168,14 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleManageBilling() {
+    setPortalLoading(true);
+    try {
+      const { data } = await api.post('/subscriptions/portal');
+      window.location.href = data.url;
+    } catch { setPortalLoading(false); }
+  }
+
   async function handleResend() {
     setResending(true);
     try {
@@ -194,7 +203,15 @@ export default function DashboardPage() {
           <Link href="/upload"><Button size="md">+ Upload</Button></Link>
           {plan === 'FREE'
             ? <Link href="/subscribe"><Button variant="secondary" size="md">Upgrade</Button></Link>
-            : <span className="inline-flex items-center px-4 py-2 text-sm bg-surface-700 text-brand-400 rounded-lg font-semibold border border-surface-600">{plan}</span>
+            : (
+              <button
+                onClick={handleManageBilling}
+                disabled={portalLoading}
+                className="inline-flex items-center px-4 py-2 text-sm bg-surface-700 text-brand-400 rounded-lg font-semibold border border-surface-600 hover:bg-surface-600 transition-colors disabled:opacity-50"
+              >
+                {portalLoading ? 'Redirecting...' : `${plan} · Manage`}
+              </button>
+            )
           }
         </div>
       </div>

@@ -163,7 +163,7 @@ export default function WatchPage() {
 
   useEffect(() => {
     api.get(`/content/${id}`)
-      .then((r) => { setContent(r.data.content); })
+      .then((r) => { setContent(r.data.content); setLiked(r.data.isLiked ?? false); })
       .catch((err) => {
         if (err.response?.data?.requiresSubscription) {
           setSubRequired(true);
@@ -204,8 +204,8 @@ export default function WatchPage() {
 
   async function handleLike() {
     if (!user) return;
-    await api.post(`/content/${id}/like`);
-    setLiked(!liked);
+    const { data } = await api.post(`/content/${id}/like`);
+    setLiked(data.liked);
   }
 
   async function handleComment(e: React.FormEvent) {

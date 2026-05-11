@@ -5,6 +5,7 @@ import { validationResult } from 'express-validator';
 import { prisma } from '../config/database';
 import { signToken } from '../utils/jwt';
 import { AuthRequest } from '../middleware/auth';
+import { uploadToS3, deleteFromS3 } from '../utils/s3';
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
@@ -107,11 +108,35 @@ export async function getMe(req: AuthRequest, res: Response) {
 // ── Update profile ────────────────────────────────────────────────────────────
 
 export async function updateProfile(req: AuthRequest, res: Response) {
-  const { displayName, bio, avatar } = req.body;
+  const { displayName, bio } = req.body;
 
   const user = await prisma.user.update({
     where: { id: req.user!.id },
-    data: { displayName, bio, avatar },
+    data: { displayName, bio },
+    select: { id: true, email: true, username: true, displayName: true, avatar: true, bio: true },
+  });
+
+  res.json({ user });
+}
+
+export async function uploadAvatar(req: AuthRequest, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'Image file required' });
+
+  // Delete existing avatar from R2 if present
+  const existing = await prisma.user.findUnique({
+    where: { id: req.user!.id },
+    select: { avatar: true },
+  });
+  if (existing?.avatar) {
+    deleteFromS3(existing.avatar).catch(() => {});
+  }
+
+  const avatarUrl = await uploadToS3(file, 'avatars');
+
+  const user = await prisma.user.update({
+    where: { id: req.user!.id },
+    data: { avatar: avatarUrl },
     select: { id: true, email: true, username: true, displayName: true, avatar: true, bio: true },
   });
 

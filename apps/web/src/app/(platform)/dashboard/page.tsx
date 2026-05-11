@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { ContentType, ContentStatus, Privacy } from '@/types';
@@ -111,7 +112,7 @@ function StatCard({ label, value, emoji }: { label: string; value: number; emoji
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const router = useRouter();
 
   const [data, setData]             = useState<DashboardData | null>(null);
@@ -126,6 +127,8 @@ export default function DashboardPage() {
   const [resending, setResending]   = useState(false);
   const [verifyDismissed, setVerifyDismissed] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -165,6 +168,22 @@ export default function DashboardPage() {
       setSaveMsg('Failed to save.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const form = new FormData();
+      form.append('avatar', file);
+      await api.post('/auth/me/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await refresh();
+    } catch {}
+    finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
     }
   }
 
@@ -327,6 +346,36 @@ export default function DashboardPage() {
                 >
                   {editOpen ? 'Cancel' : 'Edit'}
                 </button>
+              </div>
+
+              {/* Avatar */}
+              <div className="flex justify-center mb-5">
+                <div className="relative group">
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarUploading}
+                    className="relative w-20 h-20 rounded-full overflow-hidden bg-surface-600 flex items-center justify-center text-3xl focus:outline-none"
+                    title="Change avatar"
+                  >
+                    {user.avatar ? (
+                      <Image src={user.avatar} alt={user.username} fill className="object-cover" />
+                    ) : (
+                      <span>{(user.displayName || user.username)[0].toUpperCase()}</span>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                      <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                        {avatarUploading ? '...' : 'Change'}
+                      </span>
+                    </div>
+                  </button>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </div>
               </div>
 
               {editOpen ? (

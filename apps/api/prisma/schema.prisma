@@ -19,6 +19,7 @@ model User {
   bio         String?
   isAdmin     Boolean @default(false)
   isCreator   Boolean @default(false)
+  isBanned    Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

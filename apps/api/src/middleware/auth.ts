@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
     username: string;
     isAdmin: boolean;
     isCreator: boolean;
+    isBanned: boolean;
     subscription?: { plan: string; status: string } | null;
   };
 }
@@ -28,11 +29,13 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       username: true,
       isAdmin: true,
       isCreator: true,
+      isBanned: true,
       subscription: { select: { plan: true, status: true } },
     },
   });
 
   if (!user) return res.status(401).json({ error: 'User not found' });
+  if (user.isBanned) return res.status(403).json({ error: 'Account suspended', banned: true });
 
   req.user = user;
   next();
@@ -46,7 +49,7 @@ export async function optionalAuthMiddleware(req: AuthRequest, _res: Response, n
     if (decoded) {
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
-        select: { id: true, email: true, username: true, isAdmin: true, isCreator: true, subscription: { select: { plan: true, status: true } } },
+        select: { id: true, email: true, username: true, isAdmin: true, isCreator: true, isBanned: true, subscription: { select: { plan: true, status: true } } },
       });
       if (user) req.user = user;
     }

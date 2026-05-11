@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, login, getMe, updateProfile } from '../controllers/auth.controller';
+import {
+  register, login, getMe, updateProfile,
+  verifyEmail, resendVerification,
+  forgotPassword, resetPassword,
+} from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth';
-import { authLimiter } from '../middleware/rateLimiter';
+import { authLimiter, writeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -17,7 +21,12 @@ router.post('/login', authLimiter, [
   body('password').notEmpty().withMessage('Password required'),
 ], login);
 
-router.get('/me', authMiddleware, getMe);
-router.put('/me', authMiddleware, updateProfile);
+router.get('/me',  authMiddleware, getMe);
+router.put('/me',  authMiddleware, updateProfile);
+
+router.get('/verify-email',        verifyEmail);
+router.post('/resend-verification', authMiddleware, writeLimiter, resendVerification);
+router.post('/forgot-password',    authLimiter, forgotPassword);
+router.post('/reset-password',     authLimiter, resetPassword);
 
 export default router;

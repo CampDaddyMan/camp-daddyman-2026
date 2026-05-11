@@ -122,6 +122,9 @@ export default function DashboardPage() {
   const [bio, setBio]               = useState('');
   const [saving, setSaving]         = useState(false);
   const [saveMsg, setSaveMsg]       = useState('');
+  const [resendSent, setResendSent] = useState(false);
+  const [resending, setResending]   = useState(false);
+  const [verifyDismissed, setVerifyDismissed] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -164,6 +167,15 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleResend() {
+    setResending(true);
+    try {
+      await api.post('/auth/resend-verification');
+      setResendSent(true);
+    } catch {}
+    finally { setResending(false); }
+  }
+
   if (loading || !user) return null;
 
   const plan = user.subscription?.plan || 'FREE';
@@ -195,6 +207,36 @@ export default function DashboardPage() {
             <p className="text-gray-400 text-sm mt-0.5">Upgrade to unlock members-only content and more storage.</p>
           </div>
           <Link href="/subscribe"><Button size="sm">See plans</Button></Link>
+        </div>
+      )}
+
+      {/* ── Email verification banner ── */}
+      {!user.emailVerified && !verifyDismissed && (
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-6 py-4 mb-8 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-yellow-400 font-semibold text-sm">Verify your email address</p>
+            {resendSent ? (
+              <p className="text-gray-400 text-sm mt-0.5">Verification email sent — check your inbox (and spam folder).</p>
+            ) : (
+              <p className="text-gray-400 text-sm mt-0.5">
+                Check your inbox for a verification link. Didn't get it?{' '}
+                <button
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="text-yellow-400 hover:underline disabled:opacity-50"
+                >
+                  {resending ? 'Sending...' : 'Resend email'}
+                </button>
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => setVerifyDismissed(true)}
+            className="text-gray-500 hover:text-gray-300 text-lg leading-none mt-0.5"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
         </div>
       )}
 

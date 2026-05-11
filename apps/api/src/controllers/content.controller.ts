@@ -95,7 +95,22 @@ export async function getContent(req: AuthRequest, res: Response) {
     const plan = req.user?.subscription?.plan;
     const status = req.user?.subscription?.status;
     if (!plan || plan === 'FREE' || status !== 'ACTIVE') {
-      return res.status(403).json({ error: 'Subscriber-only content', requiresSubscription: true });
+      return res.status(403).json({
+        error: 'Subscriber-only content',
+        requiresSubscription: true,
+        preview: {
+          title: content.title,
+          description: content.description,
+          type: content.type,
+          thumbnailUrl: content.thumbnailUrl,
+          duration: content.duration,
+          tags: content.tags,
+          createdAt: content.createdAt,
+          views: content.views,
+          creator: content.creator,
+          _count: content._count,
+        },
+      });
     }
   }
 

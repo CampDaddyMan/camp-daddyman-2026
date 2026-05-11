@@ -3,12 +3,126 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import Image from 'next/image';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Content, Comment } from '@/types';
 import Button from '@/components/ui/Button';
 
 const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
+
+interface PreviewContent {
+  title: string;
+  description?: string;
+  type: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  tags: string[];
+  createdAt: string;
+  views: number;
+  creator: { username: string; displayName?: string; avatar?: string };
+  _count?: { likes: number; comments: number };
+}
+
+const GATE_FEATURES = [
+  { plan: 'Pro — $9.99/mo', href: '/subscribe', features: ['Members-only content', '100GB storage', 'HD quality', 'No ads'] },
+  { plan: 'Premium — $24.99/mo', href: '/subscribe', features: ['Everything in Pro', '4K quality', 'Download for offline', '500GB storage'] },
+];
+
+function SubscriberGate({ preview, user }: { preview: PreviewContent | null; user: any }) {
+  const TYPE_EMOJI: Record<string, string> = { MUSIC: '🎵', FILM: '🎬', PODCAST: '🎙️', SPOKEN_WORD: '🎤' };
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-10">
+      {/* Blurred preview */}
+      <div className="relative aspect-video bg-surface-800 rounded-2xl overflow-hidden mb-8">
+        {preview?.thumbnailUrl ? (
+          <>
+            <Image src={preview.thumbnailUrl} alt={preview.title} fill className="object-cover blur-sm scale-105 opacity-40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-20">
+            {TYPE_EMOJI[preview?.type || ''] || '🎬'}
+          </div>
+        )}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-black/60 border border-white/20 flex items-center justify-center mx-auto mb-3">
+              <span className="text-2xl">🔒</span>
+            </div>
+            <p className="text-white font-semibold text-sm">Members Only</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Content info */}
+      {preview && (
+        <div className="mb-8">
+          <h1 className="text-xl md:text-2xl font-bold text-white mb-2">{preview.title}</h1>
+          <div className="flex items-center gap-3 text-sm text-gray-400 flex-wrap">
+            <span>{preview.views.toLocaleString()} views</span>
+            <span className="text-brand-400">{preview.type.replace('_', ' ')}</span>
+            <Link href={`/creator/${preview.creator.username}`} className="hover:text-white transition-colors">
+              {preview.creator.displayName || preview.creator.username}
+            </Link>
+          </div>
+          {preview.description && (
+            <p className="text-gray-500 text-sm mt-3 line-clamp-2">{preview.description}</p>
+          )}
+        </div>
+      )}
+
+      {/* Gate message */}
+      <div className="bg-surface-800 border border-surface-700 rounded-2xl p-6 mb-6">
+        <h2 className="text-lg font-bold text-white mb-1">
+          {user ? 'Upgrade to unlock this content' : 'Join Camp DaddyMan to watch'}
+        </h2>
+        <p className="text-gray-400 text-sm mb-6">
+          {user
+            ? 'This content is available to Pro and Premium members. Upgrade your plan to get instant access.'
+            : 'Create a free account and subscribe to access members-only content.'}
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          {GATE_FEATURES.map((p) => (
+            <div key={p.plan} className="bg-surface-700 rounded-xl p-4">
+              <p className="text-white font-semibold text-sm mb-3">{p.plan}</p>
+              <ul className="space-y-1.5">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
+                    <span className="text-brand-400">✓</span>{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3 flex-wrap">
+          {user ? (
+            <Link href="/subscribe" className="flex-1">
+              <Button size="lg" className="w-full">See membership plans</Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/register" className="flex-1">
+                <Button size="lg" className="w-full">Create free account</Button>
+              </Link>
+              <Link href="/login">
+                <Button variant="secondary" size="lg">Sign in</Button>
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+
+      <p className="text-center text-sm text-gray-500">
+        <Link href="/browse" className="text-brand-400 hover:underline">← Back to browse</Link>
+      </p>
+    </div>
+  );
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -31,6 +145,7 @@ export default function WatchPage() {
   const [liked, setLiked] = useState(false);
   const [error, setError] = useState('');
   const [subRequired, setSubRequired] = useState(false);
+  const [preview, setPreview] = useState<PreviewContent | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Resume playback state
@@ -50,8 +165,12 @@ export default function WatchPage() {
     api.get(`/content/${id}`)
       .then((r) => { setContent(r.data.content); })
       .catch((err) => {
-        if (err.response?.data?.requiresSubscription) setSubRequired(true);
-        else setError('Content not found.');
+        if (err.response?.data?.requiresSubscription) {
+          setSubRequired(true);
+          setPreview(err.response.data.preview || null);
+        } else {
+          setError('Content not found.');
+        }
       })
       .finally(() => setLoading(false));
 
@@ -103,14 +222,7 @@ export default function WatchPage() {
     </div>
   );
 
-  if (subRequired) return (
-    <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-      <p className="text-4xl mb-4">🔒</p>
-      <h2 className="text-xl font-bold text-white mb-2">Members Only Content</h2>
-      <p className="text-gray-400 mb-6">This content is available to Pro and Premium members.</p>
-      <Link href="/subscribe"><Button size="lg">See membership plans</Button></Link>
-    </div>
-  );
+  if (subRequired) return <SubscriberGate preview={preview} user={user} />;
 
   if (error || !content) return (
     <div className="text-center py-20 text-gray-400">{error || 'Content not found.'}</div>

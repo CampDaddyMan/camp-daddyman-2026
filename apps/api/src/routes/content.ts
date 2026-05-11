@@ -13,7 +13,7 @@ import {
   saveProgress,
   getProgress,
 } from '../controllers/content.controller';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
@@ -35,7 +35,7 @@ const upload = multer({
 router.get('/', readLimiter, listContent);
 router.get('/discover', readLimiter, getDiscovery);
 router.get('/search', searchLimiter, searchContent);
-router.get('/:id', readLimiter, getContent);
+router.get('/:id', optionalAuthMiddleware, readLimiter, getContent);
 router.get('/:id/comments', readLimiter, getComments);
 
 // Authenticated

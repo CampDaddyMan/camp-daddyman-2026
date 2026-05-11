@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -50,6 +51,8 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
+              <Link href="/feed" className="text-sm text-gray-300 hover:text-white transition-colors">Following</Link>
+              <NotificationBell />
               <Link href="/dashboard" className="text-sm text-gray-300 hover:text-white transition-colors">
                 {user.displayName || user.username}
               </Link>
@@ -103,6 +106,8 @@ export default function Navbar() {
           </form>
           {user ? (
             <>
+              <Link href="/feed" onClick={() => setOpen(false)} className="text-gray-300">Following</Link>
+              <Link href="/notifications" onClick={() => setOpen(false)} className="text-gray-300">Notifications</Link>
               <Link href="/dashboard" onClick={() => setOpen(false)} className="text-gray-300">Dashboard</Link>
               <Link href="/upload" onClick={() => setOpen(false)} className="text-gray-300">Upload</Link>
               {user.isAdmin && <Link href="/admin" onClick={() => setOpen(false)} className="text-brand-400">Admin</Link>}

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { uploadToS3, deleteFromS3, getSignedMediaUrl } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
+import { notify, notifyFollowers } from '../utils/notifications';
 
 export async function listContent(req: Request, res: Response) {
   const { type, page = '1', limit = '12', creator } = req.query;
@@ -102,6 +103,9 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     await prisma.user.update({ where: { id: req.user!.id }, data: { isCreator: true } });
   }
 
+  // Notify followers about new content (fire and forget)
+  notifyFollowers(req.user!.id, content.id);
+
   res.status(201).json({ content });
 }
 
@@ -128,23 +132,62 @@ export async function likeContent(req: AuthRequest, res: Response) {
 
   if (existing) {
     await prisma.like.delete({ where: { id: existing.id } });
-    res.json({ liked: false });
-  } else {
-    await prisma.like.create({ data: { userId: req.user!.id, contentId: req.params.id } });
-    res.json({ liked: true });
+    return res.json({ liked: false });
   }
+
+  const [like, content] = await Promise.all([
+    prisma.like.create({ data: { userId: req.user!.id, contentId: req.params.id } }),
+    prisma.content.findUnique({ where: { id: req.params.id }, select: { creatorId: true } }),
+  ]);
+
+  if (content) {
+    notify({ userId: content.creatorId, type: 'NEW_LIKE', actorId: req.user!.id, contentId: req.params.id });
+  }
+
+  res.json({ liked: true });
 }
 
 export async function commentOnContent(req: AuthRequest, res: Response) {
   const { text } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'Comment text required' });
 
-  const comment = await prisma.comment.create({
-    data: { text: text.trim(), userId: req.user!.id, contentId: req.params.id },
-    include: { user: { select: { username: true, displayName: true, avatar: true } } },
-  });
+  const [comment, content] = await Promise.all([
+    prisma.comment.create({
+      data: { text: text.trim(), userId: req.user!.id, contentId: req.params.id },
+      include: { user: { select: { username: true, displayName: true, avatar: true } } },
+    }),
+    prisma.content.findUnique({ where: { id: req.params.id }, select: { creatorId: true } }),
+  ]);
+
+  if (content) {
+    notify({ userId: content.creatorId, type: 'NEW_COMMENT', actorId: req.user!.id, contentId: req.params.id });
+  }
 
   res.status(201).json({ comment });
+}
+
+export async function saveProgress(req: AuthRequest, res: Response) {
+  const { progress } = req.body;
+  if (typeof progress !== 'number' || progress < 0) {
+    return res.status(400).json({ error: 'progress must be a non-negative number (seconds)' });
+  }
+
+  const record = await prisma.watchHistory.upsert({
+    where: { userId_contentId: { userId: req.user!.id, contentId: req.params.id } },
+    update: { progress, watchedAt: new Date() },
+    create: { userId: req.user!.id, contentId: req.params.id, progress },
+  });
+
+  res.json({ progress: record.progress });
+}
+
+export async function getProgress(req: AuthRequest, res: Response) {
+  const record = await prisma.watchHistory.findUnique({
+    where: { userId_contentId: { userId: req.user!.id, contentId: req.params.id } },
+    select: { progress: true, watchedAt: true },
+  });
+
+  res.json({ progress: record?.progress ?? 0, watchedAt: record?.watchedAt ?? null });
 }
 
 export async function searchContent(req: Request, res: Response) {

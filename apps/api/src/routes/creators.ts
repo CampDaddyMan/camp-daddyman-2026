@@ -1,9 +1,13 @@
 import { Router } from 'express';
-import { getCreator, getCreatorContent } from '../controllers/creator.controller';
+import { getCreator, getCreatorContent, toggleFollow, getFollowingFeed } from '../controllers/creator.controller';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
-router.get('/:username', getCreator);
-router.get('/:username/content', getCreatorContent);
+router.get('/feed', authMiddleware, readLimiter, getFollowingFeed);
+router.get('/:username', optionalAuthMiddleware, readLimiter, getCreator);
+router.get('/:username/content', readLimiter, getCreatorContent);
+router.post('/:username/follow', authMiddleware, writeLimiter, toggleFollow);
 
 export default router;

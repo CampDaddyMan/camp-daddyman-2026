@@ -55,46 +55,95 @@ export async function cancelSubscription(req: AuthRequest, res: Response) {
 
 export async function stripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'] as string;
-  let event;
 
+  if (!sig) return res.status(400).send('Missing stripe-signature header');
+
+  let event;
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch {
-    return res.status(400).send('Webhook signature invalid');
+  } catch (err: any) {
+    return res.status(400).send(`Webhook signature invalid: ${err.message}`);
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as any;
-      const { userId, plan } = session.metadata;
+  try {
+    switch (event.type) {
+      // Payment succeeded — activate / upgrade the subscription
+      case 'checkout.session.completed': {
+        const session = event.data.object as any;
+        const { userId, plan } = session.metadata ?? {};
+        if (!userId || !plan) break;
 
-      await prisma.subscription.upsert({
-        where: { userId },
-        update: {
-          plan,
-          status: 'ACTIVE',
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-        },
-        create: {
-          userId,
-          plan,
-          status: 'ACTIVE',
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-        },
-      });
-      break;
+        await prisma.subscription.upsert({
+          where: { userId },
+          update: {
+            plan,
+            status: 'ACTIVE',
+            stripeCustomerId: session.customer,
+            stripeSubscriptionId: session.subscription,
+          },
+          create: {
+            userId,
+            plan,
+            status: 'ACTIVE',
+            stripeCustomerId: session.customer,
+            stripeSubscriptionId: session.subscription,
+          },
+        });
+        break;
+      }
+
+      // Subscription renewed or plan changed from Stripe dashboard
+      case 'customer.subscription.updated': {
+        const sub = event.data.object as any;
+        const priceId: string = sub.items?.data?.[0]?.price?.id;
+        const plan = priceId ? getPlanByPriceId(priceId) : null;
+
+        await prisma.subscription.updateMany({
+          where: { stripeSubscriptionId: sub.id },
+          data: {
+            status: sub.status === 'active' ? 'ACTIVE'
+                  : sub.status === 'past_due' ? 'PAST_DUE'
+                  : sub.status === 'trialing' ? 'TRIALING'
+                  : 'CANCELLED',
+            ...(plan && { plan }),
+            currentPeriodStart: new Date(sub.current_period_start * 1000),
+            currentPeriodEnd:   new Date(sub.current_period_end   * 1000),
+          },
+        });
+        break;
+      }
+
+      // Subscription was deleted (cancelled and period ended)
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object as any;
+        await prisma.subscription.updateMany({
+          where: { stripeSubscriptionId: sub.id },
+          data: { status: 'CANCELLED', plan: 'FREE' },
+        });
+        break;
+      }
+
+      // Payment failed on renewal
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as any;
+        await prisma.subscription.updateMany({
+          where: { stripeCustomerId: invoice.customer },
+          data: { status: 'PAST_DUE' },
+        });
+        break;
+      }
     }
-    case 'invoice.payment_failed': {
-      const invoice = event.data.object as any;
-      await prisma.subscription.updateMany({
-        where: { stripeCustomerId: invoice.customer },
-        data: { status: 'PAST_DUE' },
-      });
-      break;
-    }
+  } catch (err) {
+    console.error('Webhook handler error:', err);
+    return res.status(500).json({ error: 'Webhook processing failed' });
   }
 
   res.json({ received: true });
+}
+
+function getPlanByPriceId(priceId: string): 'PRO' | 'PREMIUM' | null {
+  for (const [key, plan] of Object.entries(PLANS)) {
+    if ((plan as any).priceId === priceId) return key as 'PRO' | 'PREMIUM';
+  }
+  return null;
 }

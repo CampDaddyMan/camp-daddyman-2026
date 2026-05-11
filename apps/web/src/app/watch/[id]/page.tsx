@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -14,6 +14,14 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+function formatTime(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -24,6 +32,19 @@ export default function WatchPage() {
   const [error, setError] = useState('');
   const [subRequired, setSubRequired] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Resume playback state
+  const [savedProgress, setSavedProgress] = useState(0);
+  const [showResumeBanner, setShowResumeBanner] = useState(false);
+  const [hasResumed, setHasResumed] = useState(false);
+  const playerRef = useRef<any>(null);
+  const currentProgressRef = useRef(0);
+  const saveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const saveProgress = useCallback((seconds: number) => {
+    if (!user || seconds < 5) return;
+    api.post(`/content/${id}/progress`, { progress: Math.floor(seconds) }).catch(() => {});
+  }, [id, user]);
 
   useEffect(() => {
     api.get(`/content/${id}`)
@@ -37,7 +58,30 @@ export default function WatchPage() {
     api.get(`/content/${id}/comments`)
       .then((r) => setComments(r.data.comments))
       .catch(() => {});
-  }, [id]);
+
+    // Load saved progress if logged in
+    if (user) {
+      api.get(`/content/${id}/progress`)
+        .then((r) => {
+          const secs = r.data.progress as number;
+          if (secs > 10) {
+            setSavedProgress(secs);
+            setShowResumeBanner(true);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // Save progress every 30 seconds
+    saveIntervalRef.current = setInterval(() => {
+      saveProgress(currentProgressRef.current);
+    }, 30_000);
+
+    return () => {
+      if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
+      saveProgress(currentProgressRef.current);
+    };
+  }, [id, user, saveProgress]);
 
   async function handleLike() {
     if (!user) return;
@@ -72,12 +116,64 @@ export default function WatchPage() {
     <div className="text-center py-20 text-gray-400">{error || 'Content not found.'}</div>
   );
 
+  function handlePlayerReady() {
+    if (hasResumed || savedProgress <= 0) return;
+    // If user dismissed the banner we auto-resume; if banner is gone we already seeked
+    if (!showResumeBanner) {
+      playerRef.current?.seekTo(savedProgress, 'seconds');
+      setHasResumed(true);
+    }
+  }
+
+  function handleResume() {
+    playerRef.current?.seekTo(savedProgress, 'seconds');
+    setHasResumed(true);
+    setShowResumeBanner(false);
+  }
+
+  function handleStartOver() {
+    setShowResumeBanner(false);
+    setHasResumed(true);
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Player */}
-      <div className="aspect-video bg-black rounded-2xl overflow-hidden mb-6">
-        <ReactPlayer url={content.mediaUrl} controls width="100%" height="100%" playing />
+      <div className="aspect-video bg-black rounded-2xl overflow-hidden mb-3 relative">
+        <ReactPlayer
+          ref={playerRef}
+          url={content.mediaUrl}
+          controls
+          width="100%"
+          height="100%"
+          playing
+          onReady={handlePlayerReady}
+          onProgress={({ playedSeconds }) => { currentProgressRef.current = playedSeconds; }}
+        />
       </div>
+
+      {/* Resume banner */}
+      {showResumeBanner && (
+        <div className="flex items-center justify-between bg-surface-700 border border-surface-600 rounded-xl px-4 py-3 mb-4 text-sm">
+          <span className="text-gray-300">
+            You left off at <strong className="text-white">{formatTime(savedProgress)}</strong>
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartOver}
+              className="text-gray-400 hover:text-white transition-colors px-3 py-1.5"
+            >
+              Start over
+            </button>
+            <button
+              onClick={handleResume}
+              className="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-1.5 rounded-lg transition-colors"
+            >
+              Resume
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Meta */}
       <div className="mb-6">

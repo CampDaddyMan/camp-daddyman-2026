@@ -28,6 +28,10 @@ model User {
   likes        Like[]
   comments     Comment[]
   watchHistory WatchHistory[]
+  followers             Follow[]       @relation("UserFollowing")
+  following             Follow[]       @relation("UserFollowers")
+  notifications         Notification[] @relation("NotificationRecipient")
+  triggeredNotifications Notification[] @relation("NotificationActor")
 }
 
 // ── Content ───────────────────────────────────────────────────────────────────
@@ -51,9 +55,10 @@ model Content {
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-  likes        Like[]
-  comments     Comment[]
-  watchHistory WatchHistory[]
+  likes         Like[]
+  comments      Comment[]
+  watchHistory  WatchHistory[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -142,6 +147,20 @@ model Comment {
   @@index([contentId])
 }
 
+model Follow {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User   @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
 model WatchHistory {
   id        String  @id @default(cuid())
   userId    String
@@ -154,4 +173,32 @@ model WatchHistory {
 
   @@unique([userId, contentId])
   @@index([userId])
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  read    Boolean          @default(false)
+
+  actorId   String?
+  contentId String?
+
+  user    User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor   User?    @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  content Content? @relation(fields: [contentId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+enum NotificationType {
+  NEW_CONTENT   // followed creator posted new content
+  NEW_LIKE      // someone liked your content
+  NEW_COMMENT   // someone commented on your content
+  NEW_FOLLOWER  // someone followed you
 }

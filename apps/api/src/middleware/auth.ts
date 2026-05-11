@@ -8,6 +8,7 @@ export interface AuthRequest extends Request {
     email: string;
     username: string;
     isAdmin: boolean;
+    isCreator: boolean;
     subscription?: { plan: string; status: string } | null;
   };
 }
@@ -26,6 +27,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       email: true,
       username: true,
       isAdmin: true,
+      isCreator: true,
       subscription: { select: { plan: true, status: true } },
     },
   });
@@ -33,6 +35,22 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
   if (!user) return res.status(401).json({ error: 'User not found' });
 
   req.user = user;
+  next();
+}
+
+// Decodes token if present but never blocks the request
+export async function optionalAuthMiddleware(req: AuthRequest, _res: Response, next: NextFunction) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (token) {
+    const decoded = verifyToken(token);
+    if (decoded) {
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: { id: true, email: true, username: true, isAdmin: true, isCreator: true, subscription: { select: { plan: true, status: true } } },
+      });
+      if (user) req.user = user;
+    }
+  }
   next();
 }
 

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import {
   getPlans,
   getMySubscription,
@@ -10,18 +10,12 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
-// Stripe webhooks must receive raw body
-router.post('/webhook', express_raw(), stripeWebhook);
+// Webhook must receive the raw body — registered before any JSON middleware
+router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 router.get('/plans', getPlans);
 router.get('/me', authMiddleware, getMySubscription);
 router.post('/checkout', authMiddleware, createCheckoutSession);
 router.post('/cancel', authMiddleware, cancelSubscription);
-
-// express.raw() helper inline
-function express_raw() {
-  const express = require('express');
-  return express.raw({ type: 'application/json' });
-}
 
 export default router;

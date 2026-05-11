@@ -147,6 +147,49 @@ export async function commentOnContent(req: AuthRequest, res: Response) {
   res.status(201).json({ comment });
 }
 
+export async function searchContent(req: Request, res: Response) {
+  const { q, type, page = '1', limit = '12' } = req.query;
+
+  if (!q || String(q).trim().length < 2) {
+    return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+  }
+
+  const term = String(q).trim();
+
+  const where: any = {
+    status: 'ACTIVE',
+    privacy: 'PUBLIC',
+    OR: [
+      { title:       { contains: term, mode: 'insensitive' } },
+      { description: { contains: term, mode: 'insensitive' } },
+      { tags:        { has: term.toLowerCase() } },
+      { creator: { username:    { contains: term, mode: 'insensitive' } } },
+      { creator: { displayName: { contains: term, mode: 'insensitive' } } },
+    ],
+  };
+
+  if (type) where.type = String(type).toUpperCase();
+
+  const [items, total] = await Promise.all([
+    prisma.content.findMany({
+      where,
+      orderBy: { views: 'desc' },
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      select: {
+        id: true, title: true, description: true, type: true,
+        thumbnailUrl: true, duration: true, views: true, tags: true,
+        createdAt: true,
+        creator: { select: { username: true, displayName: true, avatar: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    }),
+    prisma.content.count({ where }),
+  ]);
+
+  res.json({ items, total, query: term, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+}
+
 export async function getComments(req: Request, res: Response) {
   const comments = await prisma.comment.findMany({
     where: { contentId: req.params.id },

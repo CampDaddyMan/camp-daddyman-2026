@@ -1,11 +1,22 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    if (searchQuery.trim().length < 2) return;
+    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    setSearchQuery('');
+    setOpen(false);
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur border-b border-surface-700">
@@ -22,6 +33,19 @@ export default function Navbar() {
           <Link href="/?type=PODCAST" className="text-gray-300 hover:text-white transition-colors">Podcasts</Link>
           <Link href="/?type=SPOKEN_WORD" className="text-gray-300 hover:text-white transition-colors">Spoken Word</Link>
         </div>
+
+        {/* Desktop search */}
+        <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2">
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-1.5 text-sm w-48 focus:outline-none focus:border-brand-400 focus:w-64 transition-all"
+          />
+          <button type="submit" className="text-gray-400 hover:text-brand-400 transition-colors text-lg leading-none">
+            🔍
+          </button>
+        </form>
 
         <div className="hidden md:flex items-center gap-3">
           {user ? (
@@ -65,6 +89,18 @@ export default function Navbar() {
           <Link href="/?type=FILM" onClick={() => setOpen(false)} className="text-gray-300">Film</Link>
           <Link href="/?type=PODCAST" onClick={() => setOpen(false)} className="text-gray-300">Podcasts</Link>
           <Link href="/?type=SPOKEN_WORD" onClick={() => setOpen(false)} className="text-gray-300">Spoken Word</Link>
+          {/* Mobile search */}
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+            />
+            <button type="submit" className="bg-brand-500 text-black px-3 py-2 rounded-lg text-sm font-semibold">
+              Go
+            </button>
+          </form>
           {user ? (
             <>
               <Link href="/dashboard" onClick={() => setOpen(false)} className="text-gray-300">Dashboard</Link>

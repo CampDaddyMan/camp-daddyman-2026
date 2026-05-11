@@ -26,6 +26,7 @@ export default function UploadPage() {
   const [privacy, setPrivacy] = useState<Privacy>('PUBLIC');
   const [tags, setTags] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function UploadPage() {
 
     setError('');
     setUploading(true);
+    setUploadProgress(0);
 
     const fd = new FormData();
     fd.append('media', mediaFile);
@@ -72,11 +74,15 @@ export default function UploadPage() {
     try {
       const { data } = await api.post('/content/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (e.total) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        },
       });
       router.push(`/watch/${data.content.id}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Upload failed. Please try again.');
       setUploading(false);
+      setUploadProgress(0);
     }
   }
 
@@ -165,8 +171,24 @@ export default function UploadPage() {
           )}
         </div>
 
+        {uploading && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">
+                {uploadProgress < 100 ? 'Uploading...' : 'Processing...'}
+              </span>
+              <span className="text-brand-400 font-medium">{uploadProgress}%</span>
+            </div>
+            <div className="h-2 bg-surface-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-brand-500 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
         <Button type="submit" disabled={uploading} size="lg" className="w-full">
-          {uploading ? 'Uploading...' : 'Publish'}
+          {uploading ? (uploadProgress < 100 ? `Uploading ${uploadProgress}%` : 'Processing...') : 'Publish'}
         </Button>
       </form>
     </div>

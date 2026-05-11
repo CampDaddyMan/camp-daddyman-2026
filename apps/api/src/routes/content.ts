@@ -9,6 +9,7 @@ import {
   deleteContent,
   likeContent,
   commentOnContent,
+  deleteComment,
   getComments,
   saveProgress,
   getProgress,
@@ -49,6 +50,7 @@ router.post(
 router.delete('/:id', authMiddleware, writeLimiter, deleteContent);
 router.post('/:id/like', authMiddleware, writeLimiter, likeContent);
 router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);
+router.delete('/:id/comment/:commentId', authMiddleware, writeLimiter, deleteComment);
 router.post('/:id/progress', authMiddleware, saveProgress);
 router.get('/:id/progress', authMiddleware, getProgress);
 

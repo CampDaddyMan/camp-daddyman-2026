@@ -245,7 +245,7 @@ export async function commentOnContent(req: AuthRequest, res: Response) {
   const [comment, content] = await Promise.all([
     prisma.comment.create({
       data: { text: text.trim(), userId: req.user!.id, contentId: req.params.id },
-      include: { user: { select: { username: true, displayName: true, avatar: true } } },
+      include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } },
     }),
     prisma.content.findUnique({ where: { id: req.params.id }, select: { creatorId: true } }),
   ]);
@@ -255,6 +255,22 @@ export async function commentOnContent(req: AuthRequest, res: Response) {
   }
 
   res.status(201).json({ comment });
+}
+
+export async function deleteComment(req: AuthRequest, res: Response) {
+  const comment = await prisma.comment.findUnique({
+    where: { id: req.params.commentId },
+    select: { userId: true, contentId: true },
+  });
+
+  if (!comment) return res.status(404).json({ error: 'Comment not found' });
+  if (comment.contentId !== req.params.id) return res.status(400).json({ error: 'Comment does not belong to this content' });
+  if (comment.userId !== req.user!.id && !req.user!.isAdmin) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+
+  await prisma.comment.delete({ where: { id: req.params.commentId } });
+  res.json({ deleted: true });
 }
 
 export async function saveProgress(req: AuthRequest, res: Response) {
@@ -329,7 +345,7 @@ export async function getComments(req: Request, res: Response) {
     where: { contentId: req.params.id },
     orderBy: { createdAt: 'desc' },
     take: 50,
-    include: { user: { select: { username: true, displayName: true, avatar: true } } },
+    include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } },
   });
 
   res.json({ comments });

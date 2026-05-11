@@ -277,6 +277,11 @@ export default function WatchPage() {
     setCommentText('');
   }
 
+  async function handleDeleteComment(commentId: string) {
+    await api.delete(`/content/${id}/comment/${commentId}`);
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+  }
+
   if (loading) return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="aspect-video bg-surface-700 rounded-2xl animate-pulse mb-6" />
@@ -425,6 +430,14 @@ export default function WatchPage() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-white">{c.user.displayName || c.user.username}</span>
                 <span className="text-xs text-gray-500">{formatDate(c.createdAt)}</span>
+                {user && (user.id === c.user.id || user.isAdmin) && (
+                  <button
+                    onClick={() => handleDeleteComment(c.id)}
+                    className="ml-auto text-xs text-gray-500 hover:text-red-400 transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
               <p className="text-sm text-gray-300">{c.text}</p>
             </div>

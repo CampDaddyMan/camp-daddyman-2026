@@ -39,5 +39,5 @@ export interface Comment {
   id: string;
   text: string;
   createdAt: string;
-  user: { username: string; displayName?: string; avatar?: string };
+  user: { id: string; username: string; displayName?: string; avatar?: string };
 }

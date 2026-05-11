@@ -131,3 +131,30 @@ export async function getCreatorContent(req: Request, res: Response) {
 
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }
+
+
+export async function searchCreators(req: Request, res: Response) {
+  const { q } = req.query;
+  if (!q || String(q).trim().length < 2) {
+    return res.status(400).json({ error: 'Query must be at least 2 characters' });
+  }
+
+  const term = String(q).trim();
+  const creators = await prisma.user.findMany({
+    where: {
+      isCreator: true,
+      OR: [
+        { username:    { contains: term, mode: 'insensitive' } },
+        { displayName: { contains: term, mode: 'insensitive' } },
+        { bio:         { contains: term, mode: 'insensitive' } },
+      ],
+    },
+    take: 6,
+    select: {
+      username: true, displayName: true, avatar: true, bio: true,
+      _count: { select: { followers: true, content: true } },
+    },
+  });
+
+  res.json({ creators });
+}

@@ -55,6 +55,20 @@ function runFFmpeg(inputPath: string, outputDir: string): Promise<void> {
   });
 }
 
+function extractThumbnail(inputPath: string, thumbPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Seek to 3 seconds (or start of file if shorter), grab one frame
+    const proc = spawn('ffmpeg', [
+      '-y', '-ss', '3', '-i', inputPath,
+      '-frames:v', '1', '-q:v', '2',
+      '-vf', 'scale=1280:-2',
+      thumbPath,
+    ]);
+    proc.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg thumb exit ${code}`))));
+    proc.on('error', reject);
+  });
+}
+
 async function uploadHLSDir(dir: string, prefix: string): Promise<void> {
   const files = fs.readdirSync(dir);
   for (const file of files) {
@@ -97,6 +111,25 @@ export async function startTranscodeWorker(): Promise<void> {
         await job.updateProgress(10);
         await downloadFromS3(mediaUrl, inputPath);
 
+        // Auto-generate thumbnail if none was uploaded
+        const existing = await prisma.content.findUnique({
+          where: { id: contentId },
+          select: { thumbnailUrl: true },
+        });
+        let autoThumbUrl: string | undefined;
+        if (!existing?.thumbnailUrl) {
+          const thumbPath = path.join(tmpDir, 'thumb.jpg');
+          try {
+            await extractThumbnail(inputPath, thumbPath);
+            if (fs.existsSync(thumbPath)) {
+              const thumbKey = `thumbnails/${contentId}-auto.jpg`;
+              autoThumbUrl = await uploadRawToS3(fs.readFileSync(thumbPath), thumbKey, 'image/jpeg');
+            }
+          } catch (e) {
+            console.warn('[Transcoder] Thumbnail extraction failed (non-fatal):', (e as Error).message);
+          }
+        }
+
         await job.updateProgress(30);
         await runFFmpeg(inputPath, outputDir);
 
@@ -107,7 +140,11 @@ export async function startTranscodeWorker(): Promise<void> {
         const hlsUrl = `${R2_PUBLIC_URL}/${hlsPrefix}/index.m3u8`;
         const updated = await prisma.content.update({
           where: { id: contentId },
-          data: { hlsUrl, status: 'ACTIVE' },
+          data: {
+            hlsUrl,
+            status: 'ACTIVE',
+            ...(autoThumbUrl && { thumbnailUrl: autoThumbUrl }),
+          },
           select: { creatorId: true },
         });
 

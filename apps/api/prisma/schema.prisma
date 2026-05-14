@@ -139,6 +139,7 @@ enum SubscriptionPlan {
   FREE
   PRO
   PREMIUM
+  CREATOR
 }
 
 enum SubscriptionStatus {

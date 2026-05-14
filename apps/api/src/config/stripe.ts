@@ -23,4 +23,10 @@ export const PLANS = {
     priceId: process.env.STRIPE_PREMIUM_PRICE_ID,
     features: ['All content', '500GB storage', '4K quality', 'No ads', 'Priority support', 'Download for offline'],
   },
+  CREATOR: {
+    name: 'Creator',
+    price: 29.99,
+    priceId: process.env.STRIPE_CREATOR_PRICE_ID,
+    features: ['Everything in Premium', 'Upload & publish content', 'Creator analytics dashboard', 'Subscriber-only content gating', 'Custom creator profile page', 'Revenue from paid content'],
+  },
 } as const;

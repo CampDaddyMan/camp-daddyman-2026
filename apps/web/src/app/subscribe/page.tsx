@@ -18,7 +18,7 @@ const PLANS = [
   {
     key: 'PRO',
     name: 'Pro',
-    price: '$9.99',
+    price: '$19.99',
     period: '/mo',
     features: ['Everything in Free', 'Members-only content', '100GB storage', 'HD quality', 'No ads'],
     cta: 'Upgrade to Pro',
@@ -27,12 +27,21 @@ const PLANS = [
   {
     key: 'PREMIUM',
     name: 'Premium',
-    price: '$24.99',
-    period: '/mo',
+    price: '$99.99',
+    period: '/yr',
     features: ['Everything in Pro', '500GB storage', '4K quality', 'Download for offline', 'Priority support'],
     cta: 'Upgrade to Premium',
     disabled: false,
     highlight: true,
+  },
+  {
+    key: 'CREATOR',
+    name: 'Creator',
+    price: '$29.99',
+    period: '/mo',
+    features: ['Everything in Premium', 'Upload & publish content', 'Creator analytics dashboard', 'Subscriber-only content gating', 'Custom creator profile page', 'Revenue from paid content'],
+    cta: 'Become a Creator',
+    disabled: false,
   },
 ];
 

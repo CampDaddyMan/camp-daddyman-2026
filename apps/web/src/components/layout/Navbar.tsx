@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -22,12 +23,22 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur border-b border-surface-700">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-        <Link href="/" className="text-brand-400 font-bold text-xl tracking-tight">
-          Camp DaddyMan
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-brand-500/40 group-hover:ring-brand-400/60 transition-all shadow-[0_0_12px_rgba(232,184,0,0.15)]">
+            <Image
+              src="/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png"
+              alt="Camp DaddyMan"
+              width={36}
+              height={36}
+              className="object-cover"
+            />
+          </div>
+          <span className="text-brand-400 font-bold text-lg tracking-tight leading-none">Camp DaddyMan</span>
         </Link>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6 text-sm">
+          <Link href="/" className="text-gray-300 hover:text-white transition-colors">Home</Link>
           <Link href="/browse" className="text-gray-300 hover:text-white transition-colors">Browse</Link>
           <Link href="/browse?type=MUSIC" className="text-gray-300 hover:text-white transition-colors">Music</Link>
           <Link href="/browse?type=FILM" className="text-gray-300 hover:text-white transition-colors">Film</Link>
@@ -87,6 +98,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-surface-800 border-t border-surface-700 px-4 py-4 flex flex-col gap-4 text-sm">
+          <Link href="/" onClick={() => setOpen(false)} className="text-gray-300">Home</Link>
           <Link href="/browse" onClick={() => setOpen(false)} className="text-gray-300">Browse</Link>
           <Link href="/browse?type=MUSIC" onClick={() => setOpen(false)} className="text-gray-300">Music</Link>
           <Link href="/browse?type=FILM" onClick={() => setOpen(false)} className="text-gray-300">Film</Link>

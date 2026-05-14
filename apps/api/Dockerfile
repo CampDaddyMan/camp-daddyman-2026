@@ -2,9 +2,13 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy workspace manifests first for layer caching
+# Copy all workspace manifests first for layer caching
+# npm workspaces requires all apps/*/package.json to be present even when
+# installing only one workspace
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY apps/mobile/package.json ./apps/mobile/
 
 RUN npm ci --workspace=apps/api --include-workspace-root
 

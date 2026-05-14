@@ -75,6 +75,9 @@ model Content {
 
   views Int @default(0)
 
+  cardWidth  Int?    @default(224)
+  cardAspect String? @default("video")
+  
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
@@ -89,6 +92,7 @@ model Content {
 
   @@index([creatorId])
   @@index([type, status, privacy])
+  
 }
 
 enum ContentType {

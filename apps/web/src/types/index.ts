@@ -30,6 +30,9 @@ export interface Content {
   duration?: number;
   tags: string[];
   views: number;
+  cardWidth?: number;
+  cardAspect?: string;
+
   createdAt: string;
   creator: { username: string; displayName?: string; avatar?: string };
   _count?: { likes: number; comments: number };

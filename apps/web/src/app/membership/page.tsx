@@ -1,0 +1,161 @@
+'use client';
+import Link from 'next/link';
+
+const PLANS = [
+  {
+    key: 'FREE',
+    name: 'Free',
+    price: '$0',
+    period: '/mo',
+    description: 'Start exploring Camp DaddyMan at no cost.',
+    included: [
+      'Browse all public content',
+      'Follow creators',
+      'Like & comment',
+      'Basic watch history',
+    ],
+    excluded: [
+      'Members-only content',
+      'HD streaming',
+      'Offline access',
+    ],
+    cta: 'Get started free',
+    href: '/register',
+    highlight: false,
+  },
+  {
+    key: 'PRO',
+    name: 'Pro',
+    price: '$19.99',
+    period: '/mo',
+    description: 'For dedicated fans who want the full experience.',
+    included: [
+      'Everything in Free',
+      'Members-only content',
+      'HD streaming',
+      'Full watch history',
+      'Early access to new drops',
+    ],
+    excluded: [
+      'Offline access',
+    ],
+    cta: 'Join Pro →',
+    href: '/subscribe',
+    highlight: true,
+  },
+  {
+    key: 'PREMIUM',
+    name: 'Premium',
+    price: '$99.99',
+    period: '/yr',
+    description: 'The complete Camp DaddyMan experience.',
+    included: [
+      'Everything in Pro',
+      'Offline access',
+      '4K streaming',
+      '500GB storage',
+      'Priority support',
+    ],
+    excluded: [],
+    cta: 'Join Premium →',
+    href: '/subscribe',
+    highlight: false,
+  },
+  {
+    key: 'CREATOR',
+    name: 'Creator',
+    price: '$29.99',
+    period: '/mo',
+    description: 'Built for those ready to share their voice with the world.',
+    included: [
+      'Everything in Premium',
+      'Upload & publish content',
+      'Creator analytics dashboard',
+      'Subscriber-only content gating',
+      'Custom creator profile page',
+      'Revenue from paid content',
+    ],
+    excluded: [],
+    cta: 'Become a Creator →',
+    href: '/subscribe',
+    highlight: false,
+  },
+];
+
+export default function MembershipPage() {
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-16">
+      {/* Header */}
+      <div className="text-center mb-14">
+        <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Membership</p>
+        <h1 className="text-4xl font-bold text-white mb-3">Simple, transparent pricing</h1>
+        <p className="text-gray-400 text-lg">Start free. Upgrade when you're ready.</p>
+      </div>
+
+      {/* Plans grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {PLANS.map((plan) => (
+          <div
+            key={plan.key}
+            className={`relative rounded-2xl p-6 flex flex-col ${
+              plan.highlight
+                ? 'bg-brand-500/10 border border-brand-500/40 ring-1 ring-brand-500/20 shadow-[0_0_40px_rgba(232,184,0,0.10)]'
+                : 'bg-surface-800 border border-surface-700'
+            }`}
+          >
+            {plan.highlight && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-black bg-brand-400 px-3 py-1 rounded-full whitespace-nowrap">
+                MOST POPULAR
+              </span>
+            )}
+
+            <div className="mb-4">
+              <h2 className="text-lg font-bold text-white">{plan.name}</h2>
+              <div className="mt-1 flex items-end gap-1">
+                <span className="text-3xl font-bold text-white">{plan.price}</span>
+                <span className="text-gray-400 text-sm pb-1">{plan.period}</span>
+              </div>
+              <p className="text-gray-500 text-xs mt-2 leading-relaxed">{plan.description}</p>
+            </div>
+
+            <ul className="space-y-2.5 mb-8 flex-1">
+              {plan.included.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
+                  <span className="text-brand-400 mt-0.5 flex-shrink-0">✓</span>
+                  {f}
+                </li>
+              ))}
+              {plan.excluded.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                  <span className="mt-0.5 flex-shrink-0">✕</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href={plan.href}
+              className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
+                plan.highlight
+                  ? 'bg-brand-500 hover:bg-brand-600 text-black shadow-[0_0_20px_rgba(232,184,0,0.2)]'
+                  : 'border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white'
+              }`}
+            >
+              {plan.cta}
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {/* FAQ / reassurance */}
+      <div className="mt-16 text-center">
+        <p className="text-gray-500 text-sm">
+          All paid plans include a 7-day free trial. Cancel anytime.{' '}
+          <Link href="/subscribe" className="text-brand-400 hover:underline">
+            Already a member? Manage your plan →
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

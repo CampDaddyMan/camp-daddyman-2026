@@ -13,13 +13,13 @@ export const PLANS = {
   },
   PRO: {
     name: 'Pro',
-    price: 9.99,
+    price: 19.99,
     priceId: process.env.STRIPE_PRO_PRICE_ID,
     features: ['All public + subscriber content', '100GB storage', 'HD quality', 'No ads'],
   },
   PREMIUM: {
     name: 'Premium',
-    price: 24.99,
+    price: 99.99,
     priceId: process.env.STRIPE_PREMIUM_PRICE_ID,
     features: ['All content', '500GB storage', '4K quality', 'No ads', 'Priority support', 'Download for offline'],
   },

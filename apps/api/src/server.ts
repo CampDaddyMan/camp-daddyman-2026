@@ -8,21 +8,26 @@ import { startTranscodeWorker } from './workers/transcoder';
 const app = express();
 
 app.use(helmet());
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000',
-  'http://localhost:3000',
-  'http://localhost:3001',
-];
-if (process.env.FRONTEND_URL) {
-  // Also allow www variant
-  const url = new URL(process.env.FRONTEND_URL);
-  allowedOrigins.push(`${url.protocol}//www.${url.host}`);
+function buildAllowedOrigins() {
+  const origins = new Set(['http://localhost:3000', 'http://localhost:3001']);
+  if (process.env.FRONTEND_URL) {
+    try {
+      const url = new URL(process.env.FRONTEND_URL);
+      const base = `${url.protocol}//${url.hostname}`;
+      origins.add(base);
+      origins.add(`${url.protocol}//www.${url.hostname}`);
+    } catch {
+      origins.add(process.env.FRONTEND_URL.replace(/\/$/, ''));
+    }
+  }
+  return origins;
 }
+const allowedOrigins = buildAllowedOrigins();
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(new Error(`CORS: ${origin} not allowed`));
+    if (!origin || allowedOrigins.has(origin)) return cb(null, true);
+    cb(null, false);
   },
   credentials: true,
 }));

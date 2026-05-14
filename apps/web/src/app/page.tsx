@@ -431,9 +431,9 @@ export default function HomePage() {
             <h2 className="text-2xl md:text-3xl font-bold text-white">Simple, transparent pricing</h2>
             <p className="text-gray-400 text-sm mt-2">Start free. Upgrade when you're ready.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* FREE */}
-            <div className="rounded-2xl border border-surface-600 bg-surface-800 p-8 flex flex-col">
+            <div className="rounded-2xl border border-surface-600 bg-surface-800 p-7 flex flex-col">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Free</p>
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-4xl font-bold text-white">$0</span>
@@ -453,13 +453,13 @@ export default function HomePage() {
             </div>
 
             {/* PRO — highlighted */}
-            <div className="rounded-2xl border border-brand-500/60 bg-surface-800 p-8 flex flex-col relative shadow-[0_0_40px_rgba(232,184,0,0.12)]">
+            <div className="rounded-2xl border border-brand-500/60 bg-surface-800 p-7 flex flex-col relative shadow-[0_0_40px_rgba(232,184,0,0.12)]">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-black text-xs font-bold px-4 py-1 rounded-full tracking-wide">
                 MOST POPULAR
               </div>
               <p className="text-brand-400 text-xs uppercase tracking-widest mb-2">Pro</p>
               <div className="flex items-end gap-1 mb-6">
-                <span className="text-4xl font-bold text-white">$9</span>
+                <span className="text-4xl font-bold text-white">$19.99</span>
                 <span className="text-gray-500 text-sm mb-1">/mo</span>
               </div>
               <ul className="space-y-3 text-sm text-gray-300 flex-1 mb-8">
@@ -476,19 +476,36 @@ export default function HomePage() {
             </div>
 
             {/* PREMIUM */}
-            <div className="rounded-2xl border border-surface-600 bg-surface-800 p-8 flex flex-col">
+            <div className="rounded-2xl border border-surface-600 bg-surface-800 p-7 flex flex-col">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Premium</p>
               <div className="flex items-end gap-1 mb-6">
-                <span className="text-4xl font-bold text-white">$19</span>
-                <span className="text-gray-500 text-sm mb-1">/mo</span>
+                <span className="text-4xl font-bold text-white">$99.99</span>
+                <span className="text-gray-500 text-sm mb-1">/yr</span>
               </div>
               <ul className="space-y-3 text-sm text-gray-400 flex-1 mb-8">
-                {['Everything in Pro','Offline access','Creator tools & dashboard','Upload your own content','Priority support'].map((f) => (
+                {['Everything in Pro','Offline access','4K streaming','500GB storage','Priority support'].map((f) => (
                   <li key={f} className="flex items-center gap-2"><span className="text-brand-400">✓</span>{f}</li>
                 ))}
               </ul>
               <Link href="/subscribe" className="block text-center border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white py-3 rounded-xl text-sm font-medium transition-colors">
-                Join Premium
+                Join Premium →
+              </Link>
+            </div>
+
+            {/* CREATOR */}
+            <div className="rounded-2xl border border-surface-600 bg-surface-800 p-7 flex flex-col">
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Creator</p>
+              <div className="flex items-end gap-1 mb-6">
+                <span className="text-4xl font-bold text-white">$29.99</span>
+                <span className="text-gray-500 text-sm mb-1">/mo</span>
+              </div>
+              <ul className="space-y-3 text-sm text-gray-400 flex-1 mb-8">
+                {['Everything in Premium','Upload & publish content','Creator analytics','Subscriber-only gating','Custom creator profile','Revenue from paid content'].map((f) => (
+                  <li key={f} className="flex items-center gap-2"><span className="text-brand-400">✓</span>{f}</li>
+                ))}
+              </ul>
+              <Link href="/subscribe" className="block text-center border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white py-3 rounded-xl text-sm font-medium transition-colors">
+                Become a Creator →
               </Link>
             </div>
           </div>

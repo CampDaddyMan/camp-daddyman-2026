@@ -44,6 +44,7 @@ export default function Navbar() {
           <Link href="/browse?type=FILM" className="text-gray-300 hover:text-white transition-colors">Film</Link>
           <Link href="/browse?type=PODCAST" className="text-gray-300 hover:text-white transition-colors">Podcasts</Link>
           <Link href="/browse?type=SPOKEN_WORD" className="text-gray-300 hover:text-white transition-colors">Spoken Word</Link>
+          <Link href="/subscribe" className="text-brand-400 hover:text-brand-300 font-semibold transition-colors">Membership</Link>
         </div>
 
         {/* Desktop search */}
@@ -104,6 +105,7 @@ export default function Navbar() {
           <Link href="/browse?type=FILM" onClick={() => setOpen(false)} className="text-gray-300">Film</Link>
           <Link href="/browse?type=PODCAST" onClick={() => setOpen(false)} className="text-gray-300">Podcasts</Link>
           <Link href="/browse?type=SPOKEN_WORD" onClick={() => setOpen(false)} className="text-gray-300">Spoken Word</Link>
+          <Link href="/subscribe" onClick={() => setOpen(false)} className="text-brand-400 font-semibold">Membership</Link>
           {/* Mobile search */}
           <form onSubmit={handleSearch} className="flex gap-2">
             <input

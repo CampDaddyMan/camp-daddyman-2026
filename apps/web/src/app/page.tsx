@@ -509,6 +509,21 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+
+          {/* Uncs & Aunties teaser */}
+          <div className="mt-8 rounded-2xl border border-brand-500/30 bg-surface-800/60 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-1">Special Support</p>
+              <h3 className="text-white font-bold text-lg">Uncs & Aunties</h3>
+              <p className="text-gray-400 text-sm mt-1">Got love for the Camp? Give what you feel — min $99.99, one-time or monthly.</p>
+            </div>
+            <Link
+              href="/membership#supporter"
+              className="flex-shrink-0 bg-brand-500 hover:bg-brand-600 text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(232,184,0,0.2)] whitespace-nowrap"
+            >
+              Support the Camp →
+            </Link>
+          </div>
         </div>
       </section>
 

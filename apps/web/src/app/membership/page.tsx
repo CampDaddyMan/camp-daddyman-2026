@@ -176,7 +176,7 @@ export default function MembershipPage() {
       </div>
 
       {/* Uncs & Aunties */}
-      <div className="mt-10 rounded-2xl border border-brand-500/30 bg-gradient-to-br from-surface-800 to-surface-900 p-8 relative overflow-hidden">
+      <div id="supporter" className="mt-10 rounded-2xl border border-brand-500/30 bg-gradient-to-br from-surface-800 to-surface-900 p-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_50%,rgba(232,184,0,0.05),transparent_70%)]" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
           {/* Info */}

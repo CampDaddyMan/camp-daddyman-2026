@@ -8,8 +8,22 @@ import { startTranscodeWorker } from './workers/transcoder';
 const app = express();
 
 app.use(helmet());
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+if (process.env.FRONTEND_URL) {
+  // Also allow www variant
+  const url = new URL(process.env.FRONTEND_URL);
+  allowedOrigins.push(`${url.protocol}//www.${url.host}`);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: ${origin} not allowed`));
+  },
   credentials: true,
 }));
 app.use(express.json());

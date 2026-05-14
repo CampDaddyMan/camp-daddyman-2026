@@ -5,6 +5,7 @@ import {
   createCheckoutSession,
   createPortalSession,
   cancelSubscription,
+  createSupporterCheckout,
   stripeWebhook,
 } from '../controllers/subscription.controller';
 import { authMiddleware } from '../middleware/auth';
@@ -17,6 +18,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook
 router.get('/plans', getPlans);
 router.get('/me', authMiddleware, getMySubscription);
 router.post('/checkout', authMiddleware, createCheckoutSession);
+router.post('/checkout/supporter', authMiddleware, createSupporterCheckout);
 router.post('/portal', authMiddleware, createPortalSession);
 router.post('/cancel', authMiddleware, cancelSubscription);
 

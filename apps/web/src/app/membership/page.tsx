@@ -1,5 +1,9 @@
 'use client';
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import api from '@/lib/api';
 
 const PLANS = [
   {
@@ -83,6 +87,30 @@ const PLANS = [
 ];
 
 export default function MembershipPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [amount, setAmount] = useState('');
+  const [recurring, setRecurring] = useState(false);
+  const [supporterLoading, setSupporterLoading] = useState(false);
+  const [amountError, setAmountError] = useState('');
+
+  async function handleSupporter() {
+    if (!user) return router.push('/login');
+    const val = parseFloat(amount);
+    if (!val || val < 99.99) {
+      setAmountError('Minimum amount is $99.99');
+      return;
+    }
+    setAmountError('');
+    setSupporterLoading(true);
+    try {
+      const { data } = await api.post('/subscriptions/checkout/supporter', { amount: val, recurring });
+      window.location.href = data.url;
+    } catch {
+      setSupporterLoading(false);
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-16">
       {/* Header */}
@@ -147,8 +175,73 @@ export default function MembershipPage() {
         ))}
       </div>
 
-      {/* FAQ / reassurance */}
-      <div className="mt-16 text-center">
+      {/* Uncs & Aunties */}
+      <div className="mt-10 rounded-2xl border border-brand-500/30 bg-gradient-to-br from-surface-800 to-surface-900 p-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_50%,rgba(232,184,0,0.05),transparent_70%)]" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
+          {/* Info */}
+          <div className="flex-1">
+            <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-2">Special Support</p>
+            <h2 className="text-2xl font-bold text-white mb-2">Uncs & Aunties</h2>
+            <p className="text-gray-400 text-sm leading-relaxed max-w-lg">
+              Got love for the Camp? Go beyond a standard membership. Set your own amount — minimum $99.99 — and choose to give once or show up every month. Every dollar goes directly to supporting independent creators on this platform.
+            </p>
+            <ul className="mt-4 space-y-1.5">
+              {['Full Premium + Creator access', 'Your name honored in the Camp', 'One-time gift or monthly recurring', 'No maximum — give what you feel'].map((f) => (
+                <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
+                  <span className="text-brand-400">✓</span>{f}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Input */}
+          <div className="w-full md:w-72 flex flex-col gap-4">
+            <div>
+              <label className="text-xs text-gray-400 uppercase tracking-widest mb-1.5 block">Your amount (min $99.99)</label>
+              <div className="flex items-center bg-surface-700 border border-surface-600 rounded-xl overflow-hidden focus-within:border-brand-400 transition-colors">
+                <span className="text-gray-400 pl-4 text-lg font-bold">$</span>
+                <input
+                  type="number"
+                  min="99.99"
+                  step="0.01"
+                  placeholder="99.99"
+                  value={amount}
+                  onChange={(e) => { setAmount(e.target.value); setAmountError(''); }}
+                  className="flex-1 bg-transparent text-white px-2 py-3 text-lg font-bold focus:outline-none"
+                />
+              </div>
+              {amountError && <p className="text-red-400 text-xs mt-1">{amountError}</p>}
+            </div>
+
+            <div className="flex rounded-xl overflow-hidden border border-surface-600">
+              <button
+                onClick={() => setRecurring(false)}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${!recurring ? 'bg-brand-500 text-black' : 'bg-surface-700 text-gray-400 hover:text-white'}`}
+              >
+                One-time
+              </button>
+              <button
+                onClick={() => setRecurring(true)}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${recurring ? 'bg-brand-500 text-black' : 'bg-surface-700 text-gray-400 hover:text-white'}`}
+              >
+                Monthly
+              </button>
+            </div>
+
+            <button
+              onClick={handleSupporter}
+              disabled={supporterLoading}
+              className="w-full bg-brand-500 hover:bg-brand-600 text-black font-bold py-3 rounded-xl text-sm transition-colors shadow-[0_0_24px_rgba(232,184,0,0.25)] disabled:opacity-50"
+            >
+              {supporterLoading ? 'Redirecting...' : 'Support the Camp →'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Reassurance */}
+      <div className="mt-10 text-center">
         <p className="text-gray-500 text-sm">
           All paid plans include a 7-day free trial. Cancel anytime.{' '}
           <Link href="/subscribe" className="text-brand-400 hover:underline">

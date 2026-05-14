@@ -71,6 +71,45 @@ export async function cancelSubscription(req: AuthRequest, res: Response) {
   res.json({ message: 'Subscription cancelled' });
 }
 
+export async function createSupporterCheckout(req: AuthRequest, res: Response) {
+  const { amount, recurring } = req.body as { amount: number; recurring: boolean };
+
+  const MIN = 99.99;
+  if (!amount || amount < MIN) {
+    return res.status(400).json({ error: `Minimum amount is $${MIN}` });
+  }
+
+  const unitAmount = Math.round(amount * 100);
+  const productData = { name: 'Camp DaddyMan — Uncs & Aunties' };
+
+  const session = await stripe.checkout.sessions.create({
+    mode: recurring ? 'subscription' : 'payment',
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        quantity: 1,
+        price_data: recurring
+          ? {
+              currency: 'usd',
+              product_data: productData,
+              unit_amount: unitAmount,
+              recurring: { interval: 'month' },
+            }
+          : {
+              currency: 'usd',
+              product_data: productData,
+              unit_amount: unitAmount,
+            },
+      },
+    ],
+    success_url: `${process.env.FRONTEND_URL}/dashboard?supported=true`,
+    cancel_url: `${process.env.FRONTEND_URL}/membership`,
+    metadata: { userId: req.user!.id, plan: 'SUPPORTER' },
+  });
+
+  res.json({ url: session.url });
+}
+
 export async function stripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'] as string;
 

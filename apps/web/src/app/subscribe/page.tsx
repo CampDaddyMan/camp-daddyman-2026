@@ -10,38 +10,79 @@ const PLANS = [
     key: 'FREE',
     name: 'Free',
     price: '$0',
-    period: '',
-    features: ['Browse all public content', 'Comment and like', '1GB storage'],
-    cta: 'Current plan',
+    period: '/mo',
+    description: 'Start exploring Camp DaddyMan at no cost.',
+    included: [
+      'Browse all public content',
+      'Follow creators',
+      'Like & comment',
+      'Basic watch history',
+    ],
+    excluded: [
+      'Members-only content',
+      'HD streaming',
+      'Offline access',
+    ],
+    cta: 'Get started free',
     disabled: true,
+    highlight: false,
   },
   {
     key: 'PRO',
     name: 'Pro',
     price: '$19.99',
     period: '/mo',
-    features: ['Everything in Free', 'Members-only content', '100GB storage', 'HD quality', 'No ads'],
-    cta: 'Upgrade to Pro',
+    description: 'For dedicated fans who want the full experience.',
+    included: [
+      'Everything in Free',
+      'Members-only content',
+      'HD streaming',
+      'Full watch history',
+      'Early access to new drops',
+    ],
+    excluded: [
+      'Offline access',
+    ],
+    cta: 'Join Pro →',
     disabled: false,
+    highlight: true,
   },
   {
     key: 'PREMIUM',
     name: 'Premium',
     price: '$99.99',
     period: '/yr',
-    features: ['Everything in Pro', '500GB storage', '4K quality', 'Download for offline', 'Priority support'],
-    cta: 'Upgrade to Premium',
+    description: 'The complete Camp DaddyMan experience.',
+    included: [
+      'Everything in Pro',
+      'Offline access',
+      'Priority support',
+      '4K streaming',
+      '500GB storage',
+    ],
+    excluded: [],
+    cta: 'Join Premium →',
     disabled: false,
-    highlight: true,
+    highlight: false,
   },
   {
     key: 'CREATOR',
     name: 'Creator',
     price: '$29.99',
     period: '/mo',
-    features: ['Everything in Premium', 'Upload & publish content', 'Creator analytics dashboard', 'Subscriber-only content gating', 'Custom creator profile page', 'Revenue from paid content'],
-    cta: 'Become a Creator',
+    description: 'Built for those ready to share their voice with the world.',
+    included: [
+      'Everything in Premium',
+      'Upload & publish content',
+      'Creator analytics dashboard',
+      'Subscriber-only content gating',
+      'Custom creator profile page',
+      'Revenue from paid content',
+    ],
+    excluded: [],
+    cta: 'Become a Creator →',
     disabled: false,
+    highlight: false,
   },
 ];
 
@@ -76,10 +117,13 @@ export default function SubscribePage() {
   const isActivePaid = currentPlan !== 'FREE' && user?.subscription?.status === 'ACTIVE';
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
+    <div className="max-w-6xl mx-auto px-4 py-16">
+      {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-white mb-3">Choose your membership</h1>
-        <p className="text-gray-400">Access all of Camp DaddyMan — music, film, teachings, and more.</p>
+        <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Membership</p>
+        <h1 className="text-4xl font-bold text-white mb-3">Simple, transparent pricing</h1>
+        <p className="text-gray-400 text-lg">Start free. Upgrade when you're ready.</p>
+
         {isActivePaid && (
           <div className="mt-6 inline-flex flex-col items-center gap-2">
             <p className="text-sm text-gray-400">
@@ -96,26 +140,46 @@ export default function SubscribePage() {
         )}
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* Plans grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {PLANS.map((plan) => {
           const isCurrent = plan.key === currentPlan;
           return (
-            <div key={plan.key} className={`rounded-2xl p-6 flex flex-col ${plan.highlight ? 'bg-brand-500/10 border border-brand-500/40 ring-1 ring-brand-500/20' : 'bg-surface-800 border border-surface-700'}`}>
-              <div className="mb-6">
-                {plan.highlight && (
-                  <span className="text-xs font-bold text-brand-400 bg-brand-400/10 px-2.5 py-1 rounded-full mb-3 inline-block">Most Popular</span>
-                )}
-                <h2 className="text-xl font-bold text-white">{plan.name}</h2>
-                <div className="mt-2">
+            <div
+              key={plan.key}
+              className={`relative rounded-2xl p-6 flex flex-col ${
+                plan.highlight
+                  ? 'bg-brand-500/10 border border-brand-500/40 ring-1 ring-brand-500/20'
+                  : 'bg-surface-800 border border-surface-700'
+              }`}
+            >
+              {plan.highlight && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-black bg-brand-400 px-3 py-1 rounded-full whitespace-nowrap">
+                  MOST POPULAR
+                </span>
+              )}
+
+              {/* Plan name & price */}
+              <div className="mb-4">
+                <h2 className="text-lg font-bold text-white">{plan.name}</h2>
+                <div className="mt-1 flex items-end gap-1">
                   <span className="text-3xl font-bold text-white">{plan.price}</span>
-                  <span className="text-gray-400 text-sm">{plan.period}</span>
+                  <span className="text-gray-400 text-sm pb-1">{plan.period}</span>
                 </div>
+                <p className="text-gray-500 text-xs mt-2 leading-relaxed">{plan.description}</p>
               </div>
 
-              <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((f) => (
+              {/* Features */}
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {plan.included.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
-                    <span className="text-brand-400 mt-0.5">✓</span>
+                    <span className="text-brand-400 mt-0.5 flex-shrink-0">✓</span>
+                    {f}
+                  </li>
+                ))}
+                {plan.excluded.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="mt-0.5 flex-shrink-0">✕</span>
                     {f}
                   </li>
                 ))}

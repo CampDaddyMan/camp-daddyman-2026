@@ -460,7 +460,13 @@ export default function WatchPage() {
               className="w-full max-w-md"
               onLoadedMetadata={() => handlePlayerReady()}
               onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
-              onError={() => setError('This audio format is not supported by your browser. Supported: MP3, WAV, AAC, FLAC, OGG.')}
+              onError={(e) => {
+                const code = (e.target as HTMLAudioElement).error?.code;
+                if (code === 2) setError('Network error loading audio — check that the file was uploaded successfully.');
+                else if (code === 3) setError('Audio file could not be decoded. Try re-uploading as MP3 or WAV.');
+                else if (code === 4) setError('Audio format not supported by your browser. Supported: MP3, WAV, AAC, FLAC, OGG.');
+                else setError('Could not load audio. The file may be missing or inaccessible.');
+              }}
             />
           </div>
         ) : (
@@ -471,7 +477,13 @@ export default function WatchPage() {
             className="w-full h-full"
             onLoadedMetadata={handlePlayerReady}
             onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLVideoElement).currentTime; }}
-            onError={() => setError('This video format is not supported by your browser. Please re-upload as MP4 or WebM.')}
+            onError={(e) => {
+              const code = (e.target as HTMLVideoElement).error?.code;
+              if (code === 2) setError('Network error loading video — check that the file was uploaded successfully.');
+              else if (code === 3) setError('Video could not be decoded. Try re-uploading as MP4.');
+              else if (code === 4) setError('Video format not supported. Please re-upload as MP4 or WebM.');
+              else setError('Could not load video. The file may be missing or inaccessible.');
+            }}
           />
         )}
       </div>

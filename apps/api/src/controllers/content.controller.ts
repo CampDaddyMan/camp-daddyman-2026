@@ -422,6 +422,8 @@ export async function uploadThumbnail(req: AuthRequest, res: Response) {
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) return res.status(400).json({ error: 'Image file required' });
 
+    console.log('[uploadThumbnail] R2_BUCKET:', process.env.R2_BUCKET, '| R2_ACCOUNT_ID:', process.env.R2_ACCOUNT_ID?.slice(0, 6));
+
     if (content.thumbnailUrl?.startsWith('http')) {
       deleteFromS3(content.thumbnailUrl).catch(() => {});
     }

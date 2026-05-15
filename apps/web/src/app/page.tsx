@@ -110,7 +110,9 @@ function ContinueWatchingRow({ items }: { items: HistoryItem[] }) {
             >
               <div className="relative aspect-video bg-surface-700 rounded-xl overflow-hidden mb-2">
                 {item.thumbnailUrl ? (
-                  <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  item.thumbnailUrl.startsWith('http')
+                    ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-3xl">🎬</div>
                 )}

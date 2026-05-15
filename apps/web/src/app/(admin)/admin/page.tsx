@@ -518,6 +518,10 @@ function EditContentModal({ item, onClose, onSaved }: {
               className="hidden"
               onChange={handleMediaUpload}
             />
+            <p className="text-xs text-gray-500 mt-2">
+              <span className="text-gray-400">Video:</span> MP4, MOV, AVI, WebM &nbsp;·&nbsp;
+              <span className="text-gray-400">Audio:</span> MP3, WAV, AAC, FLAC, OGG &nbsp;·&nbsp;Max 2GB
+            </p>
           </div>
 
           {/* Title */}

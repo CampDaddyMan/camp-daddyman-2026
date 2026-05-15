@@ -114,7 +114,12 @@ export default function UploadPage() {
                 className="px-5 py-2 bg-camp-500 hover:bg-camp-600 text-white rounded-lg text-sm font-semibold transition-colors">
                 Click to select file
               </button>
-              <p className="text-gray-500 text-xs mt-3">MP4, MOV, MP3, WAV, AAC, FLAC up to 2GB</p>
+              <p className="text-gray-500 text-xs mt-3">
+                <span className="text-gray-400 font-medium">Video:</span> MP4, MOV, AVI, WebM
+                &nbsp;·&nbsp;
+                <span className="text-gray-400 font-medium">Audio:</span> MP3, WAV, AAC, FLAC, OGG
+                &nbsp;·&nbsp;Max 2GB
+              </p>
             </>
           )}
         </div>

@@ -69,7 +69,7 @@ async function main() {
   const music = await Promise.all([
     prisma.content.upsert({
       where: { id: 'seed-music-001' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Music_Descipline_Walk.jpg' },
       create: {
         id: 'seed-music-001',
         title: 'Discipline Walk',
@@ -77,6 +77,7 @@ async function main() {
         type: 'MUSIC', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 272, views: 4812,
         tags: ['hip-hop', 'discipline', 'original'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Music_Descipline_Walk.jpg',
         creatorId: daddyman.id,
       },
     }),
@@ -95,7 +96,7 @@ async function main() {
     }),
     prisma.content.upsert({
       where: { id: 'seed-music-003' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Fathers_Anthem.jpg' },
       create: {
         id: 'seed-music-003',
         title: "Father's Anthem",
@@ -103,6 +104,7 @@ async function main() {
         type: 'MUSIC', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 310, views: 3201,
         tags: ['gospel-rap', 'fatherhood', 'kingdom'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Fathers_Anthem.jpg',
         creatorId: kingsword.id,
       },
     }),
@@ -150,7 +152,7 @@ async function main() {
   const films = await Promise.all([
     prisma.content.upsert({
       where: { id: 'seed-film-001' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Documentary_The_Camp.jpg' },
       create: {
         id: 'seed-film-001',
         title: 'The Camp Documentary',
@@ -158,6 +160,7 @@ async function main() {
         type: 'FILM', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 2520, views: 6103,
         tags: ['documentary', 'camp', 'origin-story'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Documentary_The_Camp.jpg',
         creatorId: daddyman.id,
       },
     }),
@@ -176,7 +179,7 @@ async function main() {
     }),
     prisma.content.upsert({
       where: { id: 'seed-film-003' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Father_Figures.jpg' },
       create: {
         id: 'seed-film-003',
         title: 'Father Figures',
@@ -184,6 +187,7 @@ async function main() {
         type: 'FILM', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 1335, views: 3877,
         tags: ['documentary', 'fatherhood', 'men'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Father_Figures.jpg',
         creatorId: kingsword.id,
       },
     }),
@@ -244,7 +248,7 @@ async function main() {
     }),
     prisma.content.upsert({
       where: { id: 'seed-podcast-004' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Fatherhood_In_2026.jpg' },
       create: {
         id: 'seed-podcast-004',
         title: 'Fatherhood in 2025',
@@ -252,6 +256,7 @@ async function main() {
         type: 'PODCAST', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 2295, views: 4088,
         tags: ['fatherhood', 'culture', 'men'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Fatherhood_In_2026.jpg',
         creatorId: daddyman.id,
       },
     }),
@@ -260,7 +265,7 @@ async function main() {
   const spokenWord = await Promise.all([
     prisma.content.upsert({
       where: { id: 'seed-spoken-001' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Who_I_Am.jpg' },
       create: {
         id: 'seed-spoken-001',
         title: 'Who I Am',
@@ -268,12 +273,13 @@ async function main() {
         type: 'SPOKEN_WORD', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 262, views: 3344,
         tags: ['spoken-word', 'identity', 'poetry'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Who_I_Am.jpg',
         creatorId: daddyman.id,
       },
     }),
     prisma.content.upsert({
       where: { id: 'seed-spoken-002' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_To_My_Sons.jpg' },
       create: {
         id: 'seed-spoken-002',
         title: 'To My Sons',
@@ -281,12 +287,13 @@ async function main() {
         type: 'SPOKEN_WORD', status: 'ACTIVE', privacy: 'SUBSCRIBERS_ONLY',
         duration: 375, views: 1211,
         tags: ['spoken-word', 'fatherhood', 'legacy'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_To_My_Sons.jpg',
         creatorId: daddyman.id,
       },
     }),
     prisma.content.upsert({
       where: { id: 'seed-spoken-003' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Video_The_Crown_Speaks.jpg' },
       create: {
         id: 'seed-spoken-003',
         title: 'The Crown Speaks',
@@ -294,6 +301,7 @@ async function main() {
         type: 'SPOKEN_WORD', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 228, views: 1876,
         tags: ['spoken-word', 'kingdom', 'raw'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_Video_The_Crown_Speaks.jpg',
         creatorId: kingsword.id,
       },
     }),
@@ -302,7 +310,7 @@ async function main() {
   const daddymanIsms = await Promise.all([
     prisma.content.upsert({
       where: { id: 'seed-ism-001' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_DaddyManIsms.jpg' },
       create: {
         id: 'seed-ism-001',
         title: 'Discipline is not punishment.',
@@ -310,6 +318,7 @@ async function main() {
         type: 'DADDYMAN_ISMS', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 0, views: 2187,
         tags: ['discipline', 'mindset', 'teaching'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_DaddyManIsms.jpg',
         cardAspect: 'square',
         cardWidth: 280,
         creatorId: daddyman.id,
@@ -317,7 +326,7 @@ async function main() {
     }),
     prisma.content.upsert({
       where: { id: 'seed-ism-002' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_DaddyManIsms.jpg' },
       create: {
         id: 'seed-ism-002',
         title: 'You cannot lead where you have not been.',
@@ -325,6 +334,7 @@ async function main() {
         type: 'DADDYMAN_ISMS', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 0, views: 1943,
         tags: ['fatherhood', 'legacy', 'parable'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_DaddyManIsms.jpg',
         cardAspect: 'square',
         cardWidth: 280,
         creatorId: daddyman.id,
@@ -332,7 +342,7 @@ async function main() {
     }),
     prisma.content.upsert({
       where: { id: 'seed-ism-003' },
-      update: {},
+      update: { thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_DaddyManIsms.jpg' },
       create: {
         id: 'seed-ism-003',
         title: 'Identity is not found. It is forged.',
@@ -340,6 +350,7 @@ async function main() {
         type: 'DADDYMAN_ISMS', status: 'ACTIVE', privacy: 'PUBLIC',
         duration: 0, views: 3102,
         tags: ['identity', 'teaching', 'wisdom'],
+        thumbnailUrl: '/images/thumbnails/CampDaddyman_Media_DaddyManIsms.jpg',
         cardAspect: 'square',
         cardWidth: 280,
         creatorId: daddyman.id,

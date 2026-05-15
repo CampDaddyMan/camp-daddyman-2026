@@ -73,12 +73,12 @@ function ActivityChart({ data }: { data: ActivityDay[] }) {
               {/* comments (bottom layer, muted) */}
               <rect
                 x={x} y={H - barH} width={barW} height={barH - likeH}
-                fill="#4c1d95" opacity={0.6} rx={2}
+                fill="#004d1d" opacity={0.8} rx={2}
               />
               {/* likes (top layer, brand) */}
               <rect
                 x={x} y={H - likeH} width={barW} height={likeH}
-                fill="#a78bfa" rx={2}
+                fill="#009B3A" rx={2}
               />
               {showLabel && (
                 <text x={x + barW / 2} y={H + 15} textAnchor="middle" fill="#6b7280" fontSize={9}>
@@ -91,7 +91,7 @@ function ActivityChart({ data }: { data: ActivityDay[] }) {
       </svg>
       <div className="flex gap-4 mt-2 text-xs text-gray-500">
         <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-brand-400" />Likes</span>
-        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-purple-900 opacity-60" />Comments</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-camp-600 opacity-80" />Comments</span>
       </div>
     </div>
   );

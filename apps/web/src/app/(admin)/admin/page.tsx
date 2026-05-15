@@ -82,8 +82,8 @@ function GrowthChart({ data }: { data: GrowthDay[] }) {
           const showLabel = isFirst || isLast || i === Math.floor(data.length / 2);
           return (
             <g key={d.date}>
-              <rect x={x} y={H - barH} width={barW} height={barH - uH} fill="#1e3a5f" rx={2} />
-              <rect x={x} y={H - uH}   width={barW} height={uH}        fill="#a78bfa" rx={2} />
+              <rect x={x} y={H - barH} width={barW} height={barH - uH} fill="#004d1d" opacity={0.8} rx={2} />
+              <rect x={x} y={H - uH}   width={barW} height={uH}        fill="#009B3A" rx={2} />
               {showLabel && (
                 <text x={x + barW / 2} y={H + 15} textAnchor="middle" fill="#6b7280" fontSize={9}>
                   {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -95,7 +95,7 @@ function GrowthChart({ data }: { data: GrowthDay[] }) {
       </svg>
       <div className="flex gap-4 mt-2 text-xs text-gray-500">
         <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-brand-400" />New Users</span>
-        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-900" />New Content</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-camp-600 opacity-80" />New Content</span>
       </div>
     </div>
   );
@@ -138,7 +138,7 @@ function StatCard({ label, value, emoji, sub }: { label: string; value: string |
 function PlanBadge({ plan }: { plan?: string }) {
   const p = plan || 'FREE';
   const cls = p === 'PREMIUM' ? 'bg-brand-500/20 text-brand-400'
-            : p === 'PRO'     ? 'bg-blue-500/20 text-blue-400'
+            : p === 'PRO'     ? 'bg-camp-500/20 text-camp-400'
             :                   'bg-surface-600 text-gray-400';
   return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{p}</span>;
 }
@@ -193,7 +193,7 @@ function OverviewTab() {
                   </div>
                   <div className="h-1.5 bg-surface-700 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${plan === 'PREMIUM' ? 'bg-brand-400' : plan === 'PRO' ? 'bg-blue-400' : 'bg-surface-500'}`}
+                      className={`h-full rounded-full ${plan === 'PREMIUM' ? 'bg-brand-400' : plan === 'PRO' ? 'bg-camp-500' : 'bg-surface-500'}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -311,7 +311,7 @@ function UsersTab() {
                   </Link>
                   <div className="flex gap-1 mt-0.5">
                     {u.isAdmin   && <span className="text-[10px] bg-brand-500/20 text-brand-400 px-1.5 rounded">Admin</span>}
-                    {u.isCreator && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 rounded">Creator</span>}
+                    {u.isCreator && <span className="text-[10px] bg-camp-500/20 text-camp-400 px-1.5 rounded">Creator</span>}
                     {u.isBanned  && <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 rounded">Banned</span>}
                   </div>
                 </td>

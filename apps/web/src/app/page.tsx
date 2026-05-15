@@ -161,7 +161,9 @@ export default function HomePage() {
       <div className="relative flex flex-col items-center justify-center min-h-[88vh] overflow-hidden px-4 text-center">
         {/* Atmospheric background */}
         <div className="absolute inset-0 bg-surface-900" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_45%,rgba(232,184,0,0.07),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_45%,rgba(232,184,0,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_20%_80%,rgba(0,155,58,0.06),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_20%,rgba(0,155,58,0.06),transparent_60%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-surface-900 to-transparent" />
 
         {/* Content */}

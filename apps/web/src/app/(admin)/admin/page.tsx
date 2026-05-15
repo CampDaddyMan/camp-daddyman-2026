@@ -24,8 +24,8 @@ interface AdminUser {
 }
 
 interface AdminContent {
-  id: string; title: string; type: string; status: string; privacy: string;
-  views: number; createdAt: string;
+  id: string; title: string; description?: string; type: string; status: string; privacy: string;
+  views: number; createdAt: string; thumbnailUrl?: string | null; tags?: string[];
   creator: { username: string; email: string };
   _count: { likes: number; comments: number };
 }
@@ -355,6 +355,128 @@ function UsersTab() {
   );
 }
 
+// ── Edit content modal ────────────────────────────────────────────────────────
+
+function EditContentModal({ item, onClose, onSaved }: {
+  item: AdminContent;
+  onClose: () => void;
+  onSaved: (updated: AdminContent) => void;
+}) {
+  const [title, setTitle]           = useState(item.title);
+  const [description, setDesc]      = useState(item.description || '');
+  const [thumbnailUrl, setThumb]    = useState(item.thumbnailUrl || '');
+  const [privacy, setPrivacy]       = useState(item.privacy);
+  const [tags, setTags]             = useState((item.tags || []).join(', '));
+  const [saving, setSaving]         = useState(false);
+  const [error, setError]           = useState('');
+
+  async function handleSave() {
+    if (!title.trim()) { setError('Title is required'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      const { data } = await api.patch(`/content/${item.id}`, { title, description, thumbnailUrl, privacy, tags });
+      onSaved({ ...item, title: data.title, description: data.description, thumbnailUrl: data.thumbnailUrl, privacy: data.privacy, tags: data.tags });
+      onClose();
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">Edit Content</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+
+        <div className="flex-1 px-6 py-6 space-y-5">
+          {/* Thumbnail preview */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">Thumbnail</label>
+            <div className="relative aspect-video bg-surface-700 rounded-xl overflow-hidden mb-2">
+              {thumbnailUrl
+                ? <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                : <div className="absolute inset-0 flex items-center justify-center text-4xl">🖼️</div>
+              }
+            </div>
+            <input
+              value={thumbnailUrl}
+              onChange={(e) => setThumb(e.target.value)}
+              placeholder="/images/thumbnails/your-image.jpg"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+            />
+            <p className="text-xs text-gray-500 mt-1">Paste a path from /public or a full URL</p>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Title</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDesc(e.target.value)}
+              rows={4}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none"
+            />
+          </div>
+
+          {/* Privacy */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Privacy</label>
+            <select
+              value={privacy}
+              onChange={(e) => setPrivacy(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none"
+            >
+              <option value="PUBLIC">Public</option>
+              <option value="SUBSCRIBERS_ONLY">Subscribers Only</option>
+              <option value="PRIVATE">Private</option>
+            </select>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Tags</label>
+            <input
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="hip-hop, discipline, original"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+            />
+            <p className="text-xs text-gray-500 mt-1">Comma separated</p>
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Content tab ───────────────────────────────────────────────────────────────
 
 function ContentTab() {
@@ -366,11 +488,12 @@ function ContentTab() {
   const [status, setStatus]   = useState('ALL');
   const [type, setType]       = useState('ALL');
   const [acting, setActing]   = useState<string | null>(null);
+  const [editing, setEditing] = useState<AdminContent | null>(null);
   const dSearch = useDebounce(search);
 
   function load(p: number) {
     const params: Record<string, string> = { page: String(p), limit: '20' };
-    if (dSearch)       params.search = dSearch;
+    if (dSearch)          params.search = dSearch;
     if (status !== 'ALL') params.status = status;
     if (type   !== 'ALL') params.type   = type;
     api.get('/admin/content', { params })
@@ -455,6 +578,10 @@ function ContentTab() {
                 <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{fmtDate(c.createdAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex gap-1.5 justify-end">
+                    <button onClick={() => setEditing(c)}
+                      className="text-xs px-2 py-1 rounded bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 transition-colors">
+                      Edit
+                    </button>
                     {c.status !== 'ACTIVE' && (
                       <button onClick={() => handleStatus(c.id, 'ACTIVE')} disabled={acting === c.id}
                         className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
@@ -481,6 +608,17 @@ function ContentTab() {
         </table>
       </div>
       <Pager page={page} pages={pages} onChange={load} />
+
+      {editing && (
+        <EditContentModal
+          item={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(updated) => {
+            setContent((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+            setEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 }

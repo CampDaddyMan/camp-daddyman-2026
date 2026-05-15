@@ -377,11 +377,12 @@ export async function updateContent(req: AuthRequest, res: Response) {
     return res.status(403).json({ error: 'Not authorized' });
   }
 
-  const { title, description, privacy, tags } = req.body;
+  const { title, description, privacy, tags, thumbnailUrl } = req.body;
 
   const data: any = {};
-  if (title !== undefined)       data.title = String(title).trim();
-  if (description !== undefined) data.description = String(description).trim() || null;
+  if (title !== undefined)        data.title = String(title).trim();
+  if (description !== undefined)  data.description = String(description).trim() || null;
+  if (thumbnailUrl !== undefined) data.thumbnailUrl = thumbnailUrl ? String(thumbnailUrl).trim() : null;
   if (privacy !== undefined && ['PUBLIC', 'PRIVATE', 'SUBSCRIBERS_ONLY'].includes(privacy)) {
     data.privacy = privacy;
   }

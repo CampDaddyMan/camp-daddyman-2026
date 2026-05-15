@@ -403,7 +403,7 @@ export default function WatchPage() {
 
   if (subRequired) return <SubscriberGate preview={preview} user={user} />;
 
-  if (error || !content) return (
+  if (!content) return (
     <div className="text-center py-20 text-gray-400">{error || 'Content not found.'}</div>
   );
 
@@ -457,24 +457,30 @@ export default function WatchPage() {
             <audio
               src={content.mediaUrl ?? undefined}
               controls
-              autoPlay
               className="w-full max-w-md"
-              onLoadedMetadata={(e) => { handlePlayerReady(); }}
+              onLoadedMetadata={() => handlePlayerReady()}
               onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
+              onError={() => setError('This audio format is not supported by your browser. Supported: MP3, WAV, AAC, FLAC, OGG.')}
             />
           </div>
         ) : (
           <video
             src={content.mediaUrl ?? undefined}
             controls
-            autoPlay
             playsInline
             className="w-full h-full"
             onLoadedMetadata={handlePlayerReady}
             onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLVideoElement).currentTime; }}
+            onError={() => setError('This video format is not supported by your browser. Please re-upload as MP4 or WebM.')}
           />
         )}
       </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-3">
+          {error}
+        </div>
+      )}
 
       {/* Resume banner */}
       {showResumeBanner && (

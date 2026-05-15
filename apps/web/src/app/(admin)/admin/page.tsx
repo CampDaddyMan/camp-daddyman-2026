@@ -25,7 +25,7 @@ interface AdminUser {
 
 interface AdminContent {
   id: string; title: string; description?: string; type: string; status: string; privacy: string;
-  views: number; createdAt: string; thumbnailUrl?: string | null; tags?: string[];
+  views: number; createdAt: string; mediaUrl?: string | null; thumbnailUrl?: string | null; tags?: string[];
   creator: { username: string; email: string };
   _count: { likes: number; comments: number };
 }
@@ -362,15 +362,19 @@ function EditContentModal({ item, onClose, onSaved }: {
   onClose: () => void;
   onSaved: (updated: AdminContent) => void;
 }) {
-  const [title, setTitle]           = useState(item.title);
-  const [description, setDesc]      = useState(item.description || '');
-  const [thumbnailUrl, setThumb]    = useState(item.thumbnailUrl || '');
-  const [privacy, setPrivacy]       = useState(item.privacy);
-  const [tags, setTags]             = useState((item.tags || []).join(', '));
-  const [saving, setSaving]         = useState(false);
-  const [uploading, setUploading]   = useState(false);
-  const [error, setError]           = useState('');
-  const fileInputRef                = useRef<HTMLInputElement>(null);
+  const [title, setTitle]               = useState(item.title);
+  const [description, setDesc]          = useState(item.description || '');
+  const [thumbnailUrl, setThumb]        = useState(item.thumbnailUrl || '');
+  const [mediaUrl, setMediaUrl]         = useState(item.mediaUrl || '');
+  const [privacy, setPrivacy]           = useState(item.privacy);
+  const [tags, setTags]                 = useState((item.tags || []).join(', '));
+  const [saving, setSaving]             = useState(false);
+  const [uploading, setUploading]       = useState(false);
+  const [mediaUploading, setMediaUp]    = useState(false);
+  const [mediaProgress, setMediaProg]   = useState(0);
+  const [error, setError]               = useState('');
+  const fileInputRef                    = useRef<HTMLInputElement>(null);
+  const mediaInputRef                   = useRef<HTMLInputElement>(null);
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -389,6 +393,31 @@ function EditContentModal({ item, onClose, onSaved }: {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMediaUp(true);
+    setMediaProg(0);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('media', file);
+      const { data } = await api.post(`/content/${item.id}/media`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (ev) => {
+          if (ev.total) setMediaProg(Math.round((ev.loaded / ev.total) * 100));
+        },
+      });
+      setMediaUrl(data.mediaUrl);
+    } catch {
+      setError('Media upload failed');
+    } finally {
+      setMediaUp(false);
+      setMediaProg(0);
+      if (mediaInputRef.current) mediaInputRef.current.value = '';
     }
   }
 
@@ -454,6 +483,41 @@ function EditContentModal({ item, onClose, onSaved }: {
               />
             </div>
             <p className="text-xs text-gray-500">Upload a file or paste a URL</p>
+          </div>
+
+          {/* Media file */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">
+              {['FILM'].includes(item.type) ? 'Video File' : 'Audio File'}
+            </label>
+            <div className="bg-surface-700 border border-surface-600 rounded-lg px-3 py-2 text-sm text-gray-300 mb-2 truncate">
+              {mediaUrl ? mediaUrl.split('/').pop() : 'No file'}
+            </div>
+            {mediaUploading && (
+              <div className="mb-2">
+                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                  <span>Uploading...</span><span>{mediaProgress}%</span>
+                </div>
+                <div className="h-1.5 bg-surface-600 rounded-full overflow-hidden">
+                  <div className="h-full bg-camp-500 rounded-full transition-all" style={{ width: `${mediaProgress}%` }} />
+                </div>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => mediaInputRef.current?.click()}
+              disabled={mediaUploading}
+              className="px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              {mediaUploading ? `Uploading ${mediaProgress}%` : 'Replace File'}
+            </button>
+            <input
+              ref={mediaInputRef}
+              type="file"
+              accept="video/*,audio/*"
+              className="hidden"
+              onChange={handleMediaUpload}
+            />
           </div>
 
           {/* Title */}

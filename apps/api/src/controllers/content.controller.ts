@@ -414,6 +414,35 @@ export async function uploadThumbnail(req: AuthRequest, res: Response) {
   }
 }
 
+export async function uploadMedia(req: AuthRequest, res: Response) {
+  try {
+    const content = await prisma.content.findUnique({
+      where: { id: req.params.id },
+      select: { creatorId: true, mediaUrl: true, type: true },
+    });
+    if (!content) return res.status(404).json({ error: 'Content not found' });
+    if (content.creatorId !== req.user!.id && !req.user!.isAdmin) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ error: 'Media file required' });
+
+    if (content.mediaUrl?.startsWith('http')) {
+      deleteFromS3(content.mediaUrl).catch(() => {});
+    }
+
+    const folder = `media/${content.type.toLowerCase()}`;
+    const mediaUrl = await uploadToS3(file, folder);
+    await prisma.content.update({ where: { id: req.params.id }, data: { mediaUrl } });
+
+    res.json({ mediaUrl });
+  } catch (err: any) {
+    console.error('[uploadMedia]', err.message);
+    res.status(500).json({ error: 'Media upload failed', detail: err.message });
+  }
+}
+
 export async function getWatchHistory(req: AuthRequest, res: Response) {
   const records = await prisma.watchHistory.findMany({
     where: { userId: req.user!.id, progress: { gt: 5 } },

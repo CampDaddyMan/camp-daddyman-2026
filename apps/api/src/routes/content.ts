@@ -9,6 +9,7 @@ import {
   deleteContent,
   updateContent,
   uploadThumbnail,
+  uploadMedia,
   likeContent,
   commentOnContent,
   deleteComment,
@@ -64,6 +65,7 @@ router.post(
 );
 router.patch('/:id', authMiddleware, writeLimiter, updateContent);
 router.post('/:id/thumbnail', authMiddleware, writeLimiter, imageUpload.single('thumbnail'), uploadThumbnail);
+router.post('/:id/media', authMiddleware, writeLimiter, upload.single('media'), uploadMedia);
 router.delete('/:id', authMiddleware, writeLimiter, deleteContent);
 router.post('/:id/like', authMiddleware, writeLimiter, likeContent);
 router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);

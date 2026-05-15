@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { uploadToS3, deleteFromS3, getSignedMediaUrl } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers } from '../utils/notifications';
-import { transcodeQueue } from '../config/queue';
+import { getTranscodeQueue } from '../config/queue';
 
 const CONTENT_SELECT = {
   id: true, title: true, description: true, type: true,
@@ -196,15 +196,20 @@ export async function uploadContent(req: AuthRequest, res: Response) {
 
   // Enqueue transcoding (fire and forget — if Redis is down, fall back gracefully)
   if (mediaUrl) {
-    transcodeQueue.add('transcode', {
-      contentId: content.id,
-      mediaUrl,
-      contentType: type,
-    }).catch(async (err) => {
-      console.error('[Upload] Failed to enqueue transcode job:', err.message);
-      // No Redis? Activate immediately so content isn't stuck.
+    const queue = getTranscodeQueue();
+    if (queue) {
+      queue.add('transcode', {
+        contentId: content.id,
+        mediaUrl,
+        contentType: type,
+      }).catch(async (err) => {
+        console.error('[Upload] Failed to enqueue transcode job:', err.message);
+        await prisma.content.update({ where: { id: content.id }, data: { status: 'ACTIVE' } }).catch(() => {});
+      });
+    } else {
+      // No Redis available — activate content immediately
       await prisma.content.update({ where: { id: content.id }, data: { status: 'ACTIVE' } }).catch(() => {});
-    });
+    }
   }
 
   // Notify followers once content is live (for non-video, it's already ACTIVE)

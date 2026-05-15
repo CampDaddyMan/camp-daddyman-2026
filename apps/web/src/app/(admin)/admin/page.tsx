@@ -375,8 +375,12 @@ function EditContentModal({ item, onClose, onSaved }: {
     setSaving(true);
     setError('');
     try {
-      const { data } = await api.patch(`/content/${item.id}`, { title, description, thumbnailUrl, privacy, tags });
-      onSaved({ ...item, title: data.title, description: data.description, thumbnailUrl: data.thumbnailUrl, privacy: data.privacy, tags: data.tags });
+      const payload: Record<string, string> = { title, privacy };
+      if (description !== (item.description || ''))   payload.description  = description;
+      if (thumbnailUrl !== (item.thumbnailUrl || ''))  payload.thumbnailUrl = thumbnailUrl;
+      if (tags         !== (item.tags || []).join(', ')) payload.tags       = tags;
+      const { data } = await api.patch(`/content/${item.id}`, payload);
+      onSaved({ ...item, ...data });
       onClose();
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Save failed');

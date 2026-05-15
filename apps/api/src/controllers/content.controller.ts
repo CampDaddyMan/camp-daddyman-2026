@@ -402,7 +402,7 @@ export async function updateContent(req: AuthRequest, res: Response) {
   const updated = await prisma.content.update({
     where: { id: req.params.id },
     data,
-    select: { id: true, title: true, description: true, privacy: true, tags: true },
+    select: { id: true, title: true, description: true, thumbnailUrl: true, privacy: true, tags: true },
   });
 
   res.json({ content: updated });

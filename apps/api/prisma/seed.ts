@@ -299,7 +299,55 @@ async function main() {
     }),
   ]);
 
-  const allContent = [...music, ...films, ...podcasts, ...spokenWord];
+  const daddymanIsms = await Promise.all([
+    prisma.content.upsert({
+      where: { id: 'seed-ism-001' },
+      update: {},
+      create: {
+        id: 'seed-ism-001',
+        title: 'Discipline is not punishment.',
+        description: 'Most men fear discipline because they were raised to see it as a weapon. Discipline is a gift you give yourself — the proof that you trust your own future.',
+        type: 'DADDYMAN_ISMS', status: 'ACTIVE', privacy: 'PUBLIC',
+        duration: 0, views: 2187,
+        tags: ['discipline', 'mindset', 'teaching'],
+        cardAspect: 'square',
+        cardWidth: 280,
+        creatorId: daddyman.id,
+      },
+    }),
+    prisma.content.upsert({
+      where: { id: 'seed-ism-002' },
+      update: {},
+      create: {
+        id: 'seed-ism-002',
+        title: 'You cannot lead where you have not been.',
+        description: 'A father who has never faced himself cannot guide his son through the wilderness. Do the work first.',
+        type: 'DADDYMAN_ISMS', status: 'ACTIVE', privacy: 'PUBLIC',
+        duration: 0, views: 1943,
+        tags: ['fatherhood', 'legacy', 'parable'],
+        cardAspect: 'square',
+        cardWidth: 280,
+        creatorId: daddyman.id,
+      },
+    }),
+    prisma.content.upsert({
+      where: { id: 'seed-ism-003' },
+      update: {},
+      create: {
+        id: 'seed-ism-003',
+        title: 'Identity is not found. It is forged.',
+        description: "The world will tell you who you are every single day. Stop listening. Identity doesn't fall from the sky — you build it, one decision at a time.",
+        type: 'DADDYMAN_ISMS', status: 'ACTIVE', privacy: 'PUBLIC',
+        duration: 0, views: 3102,
+        tags: ['identity', 'teaching', 'wisdom'],
+        cardAspect: 'square',
+        cardWidth: 280,
+        creatorId: daddyman.id,
+      },
+    }),
+  ]);
+
+  const allContent = [...music, ...films, ...podcasts, ...spokenWord, ...daddymanIsms];
   console.log(`  Created ${allContent.length} content items`);
 
   // ── Follows ────────────────────────────────────────────────────────────────

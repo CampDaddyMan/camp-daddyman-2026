@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Content } from '@/types';
 
 const TYPE_LABELS: Record<string, string> = {
-  FILM: 'Film', MUSIC: 'Music', PODCAST: 'Podcast', SPOKEN_WORD: 'Spoken Word',
+  FILM: 'Film', MUSIC: 'Music', PODCAST: 'Podcast', SPOKEN_WORD: 'Spoken Word', DADDYMAN_ISMS: 'DaddyMan-Ism',
 };
 
 
@@ -48,6 +48,8 @@ function RowCard({ item }: { item: Content }) {
               ? '🎬'
               : item.type === 'PODCAST'
               ? '🎙️'
+              : item.type === 'DADDYMAN_ISMS'
+              ? '💬'
               : '🎤'}
           </div>
         )}

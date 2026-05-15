@@ -12,6 +12,7 @@ const TYPES: { value: ContentType | ''; label: string }[] = [
   { value: 'FILM', label: 'Film' },
   { value: 'PODCAST', label: 'Podcasts' },
   { value: 'SPOKEN_WORD', label: 'Spoken Word' },
+  { value: 'DADDYMAN_ISMS', label: 'DaddyMan-Isms' },
 ];
 
 const PAGE_SIZE = 12;

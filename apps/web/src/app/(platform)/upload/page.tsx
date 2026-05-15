@@ -12,6 +12,7 @@ const CONTENT_TYPES: { value: ContentType; label: string; accept: string }[] = [
   { value: 'MUSIC', label: 'Music / Audio', accept: 'audio/*' },
   { value: 'PODCAST', label: 'Podcast', accept: 'audio/*' },
   { value: 'SPOKEN_WORD', label: 'Spoken Word', accept: 'audio/*' },
+  { value: 'DADDYMAN_ISMS', label: 'DaddyMan-Ism', accept: 'audio/*,video/*' },
 ];
 
 export default function UploadPage() {

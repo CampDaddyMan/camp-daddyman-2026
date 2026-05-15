@@ -24,6 +24,7 @@ interface DiscoveryData {
     FILM: Content[];
     PODCAST: Content[];
     SPOKEN_WORD: Content[];
+    DADDYMAN_ISMS: Content[];
   };
   creators: Creator[];
 }
@@ -153,11 +154,6 @@ export default function HomePage() {
       .catch(() => {});
   }, [user]);
 
-  const hasAnyContent = data && (
-    data.trending.length > 0 ||
-    data.newReleases.length > 0 ||
-    Object.values(data.byType).some((arr) => arr.length > 0)
-  );
 
   return (
     <div>
@@ -238,127 +234,123 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
           <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-2">Explore the Camp</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-white">1 What are you feeling?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-white">What are you feeling?</h2>
         </div>
         
    
         
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-  {[
-    {
-      label: 'Music',
-      href: '/browse?type=MUSIC',
-      image: '/images/categories/CampDaddyman_Media_Categories_Music.jpg',
-      desc: 'Original tracks & albums'
-    },
-    {
-      label: 'Film',
-      href: '/browse?type=FILM',
-      image: '/images/categories/CampDaddyman_Media_Categories_Film.jpg',
-      desc: 'Short films & features'
-    },
-    {
-      label: 'Podcasts',
-      href: '/browse?type=PODCAST',
-      image: '/images/categories/CampDaddyman_Media_Categories_Podcasts.jpg',
-      desc: 'Conversations & interviews'
-    },
-    {
-      label: 'Spoken Word',
-      href: '/browse?type=SPOKEN_WORD',
-      image: '/images/categories/CampDaddyman_Media_Categories_Spoken_Word.jpg',
-      desc: 'Poetry & spoken teachings'
-    },
-  ].map((cat) => (
-    <Link
-      key={cat.label}
-      href={cat.href}
-      className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-brand-500/40 transition-all duration-300"
-    >
-      {/* Background Image */}
-      <Image
-        src={cat.image}
-        alt={cat.label}
-        fill
-        className="object-cover group-hover:scale-105 transition-transform duration-700"
-      />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[
+            {
+              label: 'Music',
+              href: '/browse?type=MUSIC',
+              image: '/images/categories/CampDaddyman_Media_Categories_Music.jpg',
+              desc: 'Original tracks & albums',
+              emoji: '🎵',
+            },
+            {
+              label: 'Film',
+              href: '/browse?type=FILM',
+              image: '/images/categories/CampDaddyman_Media_Categories_Film.jpg',
+              desc: 'Short films & features',
+              emoji: '🎬',
+            },
+            {
+              label: 'Podcasts',
+              href: '/browse?type=PODCAST',
+              image: '/images/categories/CampDaddyman_Media_Categories_Podcasts.jpg',
+              desc: 'Conversations & interviews',
+              emoji: '🎙️',
+            },
+            {
+              label: 'Spoken Word',
+              href: '/browse?type=SPOKEN_WORD',
+              image: '/images/categories/CampDaddyman_Media_Categories_Spoken_Word.jpg',
+              desc: 'Poetry & spoken teachings',
+              emoji: '🎤',
+            },
+            {
+              label: 'DaddyMan-Isms',
+              href: '/browse?type=DADDYMAN_ISMS',
+              image: null,
+              desc: 'Quotes, parables & teachings',
+              emoji: '💬',
+            },
+          ].map((cat) => (
+            <Link
+              key={cat.label}
+              href={cat.href}
+              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-brand-500/40 transition-all duration-300"
+            >
+              {cat.image ? (
+                <Image
+                  src={cat.image}
+                  alt={cat.label}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-surface-700 via-surface-800 to-surface-900 group-hover:from-brand-500/20 transition-all duration-700 flex items-center justify-center">
+                  <span className="text-5xl opacity-30 group-hover:opacity-50 transition-opacity">{cat.emoji}</span>
+                </div>
+              )}
 
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-        <h3 className="text-white text-xl font-bold mb-1">
-          {cat.label}
-        </h3>
-
-        <p className="text-gray-300 text-sm">
-          {cat.desc}
-        </p>
-      </div>
-    </Link>
-  ))}
-</div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                <h3 className="text-white text-base font-bold mb-0.5">{cat.label}</h3>
+                <p className="text-gray-300 text-xs">{cat.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section> 
 
       {/* ── Dynamic content rows ── */}
-      {(loading || hasAnyContent) && (
-        <div className="max-w-7xl mx-auto px-4 pb-10">
-          {loading ? (
-            <div className="space-y-10">
-              {[0, 1, 2].map((i) => (
-                <div key={i}>
-                  <div className="h-5 w-40 bg-surface-700 rounded animate-pulse mb-4" />
-                  <div className="flex gap-3">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <div key={j} className="flex-shrink-0 w-56 aspect-video bg-surface-700 rounded-xl animate-pulse" />
-                    ))}
-                  </div>
+      <div className="max-w-7xl mx-auto px-4 pb-10">
+        {loading ? (
+          <div className="space-y-10">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i}>
+                <div className="h-5 w-40 bg-surface-700 rounded animate-pulse mb-4" />
+                <div className="flex gap-3">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <div key={j} className="flex-shrink-0 w-56 aspect-video bg-surface-700 rounded-xl animate-pulse" />
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <ContinueWatchingRow items={history} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <ContinueWatchingRow items={history} />
 
-              {data!.trending.length > 0 && (
-                <ContentRow title="🔥 Trending" items={data!.trending} seeAllHref="/browse?sort=trending" />
-              )}
-              {data!.newReleases.length > 0 && (
-                <ContentRow title="✨ New Releases" items={data!.newReleases} seeAllHref="/browse" />
-              )}
-              {data!.byType.MUSIC.length > 0 && (
-                <ContentRow title="🎵 Music" items={data!.byType.MUSIC} seeAllHref="/browse?type=MUSIC" />
-              )}
-              {data!.byType.FILM.length > 0 && (
-                <ContentRow title="🎬 Film" items={data!.byType.FILM} seeAllHref="/browse?type=FILM" />
-              )}
-              {data!.byType.PODCAST.length > 0 && (
-                <ContentRow title="🎙️ Podcasts" items={data!.byType.PODCAST} seeAllHref="/browse?type=PODCAST" />
-              )}
-              {data!.byType.SPOKEN_WORD.length > 0 && (
-                <ContentRow title="🎤 Spoken Word" items={data!.byType.SPOKEN_WORD} seeAllHref="/browse?type=SPOKEN_WORD" />
-              )}
+            <ContentRow title="🔥 Trending" items={data?.trending ?? []} seeAllHref="/browse?sort=trending" emptyText="New drops coming soon." />
+            <ContentRow title="✨ New Releases" items={data?.newReleases ?? []} seeAllHref="/browse" emptyText="First releases dropping soon." />
+            <ContentRow title="🎵 Music" items={data?.byType.MUSIC ?? []} seeAllHref="/browse?type=MUSIC" emptyText="Original tracks & albums coming soon." />
+            <ContentRow title="🎬 Film" items={data?.byType.FILM ?? []} seeAllHref="/browse?type=FILM" emptyText="Short films & features coming soon." />
+            <ContentRow title="🎙️ Podcasts" items={data?.byType.PODCAST ?? []} seeAllHref="/browse?type=PODCAST" emptyText="Long-form conversations coming soon." />
+            <ContentRow title="🎤 Spoken Word" items={data?.byType.SPOKEN_WORD ?? []} seeAllHref="/browse?type=SPOKEN_WORD" emptyText="Poetry & spoken teachings coming soon." />
+            <ContentRow title="💬 DaddyMan-Isms" items={data?.byType.DADDYMAN_ISMS ?? []} seeAllHref="/browse?type=DADDYMAN_ISMS" emptyText="Quotes, parables & teachings — dropping soon." />
 
-              {data!.creators.length > 0 && (
-                <section className="mb-10">
-                  <div className="flex items-baseline justify-between mb-4">
-                    <h2 className="text-lg font-bold text-white">👥 Featured Creators</h2>
-                  </div>
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-                    {data!.creators.map((c) => (
-                      <div key={c.username} className="snap-start">
-                        <CreatorCard creator={c} />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
-          )}
-        </div>
-      )}
+            {(data?.creators ?? []).length > 0 && (
+              <section className="mb-10">
+                <div className="flex items-baseline justify-between mb-4">
+                  <h2 className="text-lg font-bold text-white">👥 Featured Creators</h2>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+                  {data!.creators.map((c) => (
+                    <div key={c.username} className="snap-start">
+                      <CreatorCard creator={c} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </div>
 
       {/* ── Philosophy pillars ── */}
       <section className="border-t border-surface-700/50 bg-surface-800/40">

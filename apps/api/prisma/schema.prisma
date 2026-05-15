@@ -100,6 +100,7 @@ enum ContentType {
   MUSIC
   PODCAST
   SPOKEN_WORD
+  DADDYMAN_ISMS
 }
 
 enum ContentStatus {

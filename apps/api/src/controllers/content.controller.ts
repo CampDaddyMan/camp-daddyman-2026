@@ -41,7 +41,7 @@ export async function listContent(req: Request, res: Response) {
 export async function getDiscovery(_req: Request, res: Response) {
   const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const };
 
-  const [trending, newReleases, music, film, podcast, spokenWord, topCreators] = await Promise.all([
+  const [trending, newReleases, music, film, podcast, spokenWord, daddymanIsms, topCreators] = await Promise.all([
     prisma.content.findMany({
       where: base, orderBy: { views: 'desc' }, take: 8, select: CONTENT_SELECT,
     }),
@@ -60,6 +60,10 @@ export async function getDiscovery(_req: Request, res: Response) {
     prisma.content.findMany({
       where: { ...base, type: 'SPOKEN_WORD' }, orderBy: { createdAt: 'desc' }, take: 6, select: CONTENT_SELECT,
     }),
+    prisma.content.findMany({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      where: { ...base, type: 'DADDYMAN_ISMS' as any }, orderBy: { createdAt: 'desc' }, take: 6, select: CONTENT_SELECT,
+    }),
     prisma.user.findMany({
       where: { isCreator: true },
       orderBy: { followers: { _count: 'desc' } },
@@ -74,7 +78,7 @@ export async function getDiscovery(_req: Request, res: Response) {
   res.json({
     trending,
     newReleases,
-    byType: { MUSIC: music, FILM: film, PODCAST: podcast, SPOKEN_WORD: spokenWord },
+    byType: { MUSIC: music, FILM: film, PODCAST: podcast, SPOKEN_WORD: spokenWord, DADDYMAN_ISMS: daddymanIsms },
     creators: topCreators,
   });
 }

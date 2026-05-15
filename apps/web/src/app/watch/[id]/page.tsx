@@ -461,11 +461,13 @@ export default function WatchPage() {
               onLoadedMetadata={() => handlePlayerReady()}
               onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
               onError={(e) => {
-                const code = (e.target as HTMLAudioElement).error?.code;
-                if (code === 2) setError('Network error loading audio — check that the file was uploaded successfully.');
-                else if (code === 3) setError('Audio file could not be decoded. Try re-uploading as MP3 or WAV.');
-                else if (code === 4) setError('Audio format not supported by your browser. Supported: MP3, WAV, AAC, FLAC, OGG.');
-                else setError('Could not load audio. The file may be missing or inaccessible.');
+                const el = e.target as HTMLAudioElement;
+                const code = el.error?.code;
+                console.error('[AudioPlayer] error code:', code, '| src:', el.src, '| message:', el.error?.message);
+                if (code === 2) setError(`Network error (code 2) — file may be inaccessible. URL: ${el.src}`);
+                else if (code === 3) setError(`Decode error (code 3) — file may be corrupt. Try re-uploading as MP3.`);
+                else if (code === 4) setError(`Source error (code 4) — file not found or access denied. URL: ${el.src}`);
+                else setError(`Unknown error (code ${code}). URL: ${el.src}`);
               }}
             />
           </div>
@@ -478,19 +480,27 @@ export default function WatchPage() {
             onLoadedMetadata={handlePlayerReady}
             onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLVideoElement).currentTime; }}
             onError={(e) => {
-              const code = (e.target as HTMLVideoElement).error?.code;
-              if (code === 2) setError('Network error loading video — check that the file was uploaded successfully.');
-              else if (code === 3) setError('Video could not be decoded. Try re-uploading as MP4.');
-              else if (code === 4) setError('Video format not supported. Please re-upload as MP4 or WebM.');
-              else setError('Could not load video. The file may be missing or inaccessible.');
+              const el = e.target as HTMLVideoElement;
+              const code = el.error?.code;
+              console.error('[VideoPlayer] error code:', code, '| src:', el.src, '| message:', el.error?.message);
+              if (code === 2) setError(`Network error (code 2) — file may be inaccessible. URL: ${el.src}`);
+              else if (code === 3) setError(`Decode error (code 3) — file may be corrupt. Re-upload as MP4.`);
+              else if (code === 4) setError(`Source error (code 4) — file not found or access denied. URL: ${el.src}`);
+              else setError(`Unknown error (code ${code}). URL: ${el.src}`);
             }}
           />
         )}
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-3">
-          {error}
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-3 space-y-2">
+          <p>{error}</p>
+          {content.mediaUrl && (
+            <a href={content.mediaUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-block text-xs underline text-red-300 hover:text-white">
+              → Open file directly in browser
+            </a>
+          )}
         </div>
       )}
 

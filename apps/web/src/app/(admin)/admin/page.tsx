@@ -380,7 +380,7 @@ function EditContentModal({ item, onClose, onSaved }: {
       if (thumbnailUrl !== (item.thumbnailUrl || ''))  payload.thumbnailUrl = thumbnailUrl;
       if (tags         !== (item.tags || []).join(', ')) payload.tags       = tags;
       const { data } = await api.patch(`/content/${item.id}`, payload);
-      onSaved({ ...item, ...data });
+      onSaved({ ...item, ...data.content });
       onClose();
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Save failed');

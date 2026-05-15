@@ -1,15 +1,12 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Content, Comment } from '@/types';
 import Button from '@/components/ui/Button';
-
-const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
 
 // Native HLS player using hls.js (falls back to native <video> on Safari)
 function HlsVideoPlayer({
@@ -98,7 +95,10 @@ function SubscriberGate({ preview, user }: { preview: PreviewContent | null; use
       <div className="relative aspect-video bg-surface-800 rounded-2xl overflow-hidden mb-8">
         {preview?.thumbnailUrl ? (
           <>
-            <Image src={preview.thumbnailUrl} alt={preview.title} fill className="object-cover blur-sm scale-105 opacity-40" />
+            {preview.thumbnailUrl.startsWith('http')
+              ? <img src={preview.thumbnailUrl} alt={preview.title} className="absolute inset-0 w-full h-full object-cover blur-sm scale-105 opacity-40" />
+              : <Image src={preview.thumbnailUrl} alt={preview.title} fill className="object-cover blur-sm scale-105 opacity-40" />
+            }
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
           </>
         ) : (
@@ -288,7 +288,9 @@ function MiniContentCard({ item }: { item: RelatedContent }) {
     <Link href={`/watch/${item.id}`} className="group flex gap-3 items-start hover:bg-surface-800 rounded-xl p-2 -mx-2 transition-colors">
       <div className="relative w-28 flex-shrink-0 aspect-video bg-surface-700 rounded-lg overflow-hidden">
         {item.thumbnailUrl ? (
-          <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+          item.thumbnailUrl.startsWith('http')
+            ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-xl">🎬</div>
         )}
@@ -320,7 +322,6 @@ export default function WatchPage() {
   const [savedProgress, setSavedProgress] = useState(0);
   const [showResumeBanner, setShowResumeBanner] = useState(false);
   const [hasResumed, setHasResumed] = useState(false);
-  const playerRef = useRef<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const currentProgressRef = useRef(0);
   const saveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -409,11 +410,7 @@ export default function WatchPage() {
   const isHls = !!(content.hlsUrl);
 
   function seekTo(seconds: number) {
-    if (isHls) {
-      if (videoRef.current) videoRef.current.currentTime = seconds;
-    } else {
-      playerRef.current?.seekTo(seconds, 'seconds');
-    }
+    if (videoRef.current) videoRef.current.currentTime = seconds;
   }
 
   function handlePlayerReady() {
@@ -451,16 +448,30 @@ export default function WatchPage() {
             onReady={handlePlayerReady}
             onProgress={(s) => { currentProgressRef.current = s; }}
           />
+        ) : ['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(content.type) ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6">
+            <div className="text-5xl mb-4">
+              {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : '🎤'}
+            </div>
+            <p className="text-white font-semibold text-center mb-6 line-clamp-2">{content.title}</p>
+            <audio
+              src={content.mediaUrl ?? undefined}
+              controls
+              autoPlay
+              className="w-full max-w-md"
+              onLoadedMetadata={(e) => { handlePlayerReady(); }}
+              onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
+            />
+          </div>
         ) : (
-          <ReactPlayer
-            ref={playerRef}
-            url={content.mediaUrl}
+          <video
+            src={content.mediaUrl ?? undefined}
             controls
-            width="100%"
-            height="100%"
-            playing
-            onReady={handlePlayerReady}
-            onProgress={({ playedSeconds }) => { currentProgressRef.current = playedSeconds; }}
+            autoPlay
+            playsInline
+            className="w-full h-full"
+            onLoadedMetadata={handlePlayerReady}
+            onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLVideoElement).currentTime; }}
           />
         )}
       </div>

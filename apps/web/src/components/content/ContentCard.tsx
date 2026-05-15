@@ -22,7 +22,9 @@ export default function ContentCard({ item }: { item: Content }) {
       <Link href={`/watch/${item.id}`} className="block">
         <div className="relative aspect-video bg-surface-700">
           {item.thumbnailUrl ? (
-            <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" />
+            item.thumbnailUrl.startsWith('http')
+              ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
+              : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-4xl text-surface-500">
               {item.type === 'MUSIC' ? '🎵' : item.type === 'FILM' ? '🎬' : item.type === 'PODCAST' ? '🎙️' : '🎤'}

@@ -7,10 +7,10 @@ export const s3 = new S3Client({
     accessKeyId:     process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
-  // R2 requires us-east-1 as the region value in the SDK even though it's globally distributed
   region: 'auto',
-  // R2 doesn't use path-style but the SDK needs this hint for non-AWS endpoints
   forcePathStyle: false,
+  // Prevents x-amz-checksum-mode=ENABLED from being injected into signed URLs — R2 rejects it
+  requestChecksumCalculation: 'WHEN_REQUIRED',
 });
 
 export const R2_BUCKET     = process.env.R2_BUCKET!;

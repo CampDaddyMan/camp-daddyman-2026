@@ -155,7 +155,7 @@ function OverviewTab() {
   if (!data) return <div className="animate-pulse space-y-4">{Array.from({length:3}).map((_,i)=><div key={i} className="h-24 bg-surface-700 rounded-xl"/>)}</div>;
 
   const { stats, planCounts, growth, recentUsers } = data;
-  const paidRevenue = (planCounts.PRO || 0) * 9 + (planCounts.PREMIUM || 0) * 19;
+  const paidRevenue = (planCounts.PRO || 0) * 19.99 + (planCounts.PREMIUM || 0) * (99.99 / 12);
 
   return (
     <div className="space-y-8">
@@ -203,7 +203,7 @@ function OverviewTab() {
           </div>
           <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-surface-700">
             Est. MRR: <span className="text-white font-semibold">${paidRevenue.toLocaleString()}</span>
-            <span className="text-gray-600 ml-1">(PRO×$9 + PREMIUM×$19)</span>
+            <span className="text-gray-600 ml-1">(PRO×$19.99 + PREMIUM×$8.33/mo)</span>
           </p>
         </div>
 

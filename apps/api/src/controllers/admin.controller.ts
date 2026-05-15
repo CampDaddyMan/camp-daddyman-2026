@@ -180,8 +180,8 @@ export async function listAllContent(req: Request, res: Response) {
       take: Number(limit),
       orderBy: { createdAt: 'desc' },
       select: {
-        id: true, title: true, type: true, status: true, privacy: true,
-        views: true, createdAt: true,
+        id: true, title: true, description: true, type: true, status: true, privacy: true,
+        thumbnailUrl: true, tags: true, views: true, createdAt: true,
         creator: { select: { username: true, email: true } },
         _count: { select: { likes: true, comments: true } },
       },

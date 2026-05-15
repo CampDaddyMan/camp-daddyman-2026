@@ -161,9 +161,11 @@ export default function HomePage() {
       <div className="relative flex flex-col items-center justify-center min-h-[88vh] overflow-hidden px-4 text-center">
         {/* Atmospheric background */}
         <div className="absolute inset-0 bg-surface-900" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_45%,rgba(232,184,0,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_20%_80%,rgba(0,155,58,0.06),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_20%,rgba(0,155,58,0.06),transparent_60%)]" />
+        {/* Jamaican flag diagonal — gold center, green corners */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(232,184,0,0.10),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_0%_100%,rgba(0,155,58,0.12),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_100%_0%,rgba(0,155,58,0.12),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,155,58,0.04)_0%,transparent_40%,transparent_60%,rgba(0,155,58,0.04)_100%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-surface-900 to-transparent" />
 
         {/* Content */}
@@ -209,7 +211,7 @@ export default function HomePage() {
           <div className="flex gap-3 flex-wrap justify-center">
             <Link
               href="/browse"
-              className="bg-surface-700 hover:bg-surface-600 text-white px-7 py-3 rounded-xl text-sm font-medium transition-colors border border-surface-600"
+              className="bg-camp-500 hover:bg-camp-600 text-white px-7 py-3 rounded-xl text-sm font-semibold transition-colors shadow-[0_0_20px_rgba(0,155,58,0.3)]"
             >
               Browse all
             </Link>
@@ -235,7 +237,7 @@ export default function HomePage() {
       {/* ── Browse by Category ── */ }
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
-          <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-2">Explore the Camp</p>
+          <p className="text-camp-400 text-xs uppercase tracking-[0.3em] mb-2">Explore the Camp</p>
           <h2 className="text-2xl md:text-3xl font-bold text-white">What are you feeling?</h2>
         </div>
         
@@ -283,7 +285,7 @@ export default function HomePage() {
             <Link
               key={cat.label}
               href={cat.href}
-              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-brand-500/40 transition-all duration-300"
+              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-camp-500/60 transition-all duration-300"
             >
               {cat.image ? (
                 <Image
@@ -358,7 +360,7 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50 bg-surface-800/40">
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-2">The Foundation</p>
+            <p className="text-camp-400 text-xs uppercase tracking-[0.3em] mb-2">The Foundation</p>
             <h2 className="text-2xl md:text-3xl font-bold text-white">Built on three pillars</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -379,7 +381,8 @@ export default function HomePage() {
                 body: 'Create work that lasts. Music, film, and teachings that your children\'s children will still draw from.',
               },
             ].map((pillar) => (
-              <div key={pillar.word} className="relative group p-8 rounded-2xl border border-surface-700 hover:border-brand-500/30 bg-surface-800 hover:bg-surface-700/60 transition-all duration-200">
+              <div key={pillar.word} className="relative group p-8 rounded-2xl border border-surface-700 hover:border-camp-500/40 bg-surface-800 hover:bg-surface-700/60 transition-all duration-200">
+                <div className="absolute top-0 left-8 right-8 h-0.5 bg-gradient-to-r from-camp-500/60 via-brand-500/60 to-transparent rounded-full" />
                 <div className="text-4xl mb-4">{pillar.icon}</div>
                 <h3 className="text-brand-400 font-bold text-xl mb-3 tracking-wide">{pillar.word}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{pillar.body}</p>

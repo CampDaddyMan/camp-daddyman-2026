@@ -21,7 +21,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur border-b border-surface-700">
+    <nav className="sticky top-0 z-50 bg-surface-900/95 backdrop-blur border-b-0" style={{boxShadow:'0 1px 0 0 rgba(0,155,58,0.4), 0 2px 0 0 rgba(232,184,0,0.2)'}}>
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-brand-500/40 group-hover:ring-brand-400/60 transition-all shadow-[0_0_12px_rgba(232,184,0,0.15)]">

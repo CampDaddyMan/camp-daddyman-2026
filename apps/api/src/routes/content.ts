@@ -8,6 +8,7 @@ import {
   uploadContent,
   deleteContent,
   updateContent,
+  uploadThumbnail,
   likeContent,
   commentOnContent,
   deleteComment,
@@ -22,6 +23,14 @@ import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (_req, file, cb) => {
+    cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype));
+  },
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -54,6 +63,7 @@ router.post(
   uploadContent,
 );
 router.patch('/:id', authMiddleware, writeLimiter, updateContent);
+router.post('/:id/thumbnail', authMiddleware, writeLimiter, imageUpload.single('thumbnail'), uploadThumbnail);
 router.delete('/:id', authMiddleware, writeLimiter, deleteContent);
 router.post('/:id/like', authMiddleware, writeLimiter, likeContent);
 router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);

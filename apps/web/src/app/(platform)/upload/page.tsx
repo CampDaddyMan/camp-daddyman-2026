@@ -42,16 +42,18 @@ export default function UploadPage() {
     if (accepted[0]) setThumbFile(accepted[0]);
   }, []);
 
-  const { getRootProps: mediaProps, isDragActive: mediaDrag } = useDropzone({
+  const { getRootProps: mediaProps, getInputProps: mediaInputProps, isDragActive: mediaDrag, open: openMedia } = useDropzone({
     onDrop: onDropMedia,
     accept: { 'video/*': [], 'audio/*': [] },
     maxFiles: 1,
+    noClick: true,
   });
 
-  const { getRootProps: thumbProps, isDragActive: thumbDrag } = useDropzone({
+  const { getRootProps: thumbProps, getInputProps: thumbInputProps, isDragActive: thumbDrag, open: openThumb } = useDropzone({
     onDrop: onDropThumb,
     accept: { 'image/*': [] },
     maxFiles: 1,
+    noClick: true,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -97,14 +99,22 @@ export default function UploadPage() {
         {error && <p className="text-red-400 text-sm bg-red-400/10 px-4 py-3 rounded-lg">{error}</p>}
 
         {/* Media drop zone */}
-        <div {...mediaProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${mediaDrag ? 'border-brand-400 bg-brand-400/5' : 'border-surface-600 hover:border-surface-500'}`}>
+        <div {...mediaProps()} className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${mediaDrag ? 'border-brand-400 bg-brand-400/5' : 'border-surface-600'}`}>
+          <input {...mediaInputProps()} />
           {mediaFile ? (
-            <p className="text-brand-400 font-medium">{mediaFile.name}</p>
+            <div>
+              <p className="text-brand-400 font-medium">{mediaFile.name}</p>
+              <button type="button" onClick={openMedia} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">Change file</button>
+            </div>
           ) : (
             <>
-              <p className="text-3xl mb-2">📁</p>
-              <p className="text-gray-300">Drop your video or audio file here</p>
-              <p className="text-gray-500 text-sm mt-1">MP4, MOV, MP3, WAV, AAC, FLAC up to 2GB</p>
+              <p className="text-3xl mb-3">📁</p>
+              <p className="text-gray-300 mb-3">Drag your video or audio file here</p>
+              <button type="button" onClick={openMedia}
+                className="px-5 py-2 bg-camp-500 hover:bg-camp-600 text-white rounded-lg text-sm font-semibold transition-colors">
+                Click to select file
+              </button>
+              <p className="text-gray-500 text-xs mt-3">MP4, MOV, MP3, WAV, AAC, FLAC up to 2GB</p>
             </>
           )}
         </div>
@@ -161,13 +171,21 @@ export default function UploadPage() {
         </div>
 
         {/* Thumbnail */}
-        <div {...thumbProps()} className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${thumbDrag ? 'border-brand-400 bg-brand-400/5' : 'border-surface-600 hover:border-surface-500'}`}>
+        <div {...thumbProps()} className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${thumbDrag ? 'border-brand-400 bg-brand-400/5' : 'border-surface-600'}`}>
+          <input {...thumbInputProps()} />
           {thumbFile ? (
-            <p className="text-brand-400 text-sm font-medium">{thumbFile.name}</p>
+            <div>
+              <p className="text-brand-400 text-sm font-medium">{thumbFile.name}</p>
+              <button type="button" onClick={openThumb} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">Change image</button>
+            </div>
           ) : (
             <>
-              <p className="text-gray-400 text-sm">Drop thumbnail image here (optional)</p>
-              <p className="text-gray-500 text-xs mt-1">JPG, PNG, WebP</p>
+              <p className="text-gray-400 text-sm mb-2">Thumbnail image (optional)</p>
+              <button type="button" onClick={openThumb}
+                className="px-4 py-1.5 bg-surface-600 hover:bg-surface-500 text-white rounded-lg text-xs font-medium transition-colors">
+                Click to select image
+              </button>
+              <p className="text-gray-500 text-xs mt-2">JPG, PNG, WebP — or drag here</p>
             </>
           )}
         </div>

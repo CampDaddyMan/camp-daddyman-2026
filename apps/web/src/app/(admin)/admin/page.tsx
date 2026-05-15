@@ -368,7 +368,29 @@ function EditContentModal({ item, onClose, onSaved }: {
   const [privacy, setPrivacy]       = useState(item.privacy);
   const [tags, setTags]             = useState((item.tags || []).join(', '));
   const [saving, setSaving]         = useState(false);
+  const [uploading, setUploading]   = useState(false);
   const [error, setError]           = useState('');
+  const fileInputRef                = useRef<HTMLInputElement>(null);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('thumbnail', file);
+      const { data } = await api.post(`/content/${item.id}/thumbnail`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setThumb(data.thumbnailUrl);
+    } catch {
+      setError('Image upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
 
   async function handleSave() {
     if (!title.trim()) { setError('Title is required'); return; }
@@ -408,13 +430,30 @@ function EditContentModal({ item, onClose, onSaved }: {
                 : <div className="absolute inset-0 flex items-center justify-center text-4xl">🖼️</div>
               }
             </div>
-            <input
-              value={thumbnailUrl}
-              onChange={(e) => setThumb(e.target.value)}
-              placeholder="/images/thumbnails/your-image.jpg"
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
-            />
-            <p className="text-xs text-gray-500 mt-1">Paste a path from /public or a full URL</p>
+            <div className="flex gap-2 mb-2">
+              <input
+                value={thumbnailUrl}
+                onChange={(e) => setThumb(e.target.value)}
+                placeholder="/images/thumbnails/your-image.jpg or URL"
+                className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="px-3 py-2 rounded-lg bg-camp-500 hover:bg-camp-600 text-white text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
+              >
+                {uploading ? '...' : 'Upload'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+            </div>
+            <p className="text-xs text-gray-500">Upload a file or paste a URL</p>
           </div>
 
           {/* Title */}

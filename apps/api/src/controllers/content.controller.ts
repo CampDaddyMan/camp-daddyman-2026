@@ -408,6 +408,29 @@ export async function updateContent(req: AuthRequest, res: Response) {
   res.json({ content: updated });
 }
 
+export async function uploadThumbnail(req: AuthRequest, res: Response) {
+  const content = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: { creatorId: true, thumbnailUrl: true },
+  });
+  if (!content) return res.status(404).json({ error: 'Content not found' });
+  if (content.creatorId !== req.user!.id && !req.user!.isAdmin) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'Image file required' });
+
+  if (content.thumbnailUrl?.startsWith('http')) {
+    deleteFromS3(content.thumbnailUrl).catch(() => {});
+  }
+
+  const thumbnailUrl = await uploadToS3(file, 'thumbnails');
+  await prisma.content.update({ where: { id: req.params.id }, data: { thumbnailUrl } });
+
+  res.json({ thumbnailUrl });
+}
+
 export async function getWatchHistory(req: AuthRequest, res: Response) {
   const records = await prisma.watchHistory.findMany({
     where: { userId: req.user!.id, progress: { gt: 5 } },

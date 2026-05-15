@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
+import { signR2Url } from '../utils/s3';
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 
@@ -189,7 +190,13 @@ export async function listAllContent(req: Request, res: Response) {
     prisma.content.count({ where }),
   ]);
 
-  res.json({ content, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+  const signed = await Promise.all(content.map(async (c) => ({
+    ...c,
+    thumbnailUrl: await signR2Url(c.thumbnailUrl),
+    mediaUrl: await signR2Url((c as any).mediaUrl, 4 * 3600),
+  })));
+
+  res.json({ content: signed, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }
 
 export async function setContentStatus(req: Request, res: Response) {

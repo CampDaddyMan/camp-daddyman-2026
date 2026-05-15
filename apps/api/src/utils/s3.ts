@@ -29,12 +29,22 @@ export async function deleteFromS3(fileUrl: string): Promise<void> {
   await s3.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key }));
 }
 
-// Short-lived signed URL for subscriber-only / private content
 export async function getSignedMediaUrl(fileUrl: string, expiresIn = 3600): Promise<string> {
   const key = extractKey(fileUrl);
   if (!key) return fileUrl;
   const command = new GetObjectCommand({ Bucket: R2_BUCKET, Key: key });
   return getSignedUrl(s3, command, { expiresIn });
+}
+
+// Sign any R2 URL — falls back to original if signing fails
+export async function signR2Url(url: string | null | undefined, expiresIn = 86400): Promise<string | null> {
+  if (!url) return null;
+  if (!url.startsWith('http')) return url; // local/relative path, leave as-is
+  try {
+    return await getSignedMediaUrl(url, expiresIn);
+  } catch {
+    return url;
+  }
 }
 
 /** Download an R2 object to a local file path */

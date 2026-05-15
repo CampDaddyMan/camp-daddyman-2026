@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { uploadToS3, deleteFromS3, getSignedMediaUrl } from '../utils/s3';
+import { uploadToS3, deleteFromS3, getSignedMediaUrl, signR2Url } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers } from '../utils/notifications';
 import { getTranscodeQueue } from '../config/queue';
@@ -24,7 +24,7 @@ export async function listContent(req: Request, res: Response) {
 
   const orderBy = sort === 'trending' ? { views: 'desc' as const } : { createdAt: 'desc' as const };
 
-  const [items, total] = await Promise.all([
+  const [raw, total] = await Promise.all([
     prisma.content.findMany({
       where,
       orderBy,
@@ -34,6 +34,11 @@ export async function listContent(req: Request, res: Response) {
     }),
     prisma.content.count({ where }),
   ]);
+
+  const items = await Promise.all(raw.map(async (item) => ({
+    ...item,
+    thumbnailUrl: await signR2Url(item.thumbnailUrl),
+  })));
 
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }
@@ -75,10 +80,17 @@ export async function getDiscovery(_req: Request, res: Response) {
     }),
   ]);
 
+  const signList = (list: any[]) => Promise.all(list.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+
+  const [sTrending, sNew, sMusic, sFilm, sPodcast, sSpoken, sDaddyman] = await Promise.all([
+    signList(trending), signList(newReleases), signList(music), signList(film),
+    signList(podcast), signList(spokenWord), signList(daddymanIsms),
+  ]);
+
   res.json({
-    trending,
-    newReleases,
-    byType: { MUSIC: music, FILM: film, PODCAST: podcast, SPOKEN_WORD: spokenWord, DADDYMAN_ISMS: daddymanIsms },
+    trending: sTrending,
+    newReleases: sNew,
+    byType: { MUSIC: sMusic, FILM: sFilm, PODCAST: sPodcast, SPOKEN_WORD: sSpoken, DADDYMAN_ISMS: sDaddyman },
     creators: topCreators,
   });
 }
@@ -134,11 +146,9 @@ export async function getContent(req: AuthRequest, res: Response) {
   // Increment view count (fire and forget)
   prisma.content.update({ where: { id: content.id }, data: { views: { increment: 1 } } }).catch(() => {});
 
-  // Return signed URL for private/subscriber content so the direct S3 URL isn't exposed
-  let mediaUrl = content.mediaUrl;
-  if (content.privacy !== 'PUBLIC' && mediaUrl) {
-    mediaUrl = await getSignedMediaUrl(mediaUrl);
-  }
+  // Always sign URLs — R2 public access unreliable; signed URLs work regardless
+  const mediaUrl    = await signR2Url(content.mediaUrl, 4 * 3600);
+  const thumbnailUrl = await signR2Url(content.thumbnailUrl);
 
   // Check if the requesting user has liked this content
   let isLiked = false;
@@ -149,7 +159,7 @@ export async function getContent(req: AuthRequest, res: Response) {
     isLiked = !!like;
   }
 
-  res.json({ content: { ...content, mediaUrl }, isLiked });
+  res.json({ content: { ...content, mediaUrl, thumbnailUrl }, isLiked });
 }
 
 export async function uploadContent(req: AuthRequest, res: Response) {
@@ -398,14 +408,13 @@ export async function uploadThumbnail(req: AuthRequest, res: Response) {
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) return res.status(400).json({ error: 'Image file required' });
 
-    console.log('[uploadThumbnail] R2_BUCKET:', process.env.R2_BUCKET, '| R2_ACCOUNT_ID:', process.env.R2_ACCOUNT_ID?.slice(0, 6));
-
     if (content.thumbnailUrl?.startsWith('http')) {
       deleteFromS3(content.thumbnailUrl).catch(() => {});
     }
 
-    const thumbnailUrl = await uploadToS3(file, 'thumbnails');
-    await prisma.content.update({ where: { id: req.params.id }, data: { thumbnailUrl } });
+    const rawUrl = await uploadToS3(file, 'thumbnails');
+    await prisma.content.update({ where: { id: req.params.id }, data: { thumbnailUrl: rawUrl } });
+    const thumbnailUrl = await signR2Url(rawUrl);
 
     res.json({ thumbnailUrl });
   } catch (err: any) {
@@ -433,8 +442,9 @@ export async function uploadMedia(req: AuthRequest, res: Response) {
     }
 
     const folder = `media/${content.type.toLowerCase()}`;
-    const mediaUrl = await uploadToS3(file, folder);
-    await prisma.content.update({ where: { id: req.params.id }, data: { mediaUrl } });
+    const rawMediaUrl = await uploadToS3(file, folder);
+    await prisma.content.update({ where: { id: req.params.id }, data: { mediaUrl: rawMediaUrl } });
+    const mediaUrl = await signR2Url(rawMediaUrl, 4 * 3600);
 
     res.json({ mediaUrl });
   } catch (err: any) {
@@ -508,7 +518,10 @@ export async function getRelatedContent(req: Request, res: Response) {
     }),
   ]);
 
-  res.json({ fromCreator, sameType });
+  const signList = (list: any[]) => Promise.all(list.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+  const [sFromCreator, sSameType] = await Promise.all([signList(fromCreator), signList(sameType)]);
+
+  res.json({ fromCreator: sFromCreator, sameType: sSameType });
 }
 
 export async function reportContent(req: AuthRequest, res: Response) {

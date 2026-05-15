@@ -161,7 +161,8 @@ export async function uploadContent(req: AuthRequest, res: Response) {
 
   const { title, description, type, privacy, tags } = req.body;
 
-  if (!['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD'].includes(type)) {
+  const validTypes = ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'];
+  if (!validTypes.includes(type)) {
     return res.status(400).json({ error: 'Invalid content type' });
   }
 
@@ -170,10 +171,6 @@ export async function uploadContent(req: AuthRequest, res: Response) {
   if (files?.thumbnail?.[0]) {
     thumbnailUrl = await uploadToS3(files.thumbnail[0], 'thumbnails');
   }
-
-  // FILM starts as PROCESSING and gets activated by the transcoder.
-  // All other types (audio, images) go straight to ACTIVE.
-  const isVideo = type === 'FILM';
 
   const content = await prisma.content.create({
     data: {
@@ -185,7 +182,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
       thumbnailUrl,
       tags: tags ? String(tags).split(',').map((t: string) => t.trim()) : [],
       creatorId: req.user!.id,
-      status: isVideo ? 'PROCESSING' : 'ACTIVE',
+      status: 'ACTIVE',
     },
   });
 
@@ -194,28 +191,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     await prisma.user.update({ where: { id: req.user!.id }, data: { isCreator: true } });
   }
 
-  // Enqueue transcoding (fire and forget — if Redis is down, fall back gracefully)
-  if (mediaUrl) {
-    const queue = getTranscodeQueue();
-    if (queue) {
-      queue.add('transcode', {
-        contentId: content.id,
-        mediaUrl,
-        contentType: type,
-      }).catch(async (err) => {
-        console.error('[Upload] Failed to enqueue transcode job:', err.message);
-        await prisma.content.update({ where: { id: content.id }, data: { status: 'ACTIVE' } }).catch(() => {});
-      });
-    } else {
-      // No Redis available — activate content immediately
-      await prisma.content.update({ where: { id: content.id }, data: { status: 'ACTIVE' } }).catch(() => {});
-    }
-  }
-
-  // Notify followers once content is live (for non-video, it's already ACTIVE)
-  if (!isVideo) {
-    notifyFollowers(req.user!.id, content.id);
-  }
+  notifyFollowers(req.user!.id, content.id);
 
   res.status(201).json({ content });
 }

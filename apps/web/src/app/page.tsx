@@ -73,7 +73,7 @@ function SearchBar() {
       />
       <button
         type="submit"
-        className="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
+        className="bg-camp-500 hover:bg-camp-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
       >
         Search
       </button>
@@ -163,11 +163,19 @@ export default function HomePage() {
       <div className="relative flex flex-col items-center justify-center min-h-[88vh] overflow-hidden px-4 text-center">
         {/* Atmospheric background */}
         <div className="absolute inset-0 bg-surface-900" />
-        {/* Jamaican flag diagonal — gold center, green corners */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(232,184,0,0.10),transparent_65%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_0%_100%,rgba(0,155,58,0.12),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_100%_0%,rgba(0,155,58,0.12),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,155,58,0.04)_0%,transparent_40%,transparent_60%,rgba(0,155,58,0.04)_100%)]" />
+        {/* Jamaican flag — gold centre glow, green corner glows */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_60%_at_50%_45%,rgba(232,184,0,0.18),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_0%_100%,rgba(0,155,58,0.22),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_100%_0%,rgba(0,155,58,0.22),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,155,58,0.07)_0%,transparent_38%,transparent_62%,rgba(0,155,58,0.07)_100%)]" />
+        {/* Jamaican flag accent stripe — black / gold / green */}
+        <div className="absolute top-0 left-0 right-0 flex h-1">
+          <div className="flex-1 bg-black" />
+          <div className="flex-1 bg-brand-500" />
+          <div className="flex-1 bg-camp-500" />
+          <div className="flex-1 bg-brand-500" />
+          <div className="flex-1 bg-black" />
+        </div>
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-surface-900 to-transparent" />
 
         {/* Content */}
@@ -190,6 +198,7 @@ export default function HomePage() {
           <p className="text-brand-400/80 text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em]">
             Discipline &nbsp;·&nbsp; Identity &nbsp;·&nbsp; Legacy
           </p>
+          <p className="text-gray-500 text-[10px] tracking-[0.3em] uppercase -mt-4">Est. 2023</p>
 
           {/* Headline */}
           <div>
@@ -225,69 +234,42 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Est. badge */}
-          <p className="text-gray-600 text-xs tracking-widest uppercase">Est. 2023</p>
         </div>
 
-        {/* Scroll cue */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-600 animate-bounce text-lg">↓</div>
+        {/* Scroll cue — gold bouncing arrow */}
+        <div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+          style={{ color: '#e8b800', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(232,184,0,0.5)' }}
+        >
+          ↓
+        </div>
       </div>
 
       {/* Divider */}
       <div className="border-t border-surface-700/50" />
 
-      {/* ── Browse by Category ── */ }
+      {/* ── Browse by Category ── */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
-          <p className="text-camp-400 text-xs uppercase tracking-[0.3em] mb-2">Explore the Camp</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-white">What are you feeling?</h2>
+        <div className="flex items-baseline justify-between mb-6">
+          <div>
+            <p className="text-camp-400 text-xs uppercase tracking-[0.3em] mb-1">Explore the Camp</p>
+            <h2 className="text-xl font-bold text-white">What are you feeling?</h2>
+          </div>
+          <Link href="/browse" className="text-sm text-brand-400 hover:underline hidden sm:block">Browse all →</Link>
         </div>
-        
-   
-        
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
-            {
-              label: 'Music',
-              href: '/browse?type=MUSIC',
-              image: '/images/categories/CampDaddyman_Media_Categories_Music.jpg',
-              desc: 'Original tracks & albums',
-              emoji: '🎵',
-            },
-            {
-              label: 'Film',
-              href: '/browse?type=FILM',
-              image: '/images/categories/CampDaddyman_Media_Categories_Film.jpg',
-              desc: 'Short films & features',
-              emoji: '🎬',
-            },
-            {
-              label: 'Podcasts',
-              href: '/browse?type=PODCAST',
-              image: '/images/categories/CampDaddyman_Media_Categories_Podcasts.jpg',
-              desc: 'Conversations & interviews',
-              emoji: '🎙️',
-            },
-            {
-              label: 'Spoken Word',
-              href: '/browse?type=SPOKEN_WORD',
-              image: '/images/categories/CampDaddyman_Media_Categories_Spoken_Word.jpg',
-              desc: 'Poetry & spoken teachings',
-              emoji: '🎤',
-            },
-            {
-              label: 'DaddyMan-Isms',
-              href: '/browse?type=DADDYMAN_ISMS',
-              image: null,
-              desc: 'Quotes, parables & teachings',
-              emoji: '💬',
-            },
+            { label: 'Music',         href: '/browse?type=MUSIC',        image: '/images/categories/CampDaddyman_Media_Categories_Music.jpg',       desc: 'Original tracks & albums',      emoji: '🎵' },
+            { label: 'Film',          href: '/browse?type=FILM',         image: '/images/categories/CampDaddyman_Media_Categories_Film.jpg',        desc: 'Short films & features',        emoji: '🎬' },
+            { label: 'Podcasts',      href: '/browse?type=PODCAST',      image: '/images/categories/CampDaddyman_Media_Categories_Podcasts.jpg',    desc: 'Conversations & interviews',    emoji: '🎙️' },
+            { label: 'Spoken Word',   href: '/browse?type=SPOKEN_WORD',  image: '/images/categories/CampDaddyman_Media_Categories_Spoken_Word.jpg', desc: 'Poetry & spoken teachings',     emoji: '🎤' },
+            { label: 'DaddyMan-Isms', href: '/browse?type=DADDYMAN_ISMS', image: null,                                                              desc: 'Quotes, parables & teachings', emoji: '💡' },
           ].map((cat) => (
             <Link
               key={cat.label}
               href={cat.href}
-              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-camp-500/60 transition-all duration-300"
+              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-camp-500 transition-all duration-300 shadow-[0_0_0_0_rgba(0,155,58,0)] hover:shadow-[0_0_16px_rgba(0,155,58,0.25)]"
             >
               {cat.image ? (
                 <Image
@@ -297,17 +279,24 @@ export default function HomePage() {
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-surface-700 via-surface-800 to-surface-900 group-hover:from-brand-500/20 transition-all duration-700 flex items-center justify-center">
-                  <span className="text-5xl opacity-30 group-hover:opacity-50 transition-opacity">{cat.emoji}</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-camp-500/20 via-surface-800 to-surface-900 group-hover:from-camp-500/30 transition-all duration-700 flex items-center justify-center">
+                  <span className="text-5xl opacity-40 group-hover:opacity-70 transition-opacity">{cat.emoji}</span>
                 </div>
               )}
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              {/* Strong gradient so title is always readable */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
               <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                <h3 className="text-white text-base font-bold mb-0.5">{cat.label}</h3>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-base leading-none">{cat.emoji}</span>
+                  <h3 className="text-white text-sm font-bold">{cat.label}</h3>
+                </div>
                 <p className="text-gray-300 text-xs">{cat.desc}</p>
               </div>
+
+              {/* Green top accent on hover */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-camp-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </Link>
           ))}
         </div>

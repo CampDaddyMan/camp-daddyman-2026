@@ -3,7 +3,11 @@ import Image from 'next/image';
 import { Content } from '@/types';
 
 const TYPE_LABELS: Record<string, string> = {
-  FILM: 'Film', MUSIC: 'Music', PODCAST: 'Podcast', SPOKEN_WORD: 'Spoken Word', DADDYMAN_ISMS: 'DaddyMan-Ism',
+  FILM: 'Film', MUSIC: 'Music', PODCAST: 'Podcast', SPOKEN_WORD: 'Spoken Word', DADDYMAN_ISMS: 'DaddyMan-Ism', BOOK: 'Book',
+};
+
+const TYPE_EMOJI: Record<string, string> = {
+  MUSIC: '🎵', FILM: '🎬', PODCAST: '🎙️', SPOKEN_WORD: '🎤', DADDYMAN_ISMS: '💡', BOOK: '📖',
 };
 
 
@@ -42,15 +46,7 @@ function RowCard({ item }: { item: Content }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-3xl text-surface-500">
-            {item.type === 'MUSIC'
-              ? '🎵'
-              : item.type === 'FILM'
-              ? '🎬'
-              : item.type === 'PODCAST'
-              ? '🎙️'
-              : item.type === 'DADDYMAN_ISMS'
-              ? '💬'
-              : '🎤'}
+            {TYPE_EMOJI[item.type] ?? '🎬'}
           </div>
         )}
 

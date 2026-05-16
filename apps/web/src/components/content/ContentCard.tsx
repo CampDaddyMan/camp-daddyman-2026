@@ -7,6 +7,12 @@ const TYPE_LABELS: Record<string, string> = {
   MUSIC: 'Music',
   PODCAST: 'Podcast',
   SPOKEN_WORD: 'Spoken Word',
+  DADDYMAN_ISMS: 'DaddyMan-Ism',
+  BOOK: 'Book',
+};
+
+const TYPE_EMOJI: Record<string, string> = {
+  MUSIC: '🎵', FILM: '🎬', PODCAST: '🎙️', SPOKEN_WORD: '🎤', DADDYMAN_ISMS: '💡', BOOK: '📖',
 };
 
 function formatDuration(seconds?: number) {
@@ -27,7 +33,7 @@ export default function ContentCard({ item }: { item: Content }) {
               : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-4xl text-surface-500">
-              {item.type === 'MUSIC' ? '🎵' : item.type === 'FILM' ? '🎬' : item.type === 'PODCAST' ? '🎙️' : '🎤'}
+              {TYPE_EMOJI[item.type] ?? '🎬'}
             </div>
           )}
           {item.duration && (

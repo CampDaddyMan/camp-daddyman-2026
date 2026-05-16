@@ -14,12 +14,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.text-lg {
-  font-size: 3.125rem !important;
-  line-height: 1.75rem !important;
-  color: #e30909 !important;
-}
-
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #141414; }

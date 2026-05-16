@@ -40,7 +40,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -520,7 +520,7 @@ function EditContentModal({ item, onClose, onSaved }: {
               onChange={handleMediaUpload}
             />
             <p className="text-xs text-gray-500 mt-2">
-              <span className="text-gray-400">Video:</span> MP4, WebM &nbsp;·&nbsp;
+              <span className="text-gray-400">Video:</span> MP4, WebM, MOV &nbsp;·&nbsp;
               <span className="text-gray-400">Audio:</span> MP3, WAV, AAC, FLAC, OGG &nbsp;·&nbsp;Max 2GB
             </p>
           </div>
@@ -861,6 +861,250 @@ function ReportsTab() {
   );
 }
 
+// ── Polls tab ─────────────────────────────────────────────────────────────────
+
+interface PollOption { id: string; label: string; contentId: string }
+interface AdminPoll {
+  id: string; title: string; description?: string | null;
+  status: 'ACTIVE' | 'CLOSED'; endsAt?: string | null; createdAt: string;
+  _count: { votes: number; options: number };
+  options: { content: { title: string } }[];
+}
+interface ContentPick { id: string; title: string; type: string }
+
+function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreated: (p: AdminPoll) => void }) {
+  const [title, setTitle]         = useState('');
+  const [description, setDesc]    = useState('');
+  const [endsAt, setEndsAt]       = useState('');
+  const [options, setOptions]     = useState<PollOption[]>([{ id: '', label: '', contentId: '' }, { id: '', label: '', contentId: '' }]);
+  const [content, setContent]     = useState<ContentPick[]>([]);
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+
+  useEffect(() => {
+    api.get('/admin/content', { params: { limit: '100', status: 'ACTIVE' } })
+      .then(({ data }) => setContent(data.content))
+      .catch(() => {});
+  }, []);
+
+  function setOption(idx: number, field: keyof PollOption, val: string) {
+    setOptions((prev) => prev.map((o, i) => i === idx ? { ...o, [field]: val } : o));
+  }
+
+  function addOption() {
+    setOptions((prev) => [...prev, { id: '', label: '', contentId: '' }]);
+  }
+
+  function removeOption(idx: number) {
+    if (options.length <= 2) return;
+    setOptions((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function handleCreate() {
+    if (!title.trim()) { setError('Title required'); return; }
+    const filled = options.filter((o) => o.contentId);
+    if (filled.length < 2) { setError('Select at least 2 songs'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      const { data } = await api.post('/polls', {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        endsAt: endsAt || undefined,
+        options: filled.map((o, i) => ({ contentId: o.contentId, label: o.label || `Version ${i + 1}` })),
+      });
+      onCreated(data.poll);
+      onClose();
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Create failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-surface-800 border border-surface-700 rounded-2xl overflow-y-auto max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">Create Listening Poll</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+
+        <div className="flex-1 px-6 py-6 space-y-5">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Poll Title</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)}
+              placeholder="Which version hits different?"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description (optional)</label>
+            <textarea value={description} onChange={(e) => setDesc(e.target.value)} rows={2}
+              placeholder="Help your members know what they're voting on..."
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time (optional)</label>
+            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wide">Song Versions</label>
+            <div className="space-y-3">
+              {options.map((opt, idx) => (
+                <div key={idx} className="flex gap-2 items-start">
+                  <div className="flex-1 space-y-1.5">
+                    <select value={opt.contentId} onChange={(e) => setOption(idx, 'contentId', e.target.value)}
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+                      <option value="">— pick a song —</option>
+                      {content.map((c) => (
+                        <option key={c.id} value={c.id}>{c.title} ({c.type.toLowerCase()})</option>
+                      ))}
+                    </select>
+                    <input value={opt.label} onChange={(e) => setOption(idx, 'label', e.target.value)}
+                      placeholder={`Label (e.g. "Studio Take", "Version A")`}
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                  </div>
+                  <button onClick={() => removeOption(idx)} disabled={options.length <= 2}
+                    className="mt-1 text-gray-500 hover:text-red-400 disabled:opacity-30 text-lg leading-none px-1">×</button>
+                </div>
+              ))}
+            </div>
+            <button onClick={addOption}
+              className="mt-3 text-sm text-brand-400 hover:text-brand-300 transition-colors">
+              + Add another version
+            </button>
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">
+            Cancel
+          </button>
+          <button onClick={handleCreate} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Creating…' : 'Create Poll'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PollsTab() {
+  const [polls, setPolls]       = useState<AdminPoll[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [acting, setActing]     = useState<string | null>(null);
+  const [filter, setFilter]     = useState('ALL');
+
+  function load() {
+    const params: Record<string, string> = {};
+    if (filter !== 'ALL') params.status = filter;
+    api.get('/polls', { params })
+      .then(({ data }) => setPolls(data.polls))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => { load(); }, [filter]); // eslint-disable-line
+
+  async function handleClose(id: string) {
+    if (!confirm('Close this poll? Voters will see the results.')) return;
+    setActing(id);
+    await api.post(`/polls/${id}/close`).finally(() => setActing(null));
+    setPolls((prev) => prev.map((p) => p.id === id ? { ...p, status: 'CLOSED' } : p));
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this poll and all votes? Cannot be undone.')) return;
+    setActing(id);
+    await api.delete(`/polls/${id}`).finally(() => setActing(null));
+    setPolls((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-3 mb-5 items-center">
+        <select value={filter} onChange={(e) => setFilter(e.target.value)}
+          className="bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+          <option value="ALL">All polls</option>
+          <option value="ACTIVE">Active</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+        <span className="text-sm text-gray-400">{polls.length} poll{polls.length !== 1 ? 's' : ''}</span>
+        <button onClick={() => setCreating(true)}
+          className="ml-auto px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-semibold hover:bg-brand-400 transition-colors">
+          + Create Poll
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-700 rounded-xl animate-pulse" />)}</div>
+      ) : polls.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-4xl mb-3">🗳️</p>
+          <p>No polls yet. Create one to let your members vote on a song.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {polls.map((p) => (
+            <div key={p.id} className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-400' : 'bg-surface-600 text-gray-400'}`}>
+                      {p.status}
+                    </span>
+                    <span className="text-xs text-gray-500">{fmtDate(p.createdAt)}</span>
+                    {p.endsAt && p.status === 'ACTIVE' && (
+                      <span className="text-xs text-gray-500">· ends {fmtDate(p.endsAt)}</span>
+                    )}
+                  </div>
+                  <p className="text-white font-medium">{p.title}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    {p._count.options} options · {p._count.votes} vote{p._count.votes !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-shrink-0 flex-wrap">
+                  <Link href={`/polls/${p.id}`} target="_blank"
+                    className="text-xs px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition-colors">
+                    View
+                  </Link>
+                  {p.status === 'ACTIVE' && (
+                    <button onClick={() => handleClose(p.id)} disabled={acting === p.id}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors disabled:opacity-40">
+                      {acting === p.id ? '…' : 'Close'}
+                    </button>
+                  )}
+                  <button onClick={() => handleDelete(p.id)} disabled={acting === p.id}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40">
+                    {acting === p.id ? '…' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {creating && (
+        <CreatePollModal
+          onClose={() => setCreating(false)}
+          onCreated={(p) => { setPolls((prev) => [p as any, ...prev]); setCreating(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -879,6 +1123,7 @@ export default function AdminPage() {
     { key: 'users',    label: 'Users',    emoji: '👥' },
     { key: 'content',  label: 'Content',  emoji: '🎵' },
     { key: 'reports',  label: 'Reports',  emoji: '⚑' },
+    { key: 'polls',    label: 'Polls',    emoji: '🗳️' },
   ];
 
   return (
@@ -912,6 +1157,7 @@ export default function AdminPage() {
       {tab === 'users'    && <UsersTab />}
       {tab === 'content'  && <ContentTab />}
       {tab === 'reports'  && <ReportsTab />}
+      {tab === 'polls'    && <PollsTab />}
     </div>
   );
 }

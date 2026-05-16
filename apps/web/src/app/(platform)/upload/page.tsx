@@ -115,7 +115,7 @@ export default function UploadPage() {
                 Click to select file
               </button>
               <p className="text-gray-500 text-xs mt-3">
-                <span className="text-gray-400 font-medium">Video:</span> MP4, WebM
+                <span className="text-gray-400 font-medium">Video:</span> MP4, WebM, MOV
                 &nbsp;·&nbsp;
                 <span className="text-gray-400 font-medium">Audio:</span> MP3, WAV, AAC, FLAC, OGG
                 &nbsp;·&nbsp;Max 2GB

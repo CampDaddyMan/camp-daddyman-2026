@@ -6,6 +6,7 @@ import subscriptionRoutes from './subscriptions';
 import adminRoutes from './admin';
 import notificationRoutes from './notifications';
 import dashboardRoutes from './dashboard';
+import pollRoutes from './polls';
 
 export const router = Router();
 
@@ -16,3 +17,4 @@ router.use('/subscriptions', subscriptionRoutes);
 router.use('/admin', adminRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/polls', pollRoutes);

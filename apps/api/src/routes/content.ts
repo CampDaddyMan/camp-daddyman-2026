@@ -38,7 +38,7 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2GB
   fileFilter: (_req, file, cb) => {
     const allowed = [
-      'video/mp4', 'video/webm',
+      'video/mp4', 'video/webm', 'video/quicktime', // quicktime = .mov (iOS/macOS)
       'audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/aac', 'audio/flac', 'audio/ogg', 'audio/mp4',
       'image/jpeg', 'image/png', 'image/webp',
     ];

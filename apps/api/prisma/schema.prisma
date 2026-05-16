@@ -36,6 +36,8 @@ model User {
   triggeredNotifications Notification[] @relation("NotificationActor")
   tokens                 Token[]
   reports                Report[]       @relation("ReportedBy")
+  polls                  Poll[]
+  pollVotes              PollVote[]
 }
 
 model Token {
@@ -86,6 +88,7 @@ model Content {
   watchHistory  WatchHistory[]
   notifications Notification[]
   reports       Report[]
+  pollOptions   PollOption[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -266,4 +269,51 @@ enum ReportStatus {
   PENDING
   REVIEWED
   DISMISSED
+}
+
+// ── Polls ─────────────────────────────────────────────────────────────────────
+
+model Poll {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      PollStatus @default(ACTIVE)
+  creatorId   String
+  creator     User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  options     PollOption[]
+  votes       PollVote[]
+  endsAt      DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([creatorId, status])
+}
+
+model PollOption {
+  id        String   @id @default(cuid())
+  pollId    String
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id])
+  label     String
+  order     Int      @default(0)
+  votes     PollVote[]
+}
+
+model PollVote {
+  id        String     @id @default(cuid())
+  pollId    String
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId  String
+  option    PollOption @relation(fields: [optionId], references: [id])
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([pollId, userId])
+}
+
+enum PollStatus {
+  ACTIVE
+  CLOSED
 }

@@ -3,51 +3,112 @@ import { prisma } from '../config/database';
 import { signR2Url } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const VALID_TYPES = ['CONTENT_VOTE', 'ARTIST_VOTE', 'CUSTOM'] as const;
 
-async function signOptions(options: any[], isAdminOrCreator: boolean, pollClosed: boolean) {
-  return Promise.all(
-    options.map(async (opt) => ({
+// ── Include shapes per poll type ───────────────────────────────────────────────
+
+const contentOptionInclude = {
+  content: { select: { id: true, title: true, type: true, mediaUrl: true, thumbnailUrl: true } },
+  _count:  { select: { votes: true } },
+};
+
+const artistOptionInclude = {
+  artist: {
+    select: {
+      id: true, username: true, displayName: true, avatar: true, bio: true,
+      _count: { select: { followers: true, content: true } },
+    },
+  },
+  _count: { select: { votes: true } },
+};
+
+const customOptionInclude = {
+  _count: { select: { votes: true } },
+};
+
+function optionIncludeForType(pollType: string) {
+  if (pollType === 'ARTIST_VOTE') return artistOptionInclude;
+  if (pollType === 'CUSTOM')      return customOptionInclude;
+  return contentOptionInclude;
+}
+
+// ── Sign URLs on options ───────────────────────────────────────────────────────
+
+async function enrichOptions(options: any[], pollType: string, showCounts: boolean) {
+  return Promise.all(options.map(async (opt) => {
+    const base = {
       ...opt,
-      content: {
-        ...opt.content,
-        mediaUrl:     await signR2Url(opt.content.mediaUrl, 4 * 3600),
-        thumbnailUrl: await signR2Url(opt.content.thumbnailUrl),
-      },
-      // Hide vote counts from voters while poll is open
-      _count: isAdminOrCreator || pollClosed ? opt._count : undefined,
-    })),
-  );
+      _count: showCounts ? opt._count : undefined,
+    };
+
+    if (pollType === 'CONTENT_VOTE' && opt.content) {
+      return {
+        ...base,
+        content: {
+          ...opt.content,
+          mediaUrl:     await signR2Url(opt.content.mediaUrl, 4 * 3600),
+          thumbnailUrl: await signR2Url(opt.content.thumbnailUrl),
+        },
+      };
+    }
+
+    if (pollType === 'ARTIST_VOTE' && opt.artist) {
+      // Pull artist's top 4 content items (by views)
+      const topContent = await prisma.content.findMany({
+        where: { creatorId: opt.artist.id, status: 'ACTIVE', privacy: 'PUBLIC' },
+        orderBy: { views: 'desc' },
+        take: 4,
+        select: { id: true, title: true, type: true, thumbnailUrl: true, views: true },
+      });
+      const signedContent = await Promise.all(topContent.map(async (c) => ({
+        ...c, thumbnailUrl: await signR2Url(c.thumbnailUrl),
+      })));
+      return {
+        ...base,
+        artist: {
+          ...opt.artist,
+          avatar:     await signR2Url(opt.artist.avatar),
+          topContent: signedContent,
+        },
+      };
+    }
+
+    return base;
+  }));
 }
 
 // ── Create poll (admin only) ──────────────────────────────────────────────────
 
 export async function createPoll(req: AuthRequest, res: Response) {
-  const { title, description, endsAt, options } = req.body;
+  const { title, description, endsAt, pollType = 'CONTENT_VOTE', options } = req.body;
 
   if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
+  if (!VALID_TYPES.includes(pollType)) return res.status(400).json({ error: 'Invalid poll type' });
   if (!Array.isArray(options) || options.length < 2) {
     return res.status(400).json({ error: 'At least 2 options required' });
   }
+
+  const optionData = options.map((opt: any, i: number) => {
+    const base = { label: opt.label?.trim() || `Option ${i + 1}`, order: i };
+    if (pollType === 'CONTENT_VOTE') return { ...base, contentId: opt.contentId };
+    if (pollType === 'ARTIST_VOTE')  return { ...base, artistId: opt.artistId };
+    return { ...base, imageUrl: opt.imageUrl || null, body: opt.body || null };
+  });
 
   const poll = await prisma.poll.create({
     data: {
       title:       title.trim(),
       description: description?.trim() || null,
       endsAt:      endsAt ? new Date(endsAt) : null,
+      pollType,
       creatorId:   req.user!.id,
-      options: {
-        create: options.map((opt: { contentId: string; label: string }, i: number) => ({
-          contentId: opt.contentId,
-          label:     opt.label?.trim() || `Version ${i + 1}`,
-          order:     i,
-        })),
-      },
+      options:     { create: optionData },
     },
     include: {
+      _count: { select: { votes: true, options: true } },
       options: {
-        include: { content: { select: { id: true, title: true, type: true, mediaUrl: true, thumbnailUrl: true } } },
         orderBy: { order: 'asc' },
+        include: optionIncludeForType(pollType),
       },
     },
   });
@@ -67,8 +128,6 @@ export async function listPolls(req: AuthRequest, res: Response) {
     orderBy: { createdAt: 'desc' },
     include: {
       _count: { select: { votes: true, options: true } },
-      options: { orderBy: { order: 'asc' }, take: 1,
-        include: { content: { select: { title: true } } } },
     },
   });
 
@@ -78,34 +137,37 @@ export async function listPolls(req: AuthRequest, res: Response) {
 // ── Get single poll (public, auth optional) ───────────────────────────────────
 
 export async function getPoll(req: AuthRequest, res: Response) {
+  // Fetch without options first to know the type, then fetch with correct include
+  const meta = await prisma.poll.findUnique({
+    where: { id: req.params.id },
+    select: { pollType: true },
+  });
+  if (!meta) return res.status(404).json({ error: 'Poll not found' });
+
   const poll = await prisma.poll.findUnique({
     where: { id: req.params.id },
     include: {
       creator: { select: { username: true, displayName: true } },
+      _count:  { select: { votes: true } },
       options: {
         orderBy: { order: 'asc' },
-        include: {
-          content: { select: { id: true, title: true, type: true, mediaUrl: true, thumbnailUrl: true } },
-          _count:  { select: { votes: true } },
-        },
+        include: optionIncludeForType(meta.pollType),
       },
-      _count: { select: { votes: true } },
     },
   });
-
   if (!poll) return res.status(404).json({ error: 'Poll not found' });
 
   // Auto-close if past endsAt
   if (poll.status === 'ACTIVE' && poll.endsAt && poll.endsAt < new Date()) {
     await prisma.poll.update({ where: { id: poll.id }, data: { status: 'CLOSED' } });
-    poll.status = 'CLOSED';
+    (poll as any).status = 'CLOSED';
   }
 
-  const userId = req.user?.id;
+  const userId           = req.user?.id;
   const isAdminOrCreator = req.user?.isAdmin || poll.creatorId === userId;
-  const pollClosed = poll.status === 'CLOSED';
+  const pollClosed       = poll.status === 'CLOSED';
+  const showCounts       = isAdminOrCreator || pollClosed;
 
-  // Find caller's current vote
   const myVote = userId
     ? await prisma.pollVote.findUnique({
         where: { pollId_userId: { pollId: poll.id, userId } },
@@ -113,9 +175,9 @@ export async function getPoll(req: AuthRequest, res: Response) {
       })
     : null;
 
-  const signedOptions = await signOptions(poll.options, isAdminOrCreator, pollClosed);
+  const enriched = await enrichOptions(poll.options, poll.pollType, showCounts);
 
-  res.json({ poll: { ...poll, options: signedOptions }, myVoteOptionId: myVote?.optionId ?? null });
+  res.json({ poll: { ...poll, options: enriched }, myVoteOptionId: myVote?.optionId ?? null });
 }
 
 // ── Cast / change vote (paid subscribers only) ────────────────────────────────
@@ -133,9 +195,9 @@ export async function castVote(req: AuthRequest, res: Response) {
   if (poll.status === 'CLOSED' || (poll.endsAt && poll.endsAt < new Date())) {
     return res.status(400).json({ error: 'This poll is closed' });
   }
-
-  const validOption = poll.options.some((o) => o.id === optionId);
-  if (!validOption) return res.status(400).json({ error: 'Invalid option' });
+  if (!poll.options.some((o) => o.id === optionId)) {
+    return res.status(400).json({ error: 'Invalid option' });
+  }
 
   await prisma.pollVote.upsert({
     where:  { pollId_userId: { pollId: poll.id, userId: req.user!.id } },

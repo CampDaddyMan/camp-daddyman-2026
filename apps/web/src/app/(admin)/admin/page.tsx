@@ -863,38 +863,55 @@ function ReportsTab() {
 
 // ── Polls tab ─────────────────────────────────────────────────────────────────
 
-interface PollOption { id: string; label: string; contentId: string }
+type PollType = 'CONTENT_VOTE' | 'ARTIST_VOTE' | 'CUSTOM';
+interface FlexOption { label: string; contentId: string; artistId: string; imageUrl: string; body: string }
 interface AdminPoll {
   id: string; title: string; description?: string | null;
+  pollType: PollType;
   status: 'ACTIVE' | 'CLOSED'; endsAt?: string | null; createdAt: string;
   _count: { votes: number; options: number };
-  options: { content: { title: string } }[];
 }
 interface ContentPick { id: string; title: string; type: string }
+interface ArtistPick  { id: string; username: string; displayName?: string | null }
+
+const POLL_TYPE_LABELS: Record<PollType, { label: string; emoji: string; hint: string }> = {
+  CONTENT_VOTE: { label: 'Song / Content Vote', emoji: '🎵', hint: 'Members listen and pick their favourite version' },
+  ARTIST_VOTE:  { label: 'Artist of the Week',  emoji: '🌟', hint: 'Showcase artists — bio, top tracks, stats' },
+  CUSTOM:       { label: 'Custom Poll',          emoji: '🗳️', hint: 'Free-form options with image and description' },
+};
+
+function blankOption(): FlexOption {
+  return { label: '', contentId: '', artistId: '', imageUrl: '', body: '' };
+}
 
 function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreated: (p: AdminPoll) => void }) {
-  const [title, setTitle]         = useState('');
-  const [description, setDesc]    = useState('');
-  const [endsAt, setEndsAt]       = useState('');
-  const [options, setOptions]     = useState<PollOption[]>([{ id: '', label: '', contentId: '' }, { id: '', label: '', contentId: '' }]);
-  const [content, setContent]     = useState<ContentPick[]>([]);
-  const [saving, setSaving]       = useState(false);
-  const [error, setError]         = useState('');
+  const [title, setTitle]       = useState('');
+  const [description, setDesc]  = useState('');
+  const [endsAt, setEndsAt]     = useState('');
+  const [pollType, setPollType] = useState<PollType>('CONTENT_VOTE');
+  const [options, setOptions]   = useState<FlexOption[]>([blankOption(), blankOption()]);
+  const [content, setContent]   = useState<ContentPick[]>([]);
+  const [artists, setArtists]   = useState<ArtistPick[]>([]);
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
 
   useEffect(() => {
     api.get('/admin/content', { params: { limit: '100', status: 'ACTIVE' } })
-      .then(({ data }) => setContent(data.content))
-      .catch(() => {});
+      .then(({ data }) => setContent(data.content)).catch(() => {});
+    api.get('/admin/users', { params: { limit: '100' } })
+      .then(({ data }) => setArtists(data.users)).catch(() => {});
   }, []);
 
-  function setOption(idx: number, field: keyof PollOption, val: string) {
+  // Reset options when type changes
+  useEffect(() => {
+    setOptions([blankOption(), blankOption()]);
+  }, [pollType]);
+
+  function setField(idx: number, field: keyof FlexOption, val: string) {
     setOptions((prev) => prev.map((o, i) => i === idx ? { ...o, [field]: val } : o));
   }
 
-  function addOption() {
-    setOptions((prev) => [...prev, { id: '', label: '', contentId: '' }]);
-  }
-
+  function addOption() { setOptions((prev) => [...prev, blankOption()]); }
   function removeOption(idx: number) {
     if (options.length <= 2) return;
     setOptions((prev) => prev.filter((_, i) => i !== idx));
@@ -902,8 +919,22 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
   async function handleCreate() {
     if (!title.trim()) { setError('Title required'); return; }
-    const filled = options.filter((o) => o.contentId);
-    if (filled.length < 2) { setError('Select at least 2 songs'); return; }
+
+    let mappedOptions: any[];
+    if (pollType === 'CONTENT_VOTE') {
+      const filled = options.filter((o) => o.contentId);
+      if (filled.length < 2) { setError('Select at least 2 songs'); return; }
+      mappedOptions = filled.map((o, i) => ({ contentId: o.contentId, label: o.label || `Version ${i + 1}` }));
+    } else if (pollType === 'ARTIST_VOTE') {
+      const filled = options.filter((o) => o.artistId);
+      if (filled.length < 2) { setError('Select at least 2 artists'); return; }
+      mappedOptions = filled.map((o, i) => ({ artistId: o.artistId, label: o.label || `Artist ${i + 1}` }));
+    } else {
+      const filled = options.filter((o) => o.label.trim());
+      if (filled.length < 2) { setError('Add at least 2 options'); return; }
+      mappedOptions = filled.map((o) => ({ label: o.label, imageUrl: o.imageUrl || undefined, body: o.body || undefined }));
+    }
+
     setSaving(true);
     setError('');
     try {
@@ -911,7 +942,8 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
         title: title.trim(),
         description: description.trim() || undefined,
         endsAt: endsAt || undefined,
-        options: filled.map((o, i) => ({ contentId: o.contentId, label: o.label || `Version ${i + 1}` })),
+        pollType,
+        options: mappedOptions,
       });
       onCreated(data.poll);
       onClose();
@@ -922,27 +954,51 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
     }
   }
 
+  const info = POLL_TYPE_LABELS[pollType];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-surface-800 border border-surface-700 rounded-2xl overflow-y-auto max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
-          <h2 className="text-white font-semibold">Create Listening Poll</h2>
+          <h2 className="text-white font-semibold">Create Poll</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
 
         <div className="flex-1 px-6 py-6 space-y-5">
+
+          {/* Poll type selector */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">Poll Type</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(POLL_TYPE_LABELS) as PollType[]).map((t) => {
+                const { label, emoji } = POLL_TYPE_LABELS[t];
+                return (
+                  <button key={t} type="button" onClick={() => setPollType(t)}
+                    className={`rounded-lg border px-3 py-3 text-center text-xs transition-colors ${
+                      pollType === t
+                        ? 'border-brand-500 bg-brand-500/10 text-brand-400'
+                        : 'border-surface-600 bg-surface-700 text-gray-400 hover:border-surface-500'
+                    }`}>
+                    <div className="text-xl mb-1">{emoji}</div>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">{info.hint}</p>
+          </div>
+
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Poll Title</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)}
-              placeholder="Which version hits different?"
+              placeholder={pollType === 'CONTENT_VOTE' ? 'Which version hits different?' : pollType === 'ARTIST_VOTE' ? 'Artist of the Week' : 'What should we do next?'}
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
           </div>
 
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description (optional)</label>
             <textarea value={description} onChange={(e) => setDesc(e.target.value)} rows={2}
-              placeholder="Help your members know what they're voting on..."
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
           </div>
 
@@ -952,21 +1008,45 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
           </div>
 
+          {/* Options — different UI per type */}
           <div>
-            <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wide">Song Versions</label>
+            <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wide">
+              {pollType === 'CONTENT_VOTE' ? 'Song Versions' : pollType === 'ARTIST_VOTE' ? 'Artists' : 'Options'}
+            </label>
             <div className="space-y-3">
               {options.map((opt, idx) => (
                 <div key={idx} className="flex gap-2 items-start">
                   <div className="flex-1 space-y-1.5">
-                    <select value={opt.contentId} onChange={(e) => setOption(idx, 'contentId', e.target.value)}
-                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
-                      <option value="">— pick a song —</option>
-                      {content.map((c) => (
-                        <option key={c.id} value={c.id}>{c.title} ({c.type.toLowerCase()})</option>
-                      ))}
-                    </select>
-                    <input value={opt.label} onChange={(e) => setOption(idx, 'label', e.target.value)}
-                      placeholder={`Label (e.g. "Studio Take", "Version A")`}
+                    {pollType === 'CONTENT_VOTE' && (
+                      <select value={opt.contentId} onChange={(e) => setField(idx, 'contentId', e.target.value)}
+                        className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+                        <option value="">— pick a song / content —</option>
+                        {content.map((c) => (
+                          <option key={c.id} value={c.id}>{c.title} ({c.type.toLowerCase().replace('_', ' ')})</option>
+                        ))}
+                      </select>
+                    )}
+                    {pollType === 'ARTIST_VOTE' && (
+                      <select value={opt.artistId} onChange={(e) => setField(idx, 'artistId', e.target.value)}
+                        className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+                        <option value="">— pick an artist —</option>
+                        {artists.map((a) => (
+                          <option key={a.id} value={a.id}>{a.displayName || a.username} (@{a.username})</option>
+                        ))}
+                      </select>
+                    )}
+                    {pollType === 'CUSTOM' && (
+                      <>
+                        <input value={opt.imageUrl} onChange={(e) => setField(idx, 'imageUrl', e.target.value)}
+                          placeholder="Image URL (optional)"
+                          className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                        <textarea value={opt.body} onChange={(e) => setField(idx, 'body', e.target.value)}
+                          placeholder="Description (optional)" rows={2}
+                          className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+                      </>
+                    )}
+                    <input value={opt.label} onChange={(e) => setField(idx, 'label', e.target.value)}
+                      placeholder={pollType === 'CONTENT_VOTE' ? 'Label (e.g. "Studio Take")' : pollType === 'ARTIST_VOTE' ? 'Label (optional)' : 'Option label *'}
                       className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
                   </div>
                   <button onClick={() => removeOption(idx)} disabled={options.length <= 2}
@@ -976,7 +1056,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
             </div>
             <button onClick={addOption}
               className="mt-3 text-sm text-brand-400 hover:text-brand-300 transition-colors">
-              + Add another version
+              + Add another option
             </button>
           </div>
 
@@ -1059,9 +1139,12 @@ function PollsTab() {
             <div key={p.id} className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-400' : 'bg-surface-600 text-gray-400'}`}>
                       {p.status}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-surface-700 text-gray-400">
+                      {POLL_TYPE_LABELS[p.pollType]?.emoji} {POLL_TYPE_LABELS[p.pollType]?.label}
                     </span>
                     <span className="text-xs text-gray-500">{fmtDate(p.createdAt)}</span>
                     {p.endsAt && p.status === 'ACTIVE' && (

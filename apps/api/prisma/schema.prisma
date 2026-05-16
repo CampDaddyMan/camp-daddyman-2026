@@ -38,6 +38,7 @@ model User {
   reports                Report[]       @relation("ReportedBy")
   polls                  Poll[]
   pollVotes              PollVote[]
+  pollOptionsAsArtist    PollOption[] @relation("PollOptionArtist")
 }
 
 model Token {
@@ -277,6 +278,7 @@ model Poll {
   id          String     @id @default(cuid())
   title       String
   description String?
+  pollType    PollType   @default(CONTENT_VOTE)
   status      PollStatus @default(ACTIVE)
   creatorId   String
   creator     User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -293,10 +295,21 @@ model PollOption {
   id        String   @id @default(cuid())
   pollId    String
   poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  contentId String
-  content   Content  @relation(fields: [contentId], references: [id])
   label     String
   order     Int      @default(0)
+
+  // CONTENT_VOTE
+  contentId String?
+  content   Content? @relation(fields: [contentId], references: [id])
+
+  // ARTIST_VOTE
+  artistId  String?
+  artist    User?    @relation("PollOptionArtist", fields: [artistId], references: [id])
+
+  // CUSTOM
+  imageUrl  String?
+  body      String?
+
   votes     PollVote[]
 }
 
@@ -316,4 +329,10 @@ model PollVote {
 enum PollStatus {
   ACTIVE
   CLOSED
+}
+
+enum PollType {
+  CONTENT_VOTE
+  ARTIST_VOTE
+  CUSTOM
 }

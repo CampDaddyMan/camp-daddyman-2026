@@ -9,8 +9,9 @@ export const s3 = new S3Client({
   },
   region: 'auto',
   forcePathStyle: false,
-  // Prevents x-amz-checksum-mode=ENABLED from being injected into signed URLs — R2 rejects it
-  requestChecksumCalculation: 'WHEN_REQUIRED',
+  // Prevent x-amz-checksum-mode=ENABLED in signed URLs — R2 does not support it
+  requestChecksumCalculation:  'WHEN_REQUIRED',
+  responseChecksumValidation:  'WHEN_REQUIRED',
 });
 
 export const R2_BUCKET     = process.env.R2_BUCKET!;

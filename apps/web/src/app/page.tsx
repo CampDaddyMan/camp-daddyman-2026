@@ -138,9 +138,11 @@ function ContinueWatchingRow({ items }: { items: HistoryItem[] }) {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [data, setData] = useState<DiscoveryData | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
   useEffect(() => {
     api.get('/content/discover')
@@ -155,6 +157,22 @@ export default function HomePage() {
       .then((r) => setHistory(r.data.items))
       .catch(() => {});
   }, [user]);
+
+  async function handleCheckout(plan: string) {
+    if (!user) {
+      router.push(`/register?next=/subscribe`);
+      return;
+    }
+    setCheckoutLoading(plan);
+    try {
+      const { data } = await api.post('/subscriptions/checkout', { plan });
+      window.location.href = data.url;
+    } catch {
+      router.push('/subscribe');
+    } finally {
+      setCheckoutLoading(null);
+    }
+  }
 
 
   return (
@@ -453,7 +471,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* PRO — highlighted */}
+            {/* PRO MONTHLY — highlighted */}
             <div className="rounded-2xl border border-brand-500/60 bg-surface-800 p-7 flex flex-col relative shadow-[0_0_40px_rgba(232,184,0,0.12)]">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-black text-xs font-bold px-4 py-1 rounded-full tracking-wide">
                 MOST POPULAR
@@ -471,9 +489,13 @@ export default function HomePage() {
                   <li key={f} className="flex items-center gap-2 opacity-40"><span>✕</span>{f}</li>
                 ))}
               </ul>
-              <Link href="/subscribe" className="block text-center bg-brand-500 hover:bg-brand-600 text-black font-bold py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(232,184,0,0.2)]">
-                Join Pro →
-              </Link>
+              <button
+                onClick={() => handleCheckout('PRO')}
+                disabled={checkoutLoading === 'PRO'}
+                className="block w-full text-center bg-brand-500 hover:bg-brand-600 text-black font-bold py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(232,184,0,0.2)] disabled:opacity-60"
+              >
+                {checkoutLoading === 'PRO' ? 'Redirecting…' : 'Join Pro →'}
+              </button>
             </div>
 
             {/* PRO ANNUAL */}
@@ -488,9 +510,13 @@ export default function HomePage() {
                   <li key={f} className="flex items-center gap-2"><span className="text-brand-400">✓</span>{f}</li>
                 ))}
               </ul>
-              <Link href="/subscribe" className="block text-center border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white py-3 rounded-xl text-sm font-medium transition-colors">
-                Join Pro Annual →
-              </Link>
+              <button
+                onClick={() => handleCheckout('PREMIUM')}
+                disabled={checkoutLoading === 'PREMIUM'}
+                className="block w-full text-center border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+              >
+                {checkoutLoading === 'PREMIUM' ? 'Redirecting…' : 'Join Pro Annual →'}
+              </button>
             </div>
 
             {/* CREATOR */}
@@ -501,13 +527,17 @@ export default function HomePage() {
                 <span className="text-gray-500 text-sm mb-1">/mo</span>
               </div>
               <ul className="space-y-3 text-sm text-gray-400 flex-1 mb-8">
-                {['Everything in Premium','Upload & publish content','Creator analytics','Subscriber-only gating','Custom creator profile','Revenue from paid content'].map((f) => (
+                {['Everything in Pro Annual','Upload & publish content','Creator analytics','Subscriber-only gating','Custom creator profile','Revenue from paid content'].map((f) => (
                   <li key={f} className="flex items-center gap-2"><span className="text-brand-400">✓</span>{f}</li>
                 ))}
               </ul>
-              <Link href="/subscribe" className="block text-center border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white py-3 rounded-xl text-sm font-medium transition-colors">
-                Become a Creator →
-              </Link>
+              <button
+                onClick={() => handleCheckout('CREATOR')}
+                disabled={checkoutLoading === 'CREATOR'}
+                className="block w-full text-center border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+              >
+                {checkoutLoading === 'CREATOR' ? 'Redirecting…' : 'Become a Creator →'}
+              </button>
             </div>
           </div>
 

@@ -15,11 +15,11 @@ export async function getMySubscription(req: AuthRequest, res: Response) {
 }
 
 export async function createCheckoutSession(req: AuthRequest, res: Response) {
-  const { plan } = req.body as { plan: 'PRO' | 'PREMIUM' };
+  const { plan } = req.body as { plan: 'PRO' | 'PREMIUM' | 'CREATOR' };
 
-  const planConfig = PLANS[plan];
+  const planConfig = PLANS[plan as keyof typeof PLANS];
   if (!planConfig || !planConfig.priceId) {
-    return res.status(400).json({ error: 'Invalid plan' });
+    return res.status(400).json({ error: 'Invalid plan or price not configured' });
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -198,9 +198,9 @@ export async function stripeWebhook(req: Request, res: Response) {
   res.json({ received: true });
 }
 
-function getPlanByPriceId(priceId: string): 'PRO' | 'PREMIUM' | null {
+function getPlanByPriceId(priceId: string): 'PRO' | 'PREMIUM' | 'CREATOR' | null {
   for (const [key, plan] of Object.entries(PLANS)) {
-    if ((plan as any).priceId === priceId) return key as 'PRO' | 'PREMIUM';
+    if ((plan as any).priceId === priceId) return key as 'PRO' | 'PREMIUM' | 'CREATOR';
   }
   return null;
 }

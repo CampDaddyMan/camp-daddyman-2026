@@ -6,13 +6,14 @@ import api from '@/lib/api';
 import { Content, ContentType } from '@/types';
 import ContentCard from '@/components/content/ContentCard';
 
-const TYPES: { value: ContentType | ''; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'MUSIC', label: 'Music' },
-  { value: 'FILM', label: 'Film' },
-  { value: 'PODCAST', label: 'Podcasts' },
-  { value: 'SPOKEN_WORD', label: 'Spoken Word' },
-  { value: 'DADDYMAN_ISMS', label: 'DaddyMan-Isms' },
+const TYPES: { value: ContentType | ''; label: string; emoji: string }[] = [
+  { value: '',             label: 'All',           emoji: '✦'  },
+  { value: 'MUSIC',       label: 'Music',          emoji: '🎵' },
+  { value: 'FILM',        label: 'Film',           emoji: '🎬' },
+  { value: 'PODCAST',     label: 'Podcasts',       emoji: '🎙️' },
+  { value: 'SPOKEN_WORD', label: 'Spoken Word',    emoji: '🎤' },
+  { value: 'DADDYMAN_ISMS', label: 'DaddyMan-Isms', emoji: '💡' },
+  { value: 'BOOK',        label: 'Books',          emoji: '📖' },
 ];
 
 const PAGE_SIZE = 12;
@@ -118,7 +119,7 @@ function BrowseContent() {
 
         {/* Sort toggle */}
         <div className="flex gap-1 bg-surface-800 border border-surface-700 rounded-lg p-1">
-          {[{ value: 'latest', label: 'Latest' }, { value: 'trending', label: 'Trending' }].map((s) => (
+          {[{ value: 'latest', label: 'Latest' }, { value: 'trending', label: 'Trending' }, { value: 'popular', label: 'Most Viewed' }].map((s) => (
             <button
               key={s.value}
               onClick={() => handleSortChange(s.value)}
@@ -140,13 +141,13 @@ function BrowseContent() {
           <button
             key={t.value}
             onClick={() => handleTypeChange(t.value)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeType === t.value
                 ? 'bg-brand-500 text-black'
                 : 'bg-surface-700 text-gray-300 hover:bg-surface-600 hover:text-white'
             }`}
           >
-            {t.label}
+            <span>{t.emoji}</span>{t.label}
           </button>
         ))}
       </div>
@@ -167,7 +168,7 @@ function BrowseContent() {
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-24">
-          <p className="text-5xl mb-4">🎬</p>
+          <p className="text-5xl mb-4">{activeType === 'MUSIC' ? '🎵' : activeType === 'FILM' ? '🎬' : activeType === 'PODCAST' ? '🎙️' : activeType === 'BOOK' ? '📖' : activeType === 'SPOKEN_WORD' ? '🎤' : activeType === 'DADDYMAN_ISMS' ? '💡' : '🎬'}</p>
           <p className="text-gray-400 text-lg">Nothing here yet.</p>
           <Link href="/upload" className="inline-block mt-4 text-brand-400 hover:underline text-sm">
             Be the first to upload →

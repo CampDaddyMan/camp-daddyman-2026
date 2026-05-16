@@ -22,7 +22,7 @@ export async function listContent(req: Request, res: Response) {
   if (creator) where.creator = { username: creator };
   if (tag) where.tags = { has: String(tag).toLowerCase() };
 
-  const orderBy = sort === 'trending' ? { views: 'desc' as const } : { createdAt: 'desc' as const };
+  const orderBy = (sort === 'trending' || sort === 'popular') ? { views: 'desc' as const } : { createdAt: 'desc' as const };
 
   const [raw, total] = await Promise.all([
     prisma.content.findMany({

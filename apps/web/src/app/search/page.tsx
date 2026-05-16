@@ -15,12 +15,14 @@ interface Creator {
   _count: { followers: number; content: number };
 }
 
-const TYPES: { value: ContentType | ''; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'MUSIC', label: 'Music' },
-  { value: 'FILM', label: 'Film' },
-  { value: 'PODCAST', label: 'Podcasts' },
-  { value: 'SPOKEN_WORD', label: 'Spoken Word' },
+const TYPES: { value: ContentType | ''; label: string; emoji: string }[] = [
+  { value: '',             label: 'All',            emoji: '✦'  },
+  { value: 'MUSIC',       label: 'Music',           emoji: '🎵' },
+  { value: 'FILM',        label: 'Film',            emoji: '🎬' },
+  { value: 'PODCAST',     label: 'Podcasts',        emoji: '🎙️' },
+  { value: 'SPOKEN_WORD', label: 'Spoken Word',     emoji: '🎤' },
+  { value: 'DADDYMAN_ISMS', label: 'DaddyMan-Isms', emoji: '💡' },
+  { value: 'BOOK',        label: 'Books',           emoji: '📖' },
 ];
 
 function CreatorResult({ creator }: { creator: Creator }) {
@@ -118,7 +120,7 @@ function SearchContent() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search music, films, podcasts, creators..."
+          placeholder="Search music, film, books, podcasts, spoken word, creators..."
           className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-xl px-5 py-3 text-sm focus:outline-none focus:border-brand-400 transition-colors"
           autoFocus
         />
@@ -136,13 +138,13 @@ function SearchContent() {
             <button
               key={t.value}
               onClick={() => handleTypeChange(t.value)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 activeType === t.value
                   ? 'bg-brand-500 text-black'
                   : 'bg-surface-700 text-gray-300 hover:bg-surface-600 hover:text-white'
               }`}
             >
-              {t.label}
+              <span>{t.emoji}</span>{t.label}
             </button>
           ))}
         </div>
@@ -194,7 +196,7 @@ function SearchContent() {
       ) : (
         <div className="text-center py-20 text-gray-500">
           <p className="text-5xl mb-4">🎵</p>
-          <p className="text-lg">Search for music, films, podcasts, or creators</p>
+          <p className="text-lg">Search music, film, books, podcasts, spoken word, or creators</p>
         </div>
       )}
     </div>

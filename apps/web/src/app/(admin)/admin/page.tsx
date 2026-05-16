@@ -140,12 +140,17 @@ function StatCard({ label, value, emoji, sub, onClick }: { label: string; value:
 
 // ── Plan badge ────────────────────────────────────────────────────────────────
 
+const PLAN_LABELS: Record<string, string> = {
+  FREE: 'Free', PRO: 'Pro Monthly', PREMIUM: 'Pro Annual', CREATOR: 'Creator',
+};
+
 function PlanBadge({ plan }: { plan?: string }) {
   const p = plan || 'FREE';
   const cls = p === 'PREMIUM' ? 'bg-brand-500/20 text-brand-400'
             : p === 'PRO'     ? 'bg-camp-500/20 text-camp-400'
+            : p === 'CREATOR' ? 'bg-purple-500/20 text-purple-400'
             :                   'bg-surface-600 text-gray-400';
-  return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{p}</span>;
+  return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{PLAN_LABELS[p] ?? p}</span>;
 }
 
 // ── User action drawer ────────────────────────────────────────────────────────
@@ -353,7 +358,7 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
                 <button key={plan} onClick={() => onNav('users', plan)}
                   className="w-full text-left group cursor-pointer">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-300 group-hover:text-white transition-colors font-medium">{plan}</span>
+                    <span className="text-gray-300 group-hover:text-white transition-colors font-medium">{PLAN_LABELS[plan] ?? plan}</span>
                     <span className="text-gray-400">
                       {count.toLocaleString()} ({pct}%)
                       <span className="text-brand-400 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
@@ -371,7 +376,7 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
           </div>
           <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-surface-700">
             Est. MRR: <span className="text-white font-semibold">${paidRevenue.toLocaleString()}</span>
-            <span className="text-gray-600 ml-1">(PRO×$19.99 + PREMIUM×$8.33/mo)</span>
+            <span className="text-gray-600 ml-1">(Monthly×$19.99 + Annual×$8.33/mo)</span>
           </p>
         </div>
 

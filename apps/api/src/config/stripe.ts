@@ -12,15 +12,15 @@ export const PLANS = {
     features: ['Browse public content', '1GB storage', 'Standard quality'],
   },
   PRO: {
-    name: 'Pro',
+    name: 'Pro Monthly',
     price: 19.99,
-    priceId: process.env.STRIPE_PRO_PRICE_ID,
+    priceId: process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
     features: ['All public + subscriber content', '100GB storage', 'HD quality', 'No ads'],
   },
   PREMIUM: {
-    name: 'Premium',
+    name: 'Pro Annual',
     price: 99.99,
-    priceId: process.env.STRIPE_PREMIUM_PRICE_ID,
+    priceId: process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
     features: ['All content', '500GB storage', '4K quality', 'No ads', 'Priority support', 'Download for offline'],
   },
   CREATOR: {

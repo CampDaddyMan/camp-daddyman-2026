@@ -72,7 +72,7 @@ const PLANS = [
     period: '/mo',
     description: 'Built for those ready to share their voice with the world.',
     included: [
-      'Everything in Premium',
+      'Everything in Pro Annual',
       'Upload & publish content',
       'Creator analytics dashboard',
       'Subscriber-only content gating',

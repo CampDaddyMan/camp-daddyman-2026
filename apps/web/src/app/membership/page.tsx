@@ -24,7 +24,6 @@ const PLANS = [
       'Offline access',
     ],
     cta: 'Get started free',
-    href: '/register',
     highlight: false,
   },
   {
@@ -44,7 +43,6 @@ const PLANS = [
       'Offline access',
     ],
     cta: 'Join Pro →',
-    href: '/subscribe',
     highlight: true,
   },
   {
@@ -62,7 +60,6 @@ const PLANS = [
     ],
     excluded: [],
     cta: 'Join Pro Annual →',
-    href: '/subscribe',
     highlight: false,
   },
   {
@@ -72,7 +69,7 @@ const PLANS = [
     period: '/mo',
     description: 'Built for those ready to share their voice with the world.',
     included: [
-      'Everything in Premium',
+      'Everything in Pro Annual',
       'Upload & publish content',
       'Creator analytics dashboard',
       'Subscriber-only content gating',
@@ -81,7 +78,6 @@ const PLANS = [
     ],
     excluded: [],
     cta: 'Become a Creator →',
-    href: '/subscribe',
     highlight: false,
   },
 ];
@@ -93,6 +89,18 @@ export default function MembershipPage() {
   const [recurring, setRecurring] = useState(false);
   const [supporterLoading, setSupporterLoading] = useState(false);
   const [amountError, setAmountError] = useState('');
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+
+  async function handleCheckout(planKey: string) {
+    if (!user) { router.push('/register'); return; }
+    setCheckoutLoading(planKey);
+    try {
+      const { data } = await api.post('/subscriptions/checkout', { plan: planKey });
+      window.location.href = data.url;
+    } catch {
+      setCheckoutLoading(null);
+    }
+  }
 
   async function handleSupporter() {
     if (!user) return router.push('/login');
@@ -161,16 +169,26 @@ export default function MembershipPage() {
               ))}
             </ul>
 
-            <Link
-              href={plan.href}
-              className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
-                plan.highlight
-                  ? 'bg-brand-500 hover:bg-brand-600 text-black shadow-[0_0_20px_rgba(232,184,0,0.2)]'
-                  : 'border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white'
-              }`}
-            >
-              {plan.cta}
-            </Link>
+            {plan.key === 'FREE' ? (
+              <Link
+                href="/register"
+                className="block text-center py-3 rounded-xl text-sm font-semibold transition-colors border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white"
+              >
+                {plan.cta}
+              </Link>
+            ) : (
+              <button
+                onClick={() => handleCheckout(plan.key)}
+                disabled={checkoutLoading === plan.key}
+                className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 ${
+                  plan.highlight
+                    ? 'bg-brand-500 hover:bg-brand-600 text-black shadow-[0_0_20px_rgba(232,184,0,0.2)]'
+                    : 'border border-surface-500 hover:border-brand-400/50 text-gray-300 hover:text-white'
+                }`}
+              >
+                {checkoutLoading === plan.key ? 'Redirecting…' : plan.cta}
+              </button>
+            )}
           </div>
         ))}
       </div>

@@ -42,7 +42,7 @@ function fmtDate(iso: string) {
 }
 
 const TYPE_LABEL: Record<ContentType, string> = {
-  FILM: 'Film', MUSIC: 'Music', PODCAST: 'Podcast', SPOKEN_WORD: 'Spoken Word', DADDYMAN_ISMS: 'DaddyMan-Ism',
+  FILM: 'Film', MUSIC: 'Music', PODCAST: 'Podcast', SPOKEN_WORD: 'Spoken Word', DADDYMAN_ISMS: 'DaddyMan-Ism', BOOK: 'Book',
 };
 
 const PRIVACY_LABEL: Record<Privacy, string> = {

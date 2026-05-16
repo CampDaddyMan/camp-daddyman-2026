@@ -1,4 +1,4 @@
-export type ContentType = 'FILM' | 'MUSIC' | 'PODCAST' | 'SPOKEN_WORD' | 'DADDYMAN_ISMS';
+export type ContentType = 'FILM' | 'MUSIC' | 'PODCAST' | 'SPOKEN_WORD' | 'DADDYMAN_ISMS' | 'BOOK';
 export type ContentStatus = 'PROCESSING' | 'ACTIVE' | 'ARCHIVED' | 'DELETED';
 export type Privacy = 'PUBLIC' | 'PRIVATE' | 'SUBSCRIBERS_ONLY';
 export type SubscriptionPlan = 'FREE' | 'PRO' | 'PREMIUM' | 'CREATOR';

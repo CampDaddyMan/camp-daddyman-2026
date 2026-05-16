@@ -7,12 +7,13 @@ import api from '@/lib/api';
 import Button from '@/components/ui/Button';
 import { ContentType, Privacy } from '@/types';
 
-const CONTENT_TYPES: { value: ContentType; label: string; accept: string }[] = [
-  { value: 'FILM', label: 'Film / Video', accept: 'video/*' },
-  { value: 'MUSIC', label: 'Music / Audio', accept: 'audio/*' },
-  { value: 'PODCAST', label: 'Podcast', accept: 'audio/*' },
-  { value: 'SPOKEN_WORD', label: 'Spoken Word', accept: 'audio/*' },
-  { value: 'DADDYMAN_ISMS', label: 'DaddyMan-Ism', accept: 'audio/*,video/*' },
+const CONTENT_TYPES: { value: ContentType; label: string; emoji: string }[] = [
+  { value: 'FILM',         label: 'Film / Video',  emoji: '🎬' },
+  { value: 'MUSIC',        label: 'Music',         emoji: '🎵' },
+  { value: 'PODCAST',      label: 'Podcast',       emoji: '🎙️' },
+  { value: 'SPOKEN_WORD',  label: 'Spoken Word',   emoji: '🎤' },
+  { value: 'DADDYMAN_ISMS',label: 'DaddyMan-Isms', emoji: '💡' },
+  { value: 'BOOK',         label: 'Book',          emoji: '📖' },
 ];
 
 export default function UploadPage() {
@@ -42,9 +43,15 @@ export default function UploadPage() {
     if (accepted[0]) setThumbFile(accepted[0]);
   }, []);
 
+  const mediaAccept: Record<string, string[]> = type === 'BOOK'
+    ? { 'application/pdf': ['.pdf'], 'application/epub+zip': ['.epub'] }
+    : type === 'FILM'
+      ? { 'video/mp4': ['.mp4'], 'video/webm': ['.webm'], 'video/quicktime': ['.mov'] }
+      : { 'audio/mpeg': ['.mp3'], 'audio/wav': ['.wav'], 'audio/aac': ['.aac'], 'audio/flac': ['.flac'], 'audio/ogg': ['.ogg'] };
+
   const { getRootProps: mediaProps, getInputProps: mediaInputProps, isDragActive: mediaDrag, open: openMedia } = useDropzone({
     onDrop: onDropMedia,
-    accept: { 'video/*': [], 'audio/*': [] },
+    accept: mediaAccept,
     maxFiles: 1,
     noClick: true,
   });
@@ -109,16 +116,20 @@ export default function UploadPage() {
           ) : (
             <>
               <p className="text-3xl mb-3">📁</p>
-              <p className="text-gray-300 mb-3">Drag your video or audio file here</p>
+              <p className="text-gray-300 mb-3">
+                {type === 'BOOK' ? 'Drag your PDF or EPUB here' : type === 'FILM' ? 'Drag your video file here' : 'Drag your audio file here'}
+              </p>
               <button type="button" onClick={openMedia}
                 className="px-5 py-2 bg-camp-500 hover:bg-camp-600 text-white rounded-lg text-sm font-semibold transition-colors">
                 Click to select file
               </button>
               <p className="text-gray-500 text-xs mt-3">
-                <span className="text-gray-400 font-medium">Video:</span> MP4, WebM, MOV
-                &nbsp;·&nbsp;
-                <span className="text-gray-400 font-medium">Audio:</span> MP3, WAV, AAC, FLAC, OGG
-                &nbsp;·&nbsp;Max 2GB
+                {type === 'BOOK'
+                  ? <><span className="text-gray-400 font-medium">Book:</span> PDF, EPUB &nbsp;·&nbsp; Max 2GB</>
+                  : type === 'FILM'
+                    ? <><span className="text-gray-400 font-medium">Video:</span> MP4, WebM, MOV &nbsp;·&nbsp; Max 2GB</>
+                    : <><span className="text-gray-400 font-medium">Audio:</span> MP3, WAV, AAC, FLAC, OGG &nbsp;·&nbsp; Max 2GB</>
+                }
               </p>
             </>
           )}
@@ -127,13 +138,14 @@ export default function UploadPage() {
         {/* Content type */}
         <div>
           <label className="block text-sm text-gray-300 mb-2">Content Type</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {CONTENT_TYPES.map((t) => (
               <button
                 key={t.value} type="button"
                 onClick={() => setType(t.value)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${type === t.value ? 'bg-brand-500 text-black' : 'bg-surface-700 text-gray-300 hover:bg-surface-600'}`}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-center ${type === t.value ? 'bg-brand-500 text-black' : 'bg-surface-700 text-gray-300 hover:bg-surface-600'}`}
               >
+                <span className="block text-base mb-0.5">{t.emoji}</span>
                 {t.label}
               </button>
             ))}

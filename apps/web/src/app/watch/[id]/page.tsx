@@ -87,7 +87,7 @@ const GATE_FEATURES = [
 ];
 
 function SubscriberGate({ preview, user }: { preview: PreviewContent | null; user: any }) {
-  const TYPE_EMOJI: Record<string, string> = { MUSIC: '🎵', FILM: '🎬', PODCAST: '🎙️', SPOKEN_WORD: '🎤' };
+  const TYPE_EMOJI: Record<string, string> = { MUSIC: '🎵', FILM: '🎬', PODCAST: '🎙️', SPOKEN_WORD: '🎤', DADDYMAN_ISMS: '💡', BOOK: '📖' };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -448,10 +448,25 @@ export default function WatchPage() {
             onReady={handlePlayerReady}
             onProgress={(s) => { currentProgressRef.current = s; }}
           />
+        ) : content.type === 'BOOK' ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6 gap-4">
+            {content.thumbnailUrl && (
+              <img src={content.thumbnailUrl} alt={content.title}
+                className="h-40 object-contain rounded-lg shadow-lg" />
+            )}
+            {!content.thumbnailUrl && <div className="text-6xl">📖</div>}
+            <p className="text-white font-semibold text-center line-clamp-2">{content.title}</p>
+            {content.mediaUrl && (
+              <a href={content.mediaUrl} target="_blank" rel="noopener noreferrer"
+                className="px-6 py-2.5 bg-brand-500 hover:bg-brand-400 text-black font-semibold rounded-lg text-sm transition-colors">
+                Open / Read Book
+              </a>
+            )}
+          </div>
         ) : ['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(content.type) ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6">
             <div className="text-5xl mb-4">
-              {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : '🎤'}
+              {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : content.type === 'DADDYMAN_ISMS' ? '💡' : '🎤'}
             </div>
             <p className="text-white font-semibold text-center mb-6 line-clamp-2">{content.title}</p>
             <audio

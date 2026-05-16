@@ -489,7 +489,7 @@ function EditContentModal({ item, onClose, onSaved }: {
           {/* Media file */}
           <div>
             <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">
-              {['FILM'].includes(item.type) ? 'Video File' : 'Audio File'}
+              {item.type === 'FILM' ? 'Video File' : item.type === 'BOOK' ? 'Book File (PDF / EPUB)' : 'Audio File'}
             </label>
             <div className="bg-surface-700 border border-surface-600 rounded-lg px-3 py-2 text-sm text-gray-300 mb-2 truncate">
               {mediaUrl ? mediaUrl.split('/').pop() : 'No file'}
@@ -538,6 +538,7 @@ function EditContentModal({ item, onClose, onSaved }: {
               <option value="PODCAST">Podcast</option>
               <option value="SPOKEN_WORD">Spoken Word</option>
               <option value="DADDYMAN_ISMS">DaddyMan-Isms</option>
+              <option value="BOOK">Book</option>
             </select>
           </div>
 
@@ -653,6 +654,8 @@ function ContentTab() {
           <option value="MUSIC">Music</option>
           <option value="PODCAST">Podcast</option>
           <option value="SPOKEN_WORD">Spoken Word</option>
+          <option value="DADDYMAN_ISMS">DaddyMan-Isms</option>
+          <option value="BOOK">Book</option>
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)}
           className="bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
@@ -875,7 +878,7 @@ interface ContentPick { id: string; title: string; type: string }
 interface ArtistPick  { id: string; username: string; displayName?: string | null }
 
 const POLL_TYPE_LABELS: Record<PollType, { label: string; emoji: string; hint: string }> = {
-  CONTENT_VOTE: { label: 'Song / Content Vote', emoji: '🎵', hint: 'Members listen and pick their favourite version' },
+  CONTENT_VOTE: { label: 'Content Vote', emoji: '🎵', hint: 'Members vote on music, film, books, podcasts — any content type' },
   ARTIST_VOTE:  { label: 'Artist of the Week',  emoji: '🌟', hint: 'Showcase artists — bio, top tracks, stats' },
   CUSTOM:       { label: 'Custom Poll',          emoji: '🗳️', hint: 'Free-form options with image and description' },
 };

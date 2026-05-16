@@ -171,7 +171,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
 
   const { title, description, type, privacy, tags } = req.body;
 
-  const validTypes = ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'];
+  const validTypes = ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS', 'BOOK'];
   if (!validTypes.includes(type)) {
     return res.status(400).json({ error: 'Invalid content type' });
   }
@@ -377,7 +377,7 @@ export async function updateContent(req: AuthRequest, res: Response) {
   if (privacy !== undefined && ['PUBLIC', 'PRIVATE', 'SUBSCRIBERS_ONLY'].includes(privacy)) {
     data.privacy = privacy;
   }
-  if (type !== undefined && ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(type)) {
+  if (type !== undefined && ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS', 'BOOK'].includes(type)) {
     data.type = type;
   }
   if (tags !== undefined) {

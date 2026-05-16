@@ -40,7 +40,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -1530,6 +1530,697 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
   );
 }
 
+// ── Partners tab ──────────────────────────────────────────────────────────────
+
+interface AdminPartner {
+  id: string; name: string; email: string; website?: string | null;
+  logo?: string | null; description?: string | null; type: string; status: string;
+  contactName?: string | null; phone?: string | null; featured: boolean; createdAt: string;
+  _count?: { ads: number };
+}
+interface AdminPlacement {
+  id: string; name: string; location: string; description?: string | null;
+  pricePerDay: number; width?: number | null; height?: number | null; active: boolean;
+  _count?: { ads: number };
+}
+interface AdminAd {
+  id: string; title: string; body?: string | null; imageUrl?: string | null;
+  linkUrl: string; startsAt: string; endsAt: string; status: string;
+  impressions: number; clicks: number; paidAmount: number; notes?: string | null;
+  partner: { id: string; name: string }; placement: { id: string; name: string; location: string };
+}
+
+const PARTNER_TYPE_LABELS: Record<string, string> = {
+  ADVERTISER: 'Advertiser', SPONSOR: 'Sponsor', DONOR: 'Donor', COLLABORATOR: 'Collaborator',
+};
+const PARTNER_STATUS_COLORS: Record<string, string> = {
+  PENDING:   'bg-yellow-500/20 text-yellow-400',
+  APPROVED:  'bg-green-500/20 text-green-400',
+  SUSPENDED: 'bg-red-500/20 text-red-400',
+};
+const AD_STATUS_COLORS: Record<string, string> = {
+  PENDING:   'bg-yellow-500/20 text-yellow-400',
+  ACTIVE:    'bg-green-500/20 text-green-400',
+  PAUSED:    'bg-surface-600 text-gray-400',
+  COMPLETED: 'bg-blue-500/20 text-blue-400',
+  CANCELLED: 'bg-red-500/20 text-red-400',
+};
+
+function PartnersTab() {
+  const [view, setView]           = useState<'partners' | 'placements' | 'ads'>('partners');
+  const [partners, setPartners]   = useState<AdminPartner[]>([]);
+  const [placements, setPlacements] = useState<AdminPlacement[]>([]);
+  const [ads, setAds]             = useState<AdminAd[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [acting, setActing]       = useState<string | null>(null);
+  const [showAddPartner, setAddPartner] = useState(false);
+  const [showAddPlacement, setAddPlacement] = useState(false);
+  const [showAddAd, setAddAd]     = useState(false);
+  const [editPartner, setEditPartner] = useState<AdminPartner | null>(null);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  function loadPartners() {
+    const params: Record<string, string> = {};
+    if (statusFilter !== 'ALL') params.status = statusFilter;
+    api.get('/partners', { params })
+      .then(({ data }) => setPartners(data.partners))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
+  function loadPlacements() {
+    api.get('/partners/placements/list')
+      .then(({ data }) => setPlacements(data.placements))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
+  function loadAds() {
+    api.get('/partners/ads/list')
+      .then(({ data }) => setAds(data.ads))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    setLoading(true);
+    if (view === 'partners')   loadPartners();
+    if (view === 'placements') loadPlacements();
+    if (view === 'ads')        loadAds();
+  }, [view, statusFilter]); // eslint-disable-line
+
+  async function handleApprove(id: string, status: string) {
+    setActing(id);
+    await api.patch(`/partners/${id}`, { status }).finally(() => setActing(null));
+    setPartners((prev) => prev.map((p) => p.id === id ? { ...p, status } : p));
+  }
+
+  async function handleToggleFeatured(id: string, featured: boolean) {
+    setActing(id);
+    await api.patch(`/partners/${id}`, { featured: !featured }).finally(() => setActing(null));
+    setPartners((prev) => prev.map((p) => p.id === id ? { ...p, featured: !featured } : p));
+  }
+
+  async function handleDeletePartner(id: string, name: string) {
+    if (!confirm(`Delete partner "${name}"? All their ads will also be deleted.`)) return;
+    setActing(id);
+    await api.delete(`/partners/${id}`).finally(() => setActing(null));
+    setPartners((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  async function handleAdStatus(id: string, status: string) {
+    setActing(id);
+    await api.patch(`/partners/ads/${id}`, { status }).finally(() => setActing(null));
+    setAds((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
+  }
+
+  async function handleDeleteAd(id: string) {
+    if (!confirm('Delete this ad campaign?')) return;
+    setActing(id);
+    await api.delete(`/partners/ads/${id}`).finally(() => setActing(null));
+    setAds((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  async function handleDeletePlacement(id: string, name: string) {
+    if (!confirm(`Delete placement "${name}"?`)) return;
+    setActing(id);
+    await api.delete(`/partners/placements/${id}`).finally(() => setActing(null));
+    setPlacements((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  return (
+    <div>
+      {/* Sub-nav */}
+      <div className="flex gap-2 mb-6 border-b border-surface-700 pb-1">
+        {(['partners', 'placements', 'ads'] as const).map((v) => (
+          <button key={v} onClick={() => setView(v)}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors capitalize ${
+              view === v ? 'bg-surface-800 text-white border border-surface-700 border-b-surface-800 -mb-px' : 'text-gray-400 hover:text-white'
+            }`}>{v}</button>
+        ))}
+        <div className="ml-auto flex gap-2">
+          {view === 'partners'   && (
+            <>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+                <option value="ALL">All</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="SUSPENDED">Suspended</option>
+              </select>
+              <button onClick={() => setAddPartner(true)}
+                className="px-4 py-1.5 bg-brand-500 text-black rounded-lg text-xs font-semibold hover:bg-brand-400 transition-colors">
+                + Add Partner
+              </button>
+            </>
+          )}
+          {view === 'placements' && (
+            <button onClick={() => setAddPlacement(true)}
+              className="px-4 py-1.5 bg-brand-500 text-black rounded-lg text-xs font-semibold hover:bg-brand-400 transition-colors">
+              + Add Placement
+            </button>
+          )}
+          {view === 'ads' && (
+            <button onClick={() => setAddAd(true)}
+              className="px-4 py-1.5 bg-brand-500 text-black rounded-lg text-xs font-semibold hover:bg-brand-400 transition-colors">
+              + New Ad Campaign
+            </button>
+          )}
+        </div>
+      </div>
+
+      {loading && (
+        <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-700 rounded-xl animate-pulse" />)}</div>
+      )}
+
+      {/* Partners list */}
+      {!loading && view === 'partners' && (
+        <div className="space-y-3">
+          {partners.length === 0 && (
+            <div className="text-center py-16 text-gray-500">
+              <p className="text-4xl mb-3">🤝</p>
+              <p>No partners yet. Add your first partner to get started.</p>
+            </div>
+          )}
+          {partners.map((p) => (
+            <div key={p.id} className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PARTNER_STATUS_COLORS[p.status] ?? 'bg-surface-600 text-gray-400'}`}>
+                      {p.status}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-surface-700 text-gray-400">
+                      {PARTNER_TYPE_LABELS[p.type] ?? p.type}
+                    </span>
+                    {p.featured && <span className="text-xs text-brand-400 font-semibold">★ Featured</span>}
+                    <span className="text-xs text-gray-500">{fmtDate(p.createdAt)}</span>
+                  </div>
+                  <p className="text-white font-medium">{p.name}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    {p.email}
+                    {p.contactName && ` · ${p.contactName}`}
+                    {p.phone && ` · ${p.phone}`}
+                    {p._count !== undefined && ` · ${p._count.ads} ad${p._count.ads !== 1 ? 's' : ''}`}
+                  </p>
+                  {p.website && (
+                    <a href={p.website} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-400 hover:underline mt-0.5 block">
+                      {p.website}
+                    </a>
+                  )}
+                </div>
+                <div className="flex gap-2 flex-shrink-0 flex-wrap">
+                  {p.status === 'PENDING' && (
+                    <button onClick={() => handleApprove(p.id, 'APPROVED')} disabled={acting === p.id}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
+                      Approve
+                    </button>
+                  )}
+                  {p.status === 'APPROVED' && (
+                    <button onClick={() => handleApprove(p.id, 'SUSPENDED')} disabled={acting === p.id}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors disabled:opacity-40">
+                      Suspend
+                    </button>
+                  )}
+                  {p.status === 'SUSPENDED' && (
+                    <button onClick={() => handleApprove(p.id, 'APPROVED')} disabled={acting === p.id}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
+                      Reinstate
+                    </button>
+                  )}
+                  <button onClick={() => handleToggleFeatured(p.id, p.featured)} disabled={acting === p.id}
+                    className={`text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${p.featured ? 'bg-brand-500/20 text-brand-400 hover:bg-brand-500/30' : 'bg-surface-600 text-gray-400 hover:bg-surface-500'}`}>
+                    {p.featured ? '★ Unfeature' : '☆ Feature'}
+                  </button>
+                  <button onClick={() => setEditPartner(p)}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition-colors">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDeletePartner(p.id, p.name)} disabled={acting === p.id}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Placements list */}
+      {!loading && view === 'placements' && (
+        <div className="space-y-3">
+          {placements.length === 0 && (
+            <div className="text-center py-16 text-gray-500">
+              <p className="text-4xl mb-3">📍</p>
+              <p>No ad placements defined yet. Add placement slots to start selling ads.</p>
+            </div>
+          )}
+          {placements.map((pl) => (
+            <div key={pl.id} className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pl.active ? 'bg-green-500/20 text-green-400' : 'bg-surface-600 text-gray-400'}`}>
+                    {pl.active ? 'Active' : 'Inactive'}
+                  </span>
+                  <span className="text-xs text-gray-500 font-mono">{pl.location}</span>
+                </div>
+                <p className="text-white font-medium">{pl.name}</p>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  ${pl.pricePerDay}/day
+                  {pl.width && pl.height && ` · ${pl.width}×${pl.height}px`}
+                  {pl._count !== undefined && ` · ${pl._count.ads} ad${pl._count.ads !== 1 ? 's' : ''}`}
+                </p>
+                {pl.description && <p className="text-gray-600 text-xs mt-1">{pl.description}</p>}
+              </div>
+              <button onClick={() => handleDeletePlacement(pl.id, pl.name)} disabled={acting === pl.id}
+                className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40 flex-shrink-0">
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Ads list */}
+      {!loading && view === 'ads' && (
+        <div className="space-y-3">
+          {ads.length === 0 && (
+            <div className="text-center py-16 text-gray-500">
+              <p className="text-4xl mb-3">📢</p>
+              <p>No ad campaigns yet. Create one to start monetizing placements.</p>
+            </div>
+          )}
+          {ads.map((a) => {
+            const ctr = a.impressions > 0 ? ((a.clicks / a.impressions) * 100).toFixed(1) : '0.0';
+            return (
+              <div key={a.id} className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${AD_STATUS_COLORS[a.status] ?? 'bg-surface-600 text-gray-400'}`}>
+                        {a.status}
+                      </span>
+                      <span className="text-xs text-gray-500">{fmtDate(a.startsAt)} – {fmtDate(a.endsAt)}</span>
+                    </div>
+                    <p className="text-white font-medium">{a.title}</p>
+                    <p className="text-gray-500 text-xs mt-0.5">
+                      {a.partner.name} · {a.placement.name} <span className="font-mono text-gray-600">({a.placement.location})</span>
+                    </p>
+                    <div className="flex gap-4 mt-1.5 text-xs text-gray-400">
+                      <span>{a.impressions.toLocaleString()} impressions</span>
+                      <span>{a.clicks.toLocaleString()} clicks</span>
+                      <span className="text-brand-400">{ctr}% CTR</span>
+                      <span className="text-camp-400">${a.paidAmount.toFixed(2)} paid</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0 flex-wrap">
+                    {a.status === 'PENDING' && (
+                      <button onClick={() => handleAdStatus(a.id, 'ACTIVE')} disabled={acting === a.id}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
+                        Activate
+                      </button>
+                    )}
+                    {a.status === 'ACTIVE' && (
+                      <button onClick={() => handleAdStatus(a.id, 'PAUSED')} disabled={acting === a.id}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors disabled:opacity-40">
+                        Pause
+                      </button>
+                    )}
+                    {a.status === 'PAUSED' && (
+                      <button onClick={() => handleAdStatus(a.id, 'ACTIVE')} disabled={acting === a.id}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
+                        Resume
+                      </button>
+                    )}
+                    <button onClick={() => handleDeleteAd(a.id)} disabled={acting === a.id}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add partner modal */}
+      {showAddPartner && (
+        <AddPartnerModal
+          onClose={() => setAddPartner(false)}
+          onCreated={(p) => { setPartners((prev) => [p, ...prev]); setAddPartner(false); }}
+        />
+      )}
+
+      {/* Edit partner modal */}
+      {editPartner && (
+        <EditPartnerModal
+          partner={editPartner}
+          onClose={() => setEditPartner(null)}
+          onSaved={(p) => { setPartners((prev) => prev.map((x) => x.id === p.id ? p : x)); setEditPartner(null); }}
+        />
+      )}
+
+      {/* Add placement modal */}
+      {showAddPlacement && (
+        <AddPlacementModal
+          onClose={() => setAddPlacement(false)}
+          onCreated={(pl) => { setPlacements((prev) => [...prev, pl]); setAddPlacement(false); }}
+        />
+      )}
+
+      {/* Add ad modal */}
+      {showAddAd && (
+        <AddAdModal
+          partners={partners.filter((p) => p.status === 'APPROVED')}
+          placements={placements.filter((pl) => pl.active)}
+          onClose={() => setAddAd(false)}
+          onCreated={(a) => { setAds((prev) => [a, ...prev]); setAddAd(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddPartnerModal({ onClose, onCreated }: { onClose: () => void; onCreated: (p: AdminPartner) => void }) {
+  const [name, setName]           = useState('');
+  const [email, setEmail]         = useState('');
+  const [website, setWebsite]     = useState('');
+  const [description, setDesc]    = useState('');
+  const [type, setType]           = useState('ADVERTISER');
+  const [contactName, setContact] = useState('');
+  const [phone, setPhone]         = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+
+  async function handleCreate() {
+    if (!name.trim() || !email.trim()) { setError('Name and email are required'); return; }
+    setSaving(true); setError('');
+    try {
+      const { data } = await api.post('/partners', { name, email, website, description, type, contactName, phone });
+      onCreated(data.partner);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Create failed');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">Add Partner</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+        <div className="flex-1 px-6 py-6 space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Partner Type</label>
+            <select value={type} onChange={(e) => setType(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+              <option value="ADVERTISER">Advertiser</option>
+              <option value="SPONSOR">Sponsor</option>
+              <option value="DONOR">Donor</option>
+              <option value="COLLABORATOR">Collaborator</option>
+            </select>
+          </div>
+          {[
+            { label: 'Business Name *', val: name, set: setName, ph: 'DaddyMan Gear Co.' },
+            { label: 'Email *', val: email, set: setEmail, ph: 'contact@partner.com' },
+            { label: 'Website', val: website, set: setWebsite, ph: 'https://partner.com' },
+            { label: 'Contact Name', val: contactName, set: setContact, ph: 'John Smith' },
+            { label: 'Phone', val: phone, set: setPhone, ph: '+1 (555) 000-0000' },
+          ].map(({ label, val, set, ph }) => (
+            <div key={label}>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">{label}</label>
+              <input value={val} onChange={(e) => set(e.target.value)} placeholder={ph}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          ))}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description</label>
+            <textarea value={description} onChange={(e) => setDesc(e.target.value)} rows={3}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleCreate} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Adding…' : 'Add Partner'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner; onClose: () => void; onSaved: (p: AdminPartner) => void }) {
+  const [name, setName]           = useState(partner.name);
+  const [email, setEmail]         = useState(partner.email);
+  const [website, setWebsite]     = useState(partner.website || '');
+  const [description, setDesc]    = useState(partner.description || '');
+  const [contactName, setContact] = useState(partner.contactName || '');
+  const [phone, setPhone]         = useState(partner.phone || '');
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+
+  async function handleSave() {
+    if (!name.trim()) { setError('Name is required'); return; }
+    setSaving(true); setError('');
+    try {
+      const { data } = await api.patch(`/partners/${partner.id}`, { name, email, website, description, contactName, phone });
+      onSaved({ ...partner, ...data.partner });
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Save failed');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">Edit Partner</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+        <div className="flex-1 px-6 py-6 space-y-4">
+          {[
+            { label: 'Business Name *', val: name, set: setName },
+            { label: 'Email *', val: email, set: setEmail },
+            { label: 'Website', val: website, set: setWebsite },
+            { label: 'Contact Name', val: contactName, set: setContact },
+            { label: 'Phone', val: phone, set: setPhone },
+          ].map(({ label, val, set }) => (
+            <div key={label}>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">{label}</label>
+              <input value={val} onChange={(e) => set(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          ))}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description</label>
+            <textarea value={description} onChange={(e) => setDesc(e.target.value)} rows={3}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddPlacementModal({ onClose, onCreated }: { onClose: () => void; onCreated: (pl: AdminPlacement) => void }) {
+  const [name, setName]         = useState('');
+  const [location, setLoc]      = useState('');
+  const [description, setDesc]  = useState('');
+  const [pricePerDay, setPrice] = useState('');
+  const [width, setWidth]       = useState('');
+  const [height, setHeight]     = useState('');
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
+
+  async function handleCreate() {
+    if (!name.trim() || !location.trim()) { setError('Name and location key are required'); return; }
+    setSaving(true); setError('');
+    try {
+      const { data } = await api.post('/partners/placements', { name, location, description, pricePerDay, width, height });
+      onCreated(data.placement);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Create failed');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">Add Ad Placement</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+        <div className="flex-1 px-6 py-6 space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Display Name *</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Homepage Banner"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Location Key *</label>
+            <input value={location} onChange={(e) => setLoc(e.target.value)} placeholder="homepage-banner"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-brand-400" />
+            <p className="text-xs text-gray-500 mt-1">Used in {'<AdSlot location="homepage-banner" />'}</p>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Price Per Day ($)</label>
+            <input type="number" value={pricePerDay} onChange={(e) => setPrice(e.target.value)} placeholder="25"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Width (px)</label>
+              <input type="number" value={width} onChange={(e) => setWidth(e.target.value)} placeholder="728"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Height (px)</label>
+              <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="90"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description</label>
+            <textarea value={description} onChange={(e) => setDesc(e.target.value)} rows={2}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleCreate} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Creating…' : 'Create Placement'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddAdModal({ partners, placements, onClose, onCreated }: {
+  partners: AdminPartner[]; placements: AdminPlacement[];
+  onClose: () => void; onCreated: (a: AdminAd) => void;
+}) {
+  const [partnerId, setPartnerId]   = useState('');
+  const [placementId, setPlacement] = useState('');
+  const [title, setTitle]           = useState('');
+  const [body, setBody]             = useState('');
+  const [linkUrl, setLinkUrl]       = useState('');
+  const [startsAt, setStart]        = useState('');
+  const [endsAt, setEnd]            = useState('');
+  const [paidAmount, setPaid]       = useState('');
+  const [notes, setNotes]           = useState('');
+  const [saving, setSaving]         = useState(false);
+  const [error, setError]           = useState('');
+
+  async function handleCreate() {
+    if (!partnerId || !placementId || !title.trim() || !linkUrl.trim() || !startsAt || !endsAt) {
+      setError('Partner, placement, title, link URL, start and end dates are all required');
+      return;
+    }
+    setSaving(true); setError('');
+    try {
+      const { data } = await api.post('/partners/ads', {
+        partnerId, placementId, title, body, linkUrl, startsAt, endsAt, paidAmount, notes,
+      });
+      onCreated(data.ad);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Create failed');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">New Ad Campaign</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+        <div className="flex-1 px-6 py-6 space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Partner *</label>
+            <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+              <option value="">— select partner —</option>
+              {partners.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Placement *</label>
+            <select value={placementId} onChange={(e) => setPlacement(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+              <option value="">— select placement —</option>
+              {placements.map((pl) => <option key={pl.id} value={pl.id}>{pl.name} (${pl.pricePerDay}/day)</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Title *</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Summer Drop — Camp DaddyMan Gear"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Body / Tagline</label>
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Click URL *</label>
+            <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://partner.com/offer"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Starts *</label>
+              <input type="datetime-local" value={startsAt} onChange={(e) => setStart(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ends *</label>
+              <input type="datetime-local" value={endsAt} onChange={(e) => setEnd(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Amount Paid ($)</label>
+            <input type="number" value={paidAmount} onChange={(e) => setPaid(e.target.value)} placeholder="0.00"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Internal Notes</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleCreate} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Creating…' : 'Create Campaign'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function AdminInner() {
@@ -1556,11 +2247,12 @@ function AdminInner() {
   if (loading || !user?.isAdmin) return null;
 
   const TABS: { key: Tab; label: string; emoji: string }[] = [
-    { key: 'overview', label: 'Overview', emoji: '📊' },
-    { key: 'users',    label: 'Users',    emoji: '👥' },
-    { key: 'content',  label: 'Content',  emoji: '🎵' },
-    { key: 'reports',  label: 'Reports',  emoji: '⚑' },
-    { key: 'polls',    label: 'Polls',    emoji: '🗳️' },
+    { key: 'overview',  label: 'Overview',  emoji: '📊' },
+    { key: 'users',     label: 'Users',     emoji: '👥' },
+    { key: 'content',   label: 'Content',   emoji: '🎵' },
+    { key: 'reports',   label: 'Reports',   emoji: '⚑' },
+    { key: 'polls',     label: 'Polls',     emoji: '🗳️' },
+    { key: 'partners',  label: 'Partners',  emoji: '🤝' },
   ];
 
   return (
@@ -1590,11 +2282,12 @@ function AdminInner() {
         ))}
       </div>
 
-      {tab === 'overview' && <OverviewTab onNav={navTo} />}
-      {tab === 'users'    && <UsersTab initialPlan={userPlanFilter} key={userPlanFilter} />}
-      {tab === 'content'  && <ContentTab />}
-      {tab === 'reports'  && <ReportsTab />}
-      {tab === 'polls'    && <PollsTab autoCreate={autoCreatePoll} />}
+      {tab === 'overview'  && <OverviewTab onNav={navTo} />}
+      {tab === 'users'     && <UsersTab initialPlan={userPlanFilter} key={userPlanFilter} />}
+      {tab === 'content'   && <ContentTab />}
+      {tab === 'reports'   && <ReportsTab />}
+      {tab === 'polls'     && <PollsTab autoCreate={autoCreatePoll} />}
+      {tab === 'partners'  && <PartnersTab />}
     </div>
   );
 }

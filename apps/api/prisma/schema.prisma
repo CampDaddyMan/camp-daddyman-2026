@@ -338,3 +338,79 @@ enum PollType {
   ARTIST_VOTE
   CUSTOM
 }
+
+// ── Partners & Advertising ────────────────────────────────────────────────────
+
+model Partner {
+  id          String        @id @default(cuid())
+  name        String
+  email       String        @unique
+  website     String?
+  logo        String?
+  description String?
+  type        PartnerType   @default(ADVERTISER)
+  status      PartnerStatus @default(PENDING)
+  contactName String?
+  phone       String?
+  featured    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  ads         Ad[]
+}
+
+model AdPlacement {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  description String?
+  pricePerDay Float    @default(0)
+  width       Int?
+  height      Int?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  ads         Ad[]
+}
+
+model Ad {
+  id          String    @id @default(cuid())
+  partnerId   String
+  partner     Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  placementId String
+  placement   AdPlacement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  title       String
+  body        String?
+  imageUrl    String?
+  linkUrl     String
+  startsAt    DateTime
+  endsAt      DateTime
+  status      AdStatus  @default(PENDING)
+  impressions Int       @default(0)
+  clicks      Int       @default(0)
+  paidAmount  Float     @default(0)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([placementId, status, startsAt, endsAt])
+}
+
+enum PartnerType {
+  ADVERTISER
+  SPONSOR
+  DONOR
+  COLLABORATOR
+}
+
+enum PartnerStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum AdStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}

@@ -7,6 +7,7 @@ import adminRoutes from './admin';
 import notificationRoutes from './notifications';
 import dashboardRoutes from './dashboard';
 import pollRoutes from './polls';
+import partnerRoutes from './partners';
 
 export const router = Router();
 
@@ -18,3 +19,4 @@ router.use('/admin', adminRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/polls', pollRoutes);
+router.use('/partners', partnerRoutes);

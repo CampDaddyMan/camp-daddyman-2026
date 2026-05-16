@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -1256,10 +1256,10 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
   );
 }
 
-function PollsTab() {
+function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
   const [polls, setPolls]       = useState<AdminPoll[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(autoCreate);
   const [acting, setActing]     = useState<string | null>(null);
   const [filter, setFilter]     = useState('ALL');
 
@@ -1368,11 +1368,17 @@ function PollsTab() {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function AdminPage() {
+function AdminInner() {
   const { user, loading } = useAuth();
-  const router = useRouter();
-  const [tab, setTab]               = useState<Tab>('overview');
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+
+  const urlTab    = searchParams.get('tab') as Tab | null;
+  const urlAction = searchParams.get('action');
+
+  const [tab, setTab]                   = useState<Tab>(urlTab || 'overview');
   const [userPlanFilter, setPlanFilter] = useState('ALL');
+  const [autoCreatePoll]                = useState(urlTab === 'polls' && urlAction === 'create');
 
   function navTo(targetTab: Tab, plan?: string) {
     setPlanFilter(plan || 'ALL');
@@ -1424,7 +1430,15 @@ export default function AdminPage() {
       {tab === 'users'    && <UsersTab initialPlan={userPlanFilter} key={userPlanFilter} />}
       {tab === 'content'  && <ContentTab />}
       {tab === 'reports'  && <ReportsTab />}
-      {tab === 'polls'    && <PollsTab />}
+      {tab === 'polls'    && <PollsTab autoCreate={autoCreatePoll} />}
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense>
+      <AdminInner />
+    </Suspense>
   );
 }

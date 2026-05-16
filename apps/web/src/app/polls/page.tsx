@@ -130,7 +130,7 @@ export default function PollsPage() {
           <h1 className="text-2xl font-bold text-white">Community Polls</h1>
           <p className="text-gray-400 text-sm mt-0.5">{total} poll{total !== 1 ? 's' : ''} total</p>
         </div>
-        <Link href="/admin?tab=polls"
+        <Link href="/admin?tab=polls&action=create"
           className="text-xs px-4 py-2 bg-brand-500 text-black rounded-lg font-semibold hover:bg-brand-400 transition-colors">
           + Create Poll
         </Link>

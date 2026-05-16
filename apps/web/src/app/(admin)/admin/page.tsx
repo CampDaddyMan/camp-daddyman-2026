@@ -364,6 +364,7 @@ function EditContentModal({ item, onClose, onSaved }: {
 }) {
   const [title, setTitle]               = useState(item.title);
   const [description, setDesc]          = useState(item.description || '');
+  const [type, setType]                 = useState(item.type);
   const [thumbnailUrl, setThumb]        = useState(item.thumbnailUrl || '');
   const [mediaUrl, setMediaUrl]         = useState(item.mediaUrl || '');
   const [privacy, setPrivacy]           = useState(item.privacy);
@@ -426,7 +427,7 @@ function EditContentModal({ item, onClose, onSaved }: {
     setSaving(true);
     setError('');
     try {
-      const payload: Record<string, string> = { title, privacy };
+      const payload: Record<string, string> = { title, privacy, type };
       if (description !== (item.description || ''))   payload.description  = description;
       if (thumbnailUrl !== (item.thumbnailUrl || ''))  payload.thumbnailUrl = thumbnailUrl;
       if (tags         !== (item.tags || []).join(', ')) payload.tags       = tags;
@@ -522,6 +523,22 @@ function EditContentModal({ item, onClose, onSaved }: {
               <span className="text-gray-400">Video:</span> MP4, WebM &nbsp;·&nbsp;
               <span className="text-gray-400">Audio:</span> MP3, WAV, AAC, FLAC, OGG &nbsp;·&nbsp;Max 2GB
             </p>
+          </div>
+
+          {/* Content Type */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Content Type</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none"
+            >
+              <option value="FILM">Film</option>
+              <option value="MUSIC">Music</option>
+              <option value="PODCAST">Podcast</option>
+              <option value="SPOKEN_WORD">Spoken Word</option>
+              <option value="DADDYMAN_ISMS">DaddyMan-Isms</option>
+            </select>
           </div>
 
           {/* Title */}

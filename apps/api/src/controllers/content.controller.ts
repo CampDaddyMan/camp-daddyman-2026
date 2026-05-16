@@ -368,7 +368,7 @@ export async function updateContent(req: AuthRequest, res: Response) {
     return res.status(403).json({ error: 'Not authorized' });
   }
 
-  const { title, description, privacy, tags, thumbnailUrl } = req.body;
+  const { title, description, privacy, tags, thumbnailUrl, type } = req.body;
 
   const data: any = {};
   if (title !== undefined)        data.title = String(title).trim();
@@ -376,6 +376,9 @@ export async function updateContent(req: AuthRequest, res: Response) {
   if (thumbnailUrl !== undefined) data.thumbnailUrl = thumbnailUrl ? String(thumbnailUrl).trim() : null;
   if (privacy !== undefined && ['PUBLIC', 'PRIVATE', 'SUBSCRIBERS_ONLY'].includes(privacy)) {
     data.privacy = privacy;
+  }
+  if (type !== undefined && ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(type)) {
+    data.type = type;
   }
   if (tags !== undefined) {
     data.tags = String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
@@ -388,7 +391,7 @@ export async function updateContent(req: AuthRequest, res: Response) {
   const updated = await prisma.content.update({
     where: { id: req.params.id },
     data,
-    select: { id: true, title: true, description: true, thumbnailUrl: true, privacy: true, tags: true },
+    select: { id: true, title: true, description: true, type: true, thumbnailUrl: true, privacy: true, tags: true },
   });
 
   res.json({ content: updated });

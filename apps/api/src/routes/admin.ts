@@ -5,6 +5,7 @@ import {
   toggleAdmin,
   toggleBan,
   deleteUser,
+  notifyUser,
   listAllContent,
   setContentStatus,
   listReports,
@@ -20,6 +21,7 @@ router.get('/stats',                     readLimiter,  getStats);
 router.get('/users',                     readLimiter,  listUsers);
 router.post('/users/:id/toggle-admin',   writeLimiter, toggleAdmin);
 router.post('/users/:id/toggle-ban',     writeLimiter, toggleBan);
+router.post('/users/:id/notify',         writeLimiter, notifyUser);
 router.delete('/users/:id',              writeLimiter, deleteUser);
 router.get('/content',                   readLimiter,  listAllContent);
 router.post('/content/:id/status',       writeLimiter, setContentStatus);

@@ -13,7 +13,7 @@ interface OverviewData {
   stats: { totalUsers: number; totalContent: number; activeSubscriptions: number; totalViews: number };
   planCounts: Record<string, number>;
   growth: GrowthDay[];
-  recentUsers: { id: string; username: string; displayName?: string; createdAt: string; subscription?: { plan: string } | null }[];
+  recentUsers: { id: string; username: string; displayName?: string; email: string; createdAt: string; subscription?: { plan: string } | null }[];
 }
 
 interface AdminUser {
@@ -122,15 +122,20 @@ function Pager({ page, pages, onChange }: { page: number; pages: number; onChang
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, emoji, sub }: { label: string; value: string | number; emoji: string; sub?: string }) {
-  return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4">
+function StatCard({ label, value, emoji, sub, onClick }: { label: string; value: string | number; emoji: string; sub?: string; onClick?: () => void }) {
+  const base = "bg-surface-800 border border-surface-700 rounded-xl px-5 py-4 text-left w-full";
+  const interactive = onClick ? " cursor-pointer hover:border-surface-500 hover:bg-surface-750 transition-all group" : "";
+  const inner = (
+    <>
       <div className="text-xl mb-2">{emoji}</div>
       <div className="text-2xl font-bold text-white">{typeof value === 'number' ? fmt(value) : value}</div>
       <div className="text-xs text-gray-400 mt-0.5">{label}</div>
       {sub && <div className="text-xs text-gray-600 mt-1">{sub}</div>}
-    </div>
+      {onClick && <div className="text-xs text-brand-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">View →</div>}
+    </>
   );
+  if (onClick) return <button className={base + interactive} onClick={onClick}>{inner}</button>;
+  return <div className={base}>{inner}</div>;
 }
 
 // ── Plan badge ────────────────────────────────────────────────────────────────
@@ -143,10 +148,169 @@ function PlanBadge({ plan }: { plan?: string }) {
   return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{p}</span>;
 }
 
+// ── User action drawer ────────────────────────────────────────────────────────
+
+type RecentUser = OverviewData['recentUsers'][number];
+
+function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => void }) {
+  const [sending, setSending]       = useState<string | null>(null);
+  const [followupMsg, setFollowup]  = useState('');
+  const [couponCode, setCoupon]     = useState('');
+  const [couponMsg, setCouponMsg]   = useState('');
+  const [toast, setToast]           = useState('');
+  const [banned, setBanned]         = useState(false);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3500);
+  }
+
+  async function sendNotify(type: string, extra?: object) {
+    setSending(type);
+    try {
+      await api.post(`/admin/users/${user.id}/notify`, { type, ...extra });
+      showToast(type === 'welcome' ? '👋 Welcome email sent!' : type === 'followup' ? '✉️ Follow-up sent!' : '🎁 Coupon sent!');
+      if (type === 'followup') setFollowup('');
+      if (type === 'coupon')   { setCoupon(''); setCouponMsg(''); }
+    } catch {
+      showToast('Send failed — check email config');
+    } finally {
+      setSending(null);
+    }
+  }
+
+  async function handleBan() {
+    setSending('ban');
+    try {
+      const { data } = await api.post(`/admin/users/${user.id}/toggle-ban`);
+      setBanned(data.user.isBanned);
+      showToast(data.user.isBanned ? '🚫 Member banned' : '✓ Member unbanned');
+    } catch {
+      showToast('Action failed');
+    } finally {
+      setSending(null);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-sm bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <h2 className="text-white font-semibold">Member Actions</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+
+        {/* User info */}
+        <div className="px-6 py-5 border-b border-surface-700">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold text-base flex-shrink-0">
+              {(user.displayName || user.username)[0].toUpperCase()}
+            </div>
+            <div>
+              <p className="text-white font-semibold">{user.displayName || user.username}</p>
+              <p className="text-gray-400 text-xs">@{user.username}</p>
+            </div>
+          </div>
+          <p className="text-gray-400 text-xs mb-2">✉️ {user.email}</p>
+          <div className="flex items-center gap-2">
+            <PlanBadge plan={user.subscription?.plan} />
+            <span className="text-gray-500 text-xs">Joined {fmtDate(user.createdAt)}</span>
+          </div>
+        </div>
+
+        {toast && (
+          <div className="mx-6 mt-4 px-4 py-2 bg-brand-500/20 border border-brand-500/40 rounded-lg text-brand-400 text-sm text-center">
+            {toast}
+          </div>
+        )}
+
+        <div className="flex-1 px-6 py-5 space-y-6">
+          {/* View profile */}
+          <a href={`/creator/${user.username}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-between w-full px-4 py-2.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-white text-sm font-medium transition-colors">
+            <span>👤 View Public Profile</span>
+            <span className="text-brand-400 text-xs">→</span>
+          </a>
+
+          {/* Welcome email */}
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Quick Actions</p>
+            <button
+              onClick={() => sendNotify('welcome')}
+              disabled={sending === 'welcome'}
+              className="w-full px-4 py-2.5 rounded-lg bg-brand-500/10 border border-brand-500/30 text-brand-400 hover:bg-brand-500/20 text-sm font-medium transition-colors text-left disabled:opacity-50">
+              {sending === 'welcome' ? 'Sending…' : '👋 Send Welcome Email'}
+            </button>
+          </div>
+
+          {/* Custom follow-up */}
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Personal Follow-up</p>
+            <textarea
+              value={followupMsg}
+              onChange={(e) => setFollowup(e.target.value)}
+              rows={3}
+              placeholder="Write a personal message to this member..."
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none mb-2"
+            />
+            <button
+              onClick={() => sendNotify('followup', { message: followupMsg })}
+              disabled={sending === 'followup' || !followupMsg.trim()}
+              className="w-full px-4 py-2 rounded-lg bg-camp-500/10 border border-camp-500/30 text-camp-400 hover:bg-camp-500/20 text-sm font-medium transition-colors disabled:opacity-50">
+              {sending === 'followup' ? 'Sending…' : '✉️ Send Follow-up'}
+            </button>
+          </div>
+
+          {/* Coupon / gift */}
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Gift / Coupon Code</p>
+            <input
+              value={couponCode}
+              onChange={(e) => setCoupon(e.target.value)}
+              placeholder="Coupon code (e.g. CAMP25FREE)"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 mb-2"
+            />
+            <textarea
+              value={couponMsg}
+              onChange={(e) => setCouponMsg(e.target.value)}
+              rows={2}
+              placeholder="Message to send with the coupon (optional)"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none mb-2"
+            />
+            <button
+              onClick={() => sendNotify('coupon', { code: couponCode, message: couponMsg })}
+              disabled={sending === 'coupon' || !couponCode.trim()}
+              className="w-full px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 text-sm font-medium transition-colors disabled:opacity-50">
+              {sending === 'coupon' ? 'Sending…' : '🎁 Send Coupon Email'}
+            </button>
+          </div>
+
+          {/* Danger zone */}
+          <div className="pt-2 border-t border-surface-700">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Account Actions</p>
+            <button
+              onClick={handleBan}
+              disabled={sending === 'ban'}
+              className={`w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                banned
+                  ? 'bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20'
+                  : 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20'
+              }`}>
+              {sending === 'ban' ? '…' : banned ? '✓ Unban Member' : '🚫 Ban Member'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Overview tab ──────────────────────────────────────────────────────────────
 
-function OverviewTab() {
-  const [data, setData] = useState<OverviewData | null>(null);
+function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
+  const [data, setData]               = useState<OverviewData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<RecentUser | null>(null);
 
   useEffect(() => {
     api.get('/admin/stats').then((r) => setData(r.data)).catch(() => {});
@@ -159,12 +323,12 @@ function OverviewTab() {
 
   return (
     <div className="space-y-8">
-      {/* Stats row */}
+      {/* Stats row — clickable */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Users"       value={stats.totalUsers}          emoji="👥" />
-        <StatCard label="Active Content"    value={stats.totalContent}        emoji="🎵" />
-        <StatCard label="Paid Members"      value={stats.activeSubscriptions}  emoji="💳" />
-        <StatCard label="Total Views"       value={stats.totalViews}          emoji="👁️" />
+        <StatCard label="Total Users"    value={stats.totalUsers}          emoji="👥" onClick={() => onNav('users')} />
+        <StatCard label="Active Content" value={stats.totalContent}        emoji="🎵" onClick={() => onNav('content')} />
+        <StatCard label="Paid Members"   value={stats.activeSubscriptions} emoji="💳" onClick={() => onNav('users', 'PRO')} />
+        <StatCard label="Total Views"    value={stats.totalViews}          emoji="👁️" onClick={() => onNav('content')} />
       </div>
 
       {/* Growth chart */}
@@ -178,7 +342,7 @@ function OverviewTab() {
 
       {/* Subscription breakdown + recent signups */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Plan breakdown */}
+        {/* Plan breakdown — rows clickable */}
         <div className="bg-surface-800 border border-surface-700 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-white mb-4">Subscription Breakdown</h3>
           <div className="space-y-3">
@@ -186,18 +350,22 @@ function OverviewTab() {
               const count = planCounts[plan] || 0;
               const pct   = stats.totalUsers > 0 ? Math.round((count / stats.totalUsers) * 100) : 0;
               return (
-                <div key={plan}>
+                <button key={plan} onClick={() => onNav('users', plan)}
+                  className="w-full text-left group cursor-pointer">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-300">{plan}</span>
-                    <span className="text-gray-400">{count.toLocaleString()} ({pct}%)</span>
+                    <span className="text-gray-300 group-hover:text-white transition-colors font-medium">{plan}</span>
+                    <span className="text-gray-400">
+                      {count.toLocaleString()} ({pct}%)
+                      <span className="text-brand-400 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </span>
                   </div>
                   <div className="h-1.5 bg-surface-700 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${plan === 'PREMIUM' ? 'bg-brand-400' : plan === 'PRO' ? 'bg-camp-500' : 'bg-surface-500'}`}
+                      className={`h-full rounded-full transition-all ${plan === 'PREMIUM' ? 'bg-brand-400' : plan === 'PRO' ? 'bg-camp-500' : 'bg-surface-500'}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -207,35 +375,42 @@ function OverviewTab() {
           </p>
         </div>
 
-        {/* Recent signups */}
+        {/* Recent signups — clickable rows */}
         <div className="bg-surface-800 border border-surface-700 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-white mb-4">Recent Signups</h3>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {recentUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between text-sm">
-                <span className="text-white">{u.displayName || u.username}</span>
-                <div className="flex items-center gap-3">
+              <button key={u.id} onClick={() => setSelectedUser(u)}
+                className="flex items-center justify-between text-sm w-full hover:bg-surface-700 rounded-lg px-2 py-2 -mx-2 transition-colors group">
+                <span className="text-white group-hover:text-brand-400 transition-colors text-left">{u.displayName || u.username}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <PlanBadge plan={u.subscription?.plan} />
-                  <span className="text-gray-500 text-xs">{fmtDate(u.createdAt)}</span>
+                  <span className="text-gray-500 text-xs hidden sm:inline">{fmtDate(u.createdAt)}</span>
+                  <span className="text-brand-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
+          <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-surface-700">Click a member to send messages, coupons, or take action.</p>
         </div>
       </div>
+
+      {selectedUser && (
+        <UserActionDrawer user={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
     </div>
   );
 }
 
 // ── Users tab ─────────────────────────────────────────────────────────────────
 
-function UsersTab() {
+function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
   const [users, setUsers]   = useState<AdminUser[]>([]);
   const [total, setTotal]   = useState(0);
   const [pages, setPages]   = useState(1);
   const [page, setPage]     = useState(1);
   const [search, setSearch] = useState('');
-  const [plan, setPlan]     = useState('ALL');
+  const [plan, setPlan]     = useState(initialPlan);
   const [acting, setActing] = useState<string | null>(null);
   const dSearch = useDebounce(search);
 
@@ -1196,7 +1371,13 @@ function PollsTab() {
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [tab, setTab]               = useState<Tab>('overview');
+  const [userPlanFilter, setPlanFilter] = useState('ALL');
+
+  function navTo(targetTab: Tab, plan?: string) {
+    setPlanFilter(plan || 'ALL');
+    setTab(targetTab);
+  }
 
   useEffect(() => {
     if (!loading && (!user || !user.isAdmin)) router.push('/');
@@ -1239,8 +1420,8 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {tab === 'overview' && <OverviewTab />}
-      {tab === 'users'    && <UsersTab />}
+      {tab === 'overview' && <OverviewTab onNav={navTo} />}
+      {tab === 'users'    && <UsersTab initialPlan={userPlanFilter} key={userPlanFilter} />}
       {tab === 'content'  && <ContentTab />}
       {tab === 'reports'  && <ReportsTab />}
       {tab === 'polls'    && <PollsTab />}

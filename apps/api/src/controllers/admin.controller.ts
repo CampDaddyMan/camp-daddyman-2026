@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { signR2Url } from '../utils/s3';
+import { sendAdminEmail } from '../utils/email';
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ export async function getStats(_req: Request, res: Response) {
     prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
       take: 10,
-      select: { id: true, username: true, displayName: true, createdAt: true,
+      select: { id: true, username: true, displayName: true, email: true, createdAt: true,
                 subscription: { select: { plan: true } } },
     }),
 
@@ -156,6 +157,33 @@ export async function deleteUser(req: Request, res: Response) {
 
   await prisma.user.delete({ where: { id: req.params.id } });
   res.json({ message: 'User deleted' });
+}
+
+export async function notifyUser(req: Request, res: Response) {
+  const { id } = req.params;
+  const { type, message, code } = req.body;
+
+  const user = await prisma.user.findUnique({ where: { id }, select: { email: true, username: true, displayName: true } });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const name = user.displayName || user.username;
+
+  try {
+    if (type === 'welcome') {
+      await sendAdminEmail(user.email, name, `Welcome to Camp DaddyMan, ${name}!`,
+        `We're thrilled to have you in the community. Explore the catalog, cast your votes in polls, and let the music move you. We're just getting started — stay tuned.`);
+    } else if (type === 'followup') {
+      await sendAdminEmail(user.email, name, 'A message from Camp DaddyMan', message || 'Just checking in — hope you\'re enjoying the platform!');
+    } else if (type === 'coupon') {
+      const bodyHtml = `${message ? `<p>${message}</p>` : 'Here\'s a special gift just for you:'}<br/><div style="margin:20px 0;text-align:center;"><span style="background:#1a1a2e;border:2px dashed #E8B800;border-radius:8px;padding:12px 24px;color:#E8B800;font-size:22px;font-weight:800;letter-spacing:3px;">${code || 'CAMP25'}</span></div><p style="font-size:13px;color:#666;">Apply this code at checkout to redeem your discount.</p>`;
+      await sendAdminEmail(user.email, name, '🎁 A gift from Camp DaddyMan', bodyHtml);
+    } else {
+      return res.status(400).json({ error: 'Invalid type' });
+    }
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Email send failed' });
+  }
 }
 
 // ── Content ───────────────────────────────────────────────────────────────────

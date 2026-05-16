@@ -106,6 +106,20 @@ export async function sendNewFollowerEmail(to: string, recipientUsername: string
   });
 }
 
+export async function sendAdminEmail(to: string, username: string, subject: string, bodyHtml: string) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject,
+    html: base(subject, `
+      ${h2(subject)}
+      ${p(`Hey ${username},`)}
+      <div style="color:#a0a0b0;font-size:15px;line-height:1.6;margin:0 0 20px;">${bodyHtml}</div>
+      ${btn(APP_URL, 'Visit Camp DaddyMan')}
+    `),
+  });
+}
+
 export async function sendNewContentEmail(
   to: string,
   recipientUsername: string,

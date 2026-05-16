@@ -476,13 +476,10 @@ export default function WatchPage() {
               onLoadedMetadata={() => handlePlayerReady()}
               onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
               onError={(e) => {
-                const el = e.target as HTMLAudioElement;
-                const code = el.error?.code;
-                console.error('[AudioPlayer] error code:', code, '| src:', el.src, '| message:', el.error?.message);
-                if (code === 2) setError(`Network error (code 2) — file may be inaccessible. URL: ${el.src}`);
-                else if (code === 3) setError(`Decode error (code 3) — file may be corrupt. Try re-uploading as MP3.`);
-                else if (code === 4) setError(`Source error (code 4) — file not found or access denied. URL: ${el.src}`);
-                else setError(`Unknown error (code ${code}). URL: ${el.src}`);
+                const code = (e.target as HTMLAudioElement).error?.code;
+                if (code === 3) setError('Decode error — file may be corrupt. Try re-uploading as MP3.');
+                else if (code === 4) setError('File not found or access denied.');
+                else setError('Playback error. Please try again.');
               }}
             />
           </div>

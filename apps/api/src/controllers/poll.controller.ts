@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { prisma } from '../config/database';
-import { signR2Url } from '../utils/s3';
+import { signR2Url, uploadToS3 } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 
 const VALID_TYPES = ['CONTENT_VOTE', 'ARTIST_VOTE', 'CUSTOM'] as const;
@@ -206,6 +206,40 @@ export async function castVote(req: AuthRequest, res: Response) {
   });
 
   res.json({ ok: true, optionId });
+}
+
+// ── Update poll metadata (admin only, votes unaffected) ──────────────────────
+
+export async function updatePoll(req: AuthRequest, res: Response) {
+  const poll = await prisma.poll.findUnique({ where: { id: req.params.id }, select: { id: true } });
+  if (!poll) return res.status(404).json({ error: 'Poll not found' });
+
+  const { title, description, endsAt, imageUrl } = req.body;
+  const data: Record<string, any> = {};
+  if (title       !== undefined) data.title       = String(title).trim();
+  if (description !== undefined) data.description = description?.trim() || null;
+  if (endsAt      !== undefined) data.endsAt      = endsAt ? new Date(endsAt) : null;
+  if (imageUrl    !== undefined) data.imageUrl     = imageUrl || null;
+
+  const updated = await prisma.poll.update({
+    where: { id: req.params.id },
+    data,
+    include: { _count: { select: { votes: true, options: true } } },
+  });
+  res.json({ poll: updated });
+}
+
+// ── Upload poll cover image (admin only) ──────────────────────────────────────
+
+export async function uploadPollImage(req: AuthRequest, res: Response) {
+  const poll = await prisma.poll.findUnique({ where: { id: req.params.id }, select: { id: true } });
+  if (!poll) return res.status(404).json({ error: 'Poll not found' });
+  if (!req.file) return res.status(400).json({ error: 'No image provided' });
+
+  const publicUrl = await uploadToS3(req.file, `polls/${req.params.id}`);
+  await prisma.poll.update({ where: { id: req.params.id }, data: { imageUrl: publicUrl } });
+  const signed = await signR2Url(publicUrl);
+  res.json({ imageUrl: signed });
 }
 
 // ── Close poll (admin only) ───────────────────────────────────────────────────

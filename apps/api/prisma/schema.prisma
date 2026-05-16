@@ -279,6 +279,7 @@ model Poll {
   id          String     @id @default(cuid())
   title       String
   description String?
+  imageUrl    String?
   pollType    PollType   @default(CONTENT_VOTE)
   status      PollStatus @default(ACTIVE)
   creatorId   String

@@ -1044,7 +1044,7 @@ function ReportsTab() {
 type PollType = 'CONTENT_VOTE' | 'ARTIST_VOTE' | 'CUSTOM';
 interface FlexOption { label: string; contentId: string; artistId: string; imageUrl: string; body: string }
 interface AdminPoll {
-  id: string; title: string; description?: string | null;
+  id: string; title: string; description?: string | null; imageUrl?: string | null;
   pollType: PollType;
   status: 'ACTIVE' | 'CLOSED'; endsAt?: string | null; createdAt: string;
   _count: { votes: number; options: number };
@@ -1063,15 +1063,18 @@ function blankOption(): FlexOption {
 }
 
 function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreated: (p: AdminPoll) => void }) {
-  const [title, setTitle]       = useState('');
-  const [description, setDesc]  = useState('');
-  const [endsAt, setEndsAt]     = useState('');
-  const [pollType, setPollType] = useState<PollType>('CONTENT_VOTE');
-  const [options, setOptions]   = useState<FlexOption[]>([blankOption(), blankOption()]);
-  const [content, setContent]   = useState<ContentPick[]>([]);
-  const [artists, setArtists]   = useState<ArtistPick[]>([]);
-  const [saving, setSaving]     = useState(false);
-  const [error, setError]       = useState('');
+  const [title, setTitle]           = useState('');
+  const [description, setDesc]      = useState('');
+  const [endsAt, setEndsAt]         = useState('');
+  const [pollType, setPollType]     = useState<PollType>('CONTENT_VOTE');
+  const [options, setOptions]       = useState<FlexOption[]>([blankOption(), blankOption()]);
+  const [content, setContent]       = useState<ContentPick[]>([]);
+  const [artists, setArtists]       = useState<ArtistPick[]>([]);
+  const [imageFile, setImageFile]   = useState<File | null>(null);
+  const [imagePreview, setPreview]  = useState('');
+  const [saving, setSaving]         = useState(false);
+  const [error, setError]           = useState('');
+  const imgRef                      = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.get('/admin/content', { params: { limit: '100', status: 'ACTIVE' } })
@@ -1123,6 +1126,12 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
         pollType,
         options: mappedOptions,
       });
+      // Upload cover image if one was selected
+      if (imageFile) {
+        const fd = new FormData();
+        fd.append('image', imageFile);
+        await api.post(`/polls/${data.poll.id}/image`, fd, { headers: { 'Content-Type': 'multipart/form-data' } }).catch(() => {});
+      }
       onCreated(data.poll);
       onClose();
     } catch (e: any) {
@@ -1130,6 +1139,13 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
   }
 
   const info = POLL_TYPE_LABELS[pollType];
@@ -1172,6 +1188,26 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
             <input value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder={pollType === 'CONTENT_VOTE' ? 'Which version hits different?' : pollType === 'ARTIST_VOTE' ? 'Artist of the Week' : 'What should we do next?'}
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          {/* Cover image — optional */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Cover Image (optional)</label>
+            <div
+              onClick={() => imgRef.current?.click()}
+              className="relative w-full aspect-video bg-surface-700 rounded-xl overflow-hidden cursor-pointer border border-dashed border-surface-500 hover:border-brand-400 transition-colors flex items-center justify-center mb-2"
+            >
+              {imagePreview
+                ? <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                : <div className="text-center text-gray-500 text-sm"><div className="text-3xl mb-1">🖼️</div>Click to upload</div>
+              }
+            </div>
+            <input ref={imgRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImagePick} />
+            {imagePreview && (
+              <button type="button" onClick={() => { setImageFile(null); setPreview(''); }} className="text-xs text-red-400 hover:text-red-300 transition-colors">
+                ✕ Remove image
+              </button>
+            )}
           </div>
 
           <div>
@@ -1256,10 +1292,126 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
   );
 }
 
+function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: () => void; onSaved: (p: AdminPoll) => void }) {
+  const [title, setTitle]         = useState(poll.title);
+  const [description, setDesc]    = useState(poll.description || '');
+  const [endsAt, setEndsAt]       = useState(poll.endsAt ? new Date(poll.endsAt).toISOString().slice(0, 16) : '');
+  const [imagePreview, setPreview] = useState(poll.imageUrl || '');
+  const [imageFile, setImageFile]  = useState<File | null>(null);
+  const [saving, setSaving]        = useState(false);
+  const [error, setError]          = useState('');
+  const imgRef                     = useRef<HTMLInputElement>(null);
+
+  function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
+  }
+
+  async function handleSave() {
+    if (!title.trim()) { setError('Title is required'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      const { data } = await api.patch(`/polls/${poll.id}`, {
+        title: title.trim(),
+        description: description.trim() || null,
+        endsAt: endsAt || null,
+      });
+      if (imageFile) {
+        const fd = new FormData();
+        fd.append('image', imageFile);
+        await api.post(`/polls/${poll.id}/image`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      }
+      onSaved({ ...data.poll, imageUrl: imageFile ? imagePreview : poll.imageUrl });
+      onClose();
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
+          <div>
+            <h2 className="text-white font-semibold">Edit Poll</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Votes are not affected</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+        </div>
+
+        <div className="flex-1 px-6 py-6 space-y-5">
+          {/* Cover image */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Cover Image</label>
+            <div
+              onClick={() => imgRef.current?.click()}
+              className="relative w-full aspect-video bg-surface-700 rounded-xl overflow-hidden cursor-pointer border border-dashed border-surface-500 hover:border-brand-400 transition-colors flex items-center justify-center mb-2"
+            >
+              {imagePreview
+                ? <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                : <div className="text-center text-gray-500 text-sm"><div className="text-3xl mb-1">🖼️</div>Click to upload</div>
+              }
+            </div>
+            <input ref={imgRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImagePick} />
+            {imagePreview && (
+              <button type="button" onClick={() => { setImageFile(null); setPreview(''); }} className="text-xs text-red-400 hover:text-red-300 transition-colors">
+                ✕ Remove image
+              </button>
+            )}
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Title</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description</label>
+            <textarea value={description} onChange={(e) => setDesc(e.target.value)} rows={4}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+
+          {/* End date */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time</label>
+            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            {endsAt && <button type="button" onClick={() => setEndsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">✕ Clear end date</button>}
+          </div>
+
+          <div className="text-xs text-gray-600 bg-surface-700 rounded-lg px-3 py-2">
+            Poll type and voting options cannot be changed after creation — only metadata above.
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
+
+        <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
   const [polls, setPolls]       = useState<AdminPoll[]>([]);
   const [loading, setLoading]   = useState(true);
   const [creating, setCreating] = useState(autoCreate);
+  const [editing, setEditing]   = useState<AdminPoll | null>(null);
   const [acting, setActing]     = useState<string | null>(null);
   const [filter, setFilter]     = useState('ALL');
 
@@ -1339,6 +1491,10 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
                     className="text-xs px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition-colors">
                     View
                   </Link>
+                  <button onClick={() => setEditing(p)}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 transition-colors">
+                    Edit
+                  </button>
                   {p.status === 'ACTIVE' && (
                     <button onClick={() => handleClose(p.id)} disabled={acting === p.id}
                       className="text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors disabled:opacity-40">
@@ -1360,6 +1516,14 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
         <CreatePollModal
           onClose={() => setCreating(false)}
           onCreated={(p) => { setPolls((prev) => [p as any, ...prev]); setCreating(false); }}
+        />
+      )}
+
+      {editing && (
+        <EditPollModal
+          poll={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(updated) => { setPolls((prev) => prev.map((p) => p.id === updated.id ? updated : p)); setEditing(null); }}
         />
       )}
     </div>

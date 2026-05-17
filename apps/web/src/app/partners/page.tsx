@@ -2,8 +2,7 @@
 
 import { useEffect, useState, FormEvent } from 'react';
 import Image from 'next/image';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? '';
+import api from '@/lib/api';
 
 interface Partner {
   id: string;
@@ -91,18 +90,10 @@ function InquiryForm() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/partners/inquiry`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || 'Submission failed');
-      }
+      await api.post('/partners/inquiry', form);
       setSent(true);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong — please try again.');
+      setError(err?.response?.data?.error || 'Something went wrong — please try again.');
     } finally {
       setLoading(false);
     }
@@ -180,9 +171,8 @@ export default function PartnersPage() {
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/api/partners/public`)
-      .then((r) => r.json())
-      .then((d) => setPartners(d.partners ?? []))
+    api.get('/partners/public')
+      .then(({ data }) => setPartners(data.partners ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -236,15 +226,9 @@ export default function PartnersPage() {
           <div className="text-center py-16">
             <p className="text-4xl mb-4">🤝</p>
             <h2 className="text-xl font-bold text-white mb-2">Partner With Us</h2>
-            <p className="text-gray-400 max-w-md mx-auto mb-6">
-              We're building something special. If you want to align your brand with culture, community, and impact — let's talk.
+            <p className="text-gray-400 max-w-md mx-auto">
+              We're building something special. If you want to align your brand with culture, community, and impact — use the form below.
             </p>
-            <a
-              href="#inquiry"
-              className="inline-block px-6 py-3 bg-brand-500 text-black font-bold rounded-xl hover:bg-brand-400 transition-colors"
-            >
-              Get in Touch →
-            </a>
           </div>
         )}
 

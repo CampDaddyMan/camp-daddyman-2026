@@ -1914,15 +1914,33 @@ function AddPartnerModal({ onClose, onCreated }: { onClose: () => void; onCreate
   const [type, setType]           = useState('ADVERTISER');
   const [contactName, setContact] = useState('');
   const [phone, setPhone]         = useState('');
+  const [logoFile, setLogoFile]   = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
 
   async function handleCreate() {
     if (!name.trim() || !email.trim()) { setError('Name and email are required'); return; }
     setSaving(true); setError('');
     try {
       const { data } = await api.post('/partners', { name, email, website, description, type, contactName, phone });
-      onCreated(data.partner);
+      let partner: AdminPartner = data.partner;
+      if (logoFile) {
+        const fd = new FormData();
+        fd.append('logo', logoFile);
+        const { data: logoData } = await api.post(`/partners/${partner.id}/logo`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        partner = { ...partner, logo: logoData.logo };
+      }
+      onCreated(partner);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Create failed');
     } finally { setSaving(false); }
@@ -1937,6 +1955,26 @@ function AddPartnerModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
+          {/* Logo upload */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Logo / Brand Image</label>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {logoPreview
+                  ? <img src={logoPreview} alt="preview" className="w-full h-full object-contain" />
+                  : <span className="text-2xl">🤝</span>}
+              </div>
+              <label className="cursor-pointer px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-gray-300 text-xs font-medium transition-colors">
+                {logoFile ? 'Change image' : 'Upload image'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoChange} />
+              </label>
+              {logoFile && (
+                <button onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                  className="text-xs text-red-400 hover:text-red-300">Remove</button>
+              )}
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Partner Type</label>
             <select value={type} onChange={(e) => setType(e.target.value)}
@@ -1986,19 +2024,39 @@ function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner
   const [description, setDesc]    = useState(partner.description || '');
   const [contactName, setContact] = useState(partner.contactName || '');
   const [phone, setPhone]         = useState(partner.phone || '');
+  const [logoFile, setLogoFile]   = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
 
   async function handleSave() {
     if (!name.trim()) { setError('Name is required'); return; }
     setSaving(true); setError('');
     try {
       const { data } = await api.patch(`/partners/${partner.id}`, { name, email, website, description, contactName, phone });
-      onSaved({ ...partner, ...data.partner });
+      let updated: AdminPartner = { ...partner, ...data.partner };
+      if (logoFile) {
+        const fd = new FormData();
+        fd.append('logo', logoFile);
+        const { data: logoData } = await api.post(`/partners/${partner.id}/logo`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        updated = { ...updated, logo: logoData.logo };
+      }
+      onSaved(updated);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Save failed');
     } finally { setSaving(false); }
   }
+
+  const currentLogo = logoPreview || partner.logo;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -2009,6 +2067,26 @@ function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
+          {/* Logo upload */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Logo / Brand Image</label>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {currentLogo
+                  ? <img src={currentLogo} alt="logo" className="w-full h-full object-contain" />
+                  : <span className="text-2xl">🤝</span>}
+              </div>
+              <label className="cursor-pointer px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-gray-300 text-xs font-medium transition-colors">
+                {currentLogo ? 'Replace image' : 'Upload image'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoChange} />
+              </label>
+              {logoFile && (
+                <button onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                  className="text-xs text-red-400 hover:text-red-300">Revert</button>
+              )}
+            </div>
+          </div>
+
           {[
             { label: 'Business Name *', val: name, set: setName },
             { label: 'Email *', val: email, set: setEmail },

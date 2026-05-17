@@ -197,7 +197,7 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-surface-900 to-transparent" />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center gap-7">
+        <div className="relative z-10 flex flex-col items-center gap-4 md:gap-7 pt-20 md:pt-0">
           {/* Logo */}
           <div className="relative">
             <div className="absolute inset-0 rounded-full blur-2xl bg-brand-500/20 scale-110" />
@@ -267,13 +267,13 @@ export default function HomePage() {
       <div className="border-t border-surface-700/50" />
 
       {/* ── Browse by Category ── */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
+      <section className="max-w-7xl mx-auto px-4 py-10 md:py-16">
 
         {/* Section header */}
-        <div className="mb-10">
+        <div className="mb-8 md:mb-10">
           <p className="text-camp-400 text-sm font-bold uppercase tracking-[0.35em] mb-3">Explore the Camp</p>
           <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
-            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
+            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
               What are you feeling?
             </h2>
             <Link href="/browse" className="text-sm text-brand-400 hover:underline hidden sm:block flex-shrink-0 mb-1">
@@ -289,7 +289,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
             { label: 'Music',         href: '/browse?type=MUSIC',        image: '/images/categories/CampDaddyman_Media_Categories_Music.jpg',       desc: 'Original tracks & albums',      emoji: '🎵' },
             { label: 'Film',          href: '/browse?type=FILM',         image: '/images/categories/CampDaddyman_Media_Categories_Film.jpg',        desc: 'Short films & features',        emoji: '🎬' },
@@ -318,12 +318,12 @@ export default function HomePage() {
               {/* Strong gradient so title is always readable */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+              <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-10">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-base leading-none">{cat.emoji}</span>
                   <h3 className="text-white text-sm font-bold">{cat.label}</h3>
                 </div>
-                <p className="text-gray-300 text-xs">{cat.desc}</p>
+                <p className="text-gray-300 text-xs leading-snug">{cat.desc}</p>
               </div>
 
               {/* Green top accent on hover */}
@@ -385,7 +385,7 @@ export default function HomePage() {
             <p className="text-camp-400 text-xs uppercase tracking-[0.3em] mb-2">The Foundation</p>
             <h2 className="text-2xl md:text-3xl font-bold text-white">Built on three pillars</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
             {[
               {
                 word: 'Discipline',
@@ -403,7 +403,7 @@ export default function HomePage() {
                 body: 'Create work that lasts. Music, film, and teachings that your children\'s children will still draw from.',
               },
             ].map((pillar) => (
-              <div key={pillar.word} className="relative group p-8 rounded-2xl border border-surface-700 hover:border-camp-500/40 bg-surface-800 hover:bg-surface-700/60 transition-all duration-200">
+              <div key={pillar.word} className="relative group p-6 md:p-8 rounded-2xl border border-surface-700 hover:border-camp-500/40 bg-surface-800 hover:bg-surface-700/60 transition-all duration-200">
                 <div className="absolute top-0 left-8 right-8 h-0.5 bg-gradient-to-r from-camp-500/60 via-brand-500/60 to-transparent rounded-full" />
                 <div className="text-4xl mb-4">{pillar.icon}</div>
                 <h3 className="text-brand-400 font-bold text-xl mb-3 tracking-wide">{pillar.word}</h3>
@@ -434,7 +434,7 @@ export default function HomePage() {
                 <span className="text-2xl mt-0.5 shrink-0">{f.icon}</span>
                 <div>
                   <p className="text-white font-semibold text-sm mb-1">{f.title}</p>
-                  <p className="text-gray-500 text-xs leading-relaxed">{f.body}</p>
+                  <p className="text-gray-500 text-sm leading-relaxed">{f.body}</p>
                 </div>
               </div>
             ))}
@@ -560,7 +560,7 @@ export default function HomePage() {
 
       {/* ── Become a creator CTA ── */}
       <section className="border-t border-surface-700/50">
-        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-center">
           <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-4">For Creators</p>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
             Your voice deserves<br className="hidden md:block" /> its own platform.

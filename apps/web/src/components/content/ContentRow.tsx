@@ -67,8 +67,8 @@ function RowCard({ item }: { item: Content }) {
         )}
       </div>
 
-      <div className="p-2.5">
-        <h3 className="font-semibold text-white text-xs line-clamp-2 group-hover:text-brand-400 transition-colors leading-snug">
+      <div className="p-3">
+        <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-brand-400 transition-colors leading-snug">
           {item.title}
         </h3>
 

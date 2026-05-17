@@ -179,6 +179,43 @@ export async function sendPartnerInquiryEmail(inquiry: {
   });
 }
 
+export async function sendTwoFactorEmail(to: string, username: string, code: string, type: 'login' | 'register') {
+  const action = type === 'register' ? 'complete your registration' : 'sign in';
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Your Camp DaddyMan verification code: ${code}`,
+    html: base('Verification code', `
+      ${h2('Your verification code')}
+      ${p(`Hey ${username}, enter this code to ${action}. It expires in 10 minutes.`)}
+      <div style="background:#0f0f17;border:2px solid #f8c202;border-radius:14px;padding:24px;text-align:center;margin-bottom:24px;">
+        <span style="font-size:42px;font-weight:900;letter-spacing:0.25em;color:#f8c202;font-family:monospace;">${code}</span>
+      </div>
+      ${p(`<span style="font-size:13px;color:#555;">If you didn't request this, someone may have your password — change it immediately.</span>`)}
+    `),
+  });
+}
+
+export async function sendNewDeviceLoginEmail(to: string, username: string, deviceLabel: string, ipAddress: string) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `New sign-in to your Camp DaddyMan account`,
+    html: base('New sign-in detected', `
+      ${h2('New device sign-in')}
+      ${p(`Hey ${username}, your account was just accessed from a new device.`)}
+      <div style="background:#0f0f17;border:1px solid #2e2e3e;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+        <table cellpadding="0" cellspacing="0">
+          <tr><td style="color:#888;font-size:13px;padding:4px 0;width:80px;">Device</td><td style="color:#fff;font-size:13px;padding:4px 0;">${deviceLabel}</td></tr>
+          <tr><td style="color:#888;font-size:13px;padding:4px 0;">IP</td><td style="color:#fff;font-size:13px;padding:4px 0;">${ipAddress}</td></tr>
+        </table>
+      </div>
+      ${p(`If this was you, no action needed. If you don't recognize this sign-in, change your password immediately.`)}
+      ${btn(`${APP_URL}/forgot-password`, 'Change Password')}
+    `),
+  });
+}
+
 export async function sendNewContentEmail(
   to: string,
   recipientUsername: string,

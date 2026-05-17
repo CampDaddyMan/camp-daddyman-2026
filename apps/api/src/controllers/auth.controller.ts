@@ -9,6 +9,8 @@ import { uploadToS3, deleteFromS3 } from '../utils/s3';
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
+  sendTwoFactorEmail,
+  sendNewDeviceLoginEmail,
 } from '../utils/email';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -17,13 +19,76 @@ function makeToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
+function make6DigitCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function parseIp(req: Request): string {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+async function createSession(
+  userId: string,
+  deviceId: string,
+  deviceLabel: string,
+  ipAddress: string,
+  userAgent: string | undefined,
+): Promise<string> {
+  // Remove any existing session for this device
+  await prisma.session.deleteMany({ where: { userId, deviceId } });
+
+  const jwtId = crypto.randomUUID();
+  await prisma.session.create({
+    data: {
+      userId,
+      jwtId,
+      deviceId,
+      deviceLabel,
+      ipAddress,
+      userAgent: userAgent || null,
+      expiresAt: new Date(Date.now() + SESSION_TTL_MS),
+    },
+  });
+  return jwtId;
+}
+
+async function createTwoFactorToken(
+  userId: string,
+  type: 'TWO_FACTOR_LOGIN' | 'TWO_FACTOR_REGISTER',
+  deviceId: string,
+  deviceLabel: string,
+  ipAddress: string,
+  userAgent: string | undefined,
+): Promise<{ challengeId: string; code: string }> {
+  // Delete any existing 2FA tokens of this type for this user
+  await prisma.token.deleteMany({ where: { userId, type } });
+
+  const code = make6DigitCode();
+  const hashedCode = await bcrypt.hash(code, 4);
+  const challengeId = makeToken();
+
+  await prisma.token.create({
+    data: {
+      userId,
+      type,
+      token: challengeId,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+      metadata: JSON.stringify({ hashedCode, deviceId, deviceLabel, ipAddress, userAgent: userAgent || '' }),
+    },
+  });
+
+  return { challengeId, code };
+}
+
 // ── Register ──────────────────────────────────────────────────────────────────
 
 export async function register(req: Request, res: Response) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { email, username, password, displayName } = req.body;
+  const { email, username, password, displayName, deviceId, deviceLabel } = req.body;
 
   const exists = await prisma.user.findFirst({
     where: { OR: [{ email }, { username }] },
@@ -31,62 +96,232 @@ export async function register(req: Request, res: Response) {
   if (exists) return res.status(400).json({ error: 'Email or username already taken' });
 
   const hashed = await bcrypt.hash(password, 12);
-
   const user = await prisma.user.create({
     data: { email, username: username.toLowerCase(), password: hashed, displayName },
   });
 
-  // Free subscription + verification token in parallel
-  const verifyToken = makeToken();
-  await Promise.all([
-    prisma.subscription.create({ data: { userId: user.id, plan: 'FREE', status: 'ACTIVE' } }),
-    prisma.token.create({
-      data: {
-        userId: user.id,
-        type: 'EMAIL_VERIFICATION',
-        token: verifyToken,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      },
-    }),
-  ]);
+  // Create free subscription
+  await prisma.subscription.create({ data: { userId: user.id, plan: 'FREE', status: 'ACTIVE' } });
 
-  // Fire-and-forget — don't block registration if email fails
-  sendVerificationEmail(email, user.displayName || user.username, verifyToken).catch(() => {});
+  // Issue 2FA challenge to verify email ownership
+  const ip = parseIp(req);
+  const ua = req.headers['user-agent'];
+  const { challengeId, code } = await createTwoFactorToken(
+    user.id, 'TWO_FACTOR_REGISTER', deviceId || '', deviceLabel || 'Unknown browser', ip, ua,
+  );
 
-  const jwt = signToken({ id: user.id, isAdmin: user.isAdmin });
+  sendTwoFactorEmail(email, displayName || username, code, 'register').catch(() => {});
 
-  res.status(201).json({
-    token: jwt,
-    user: {
-      id: user.id, email: user.email, username: user.username,
-      displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: false,
-    },
-  });
+  res.status(201).json({ requiresTwoFactor: true, challengeId });
 }
 
 // ── Login ─────────────────────────────────────────────────────────────────────
 
 export async function login(req: Request, res: Response) {
-  const { email, password } = req.body;
+  const { email, password, deviceId, deviceLabel } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-
   if (user.isBanned) return res.status(403).json({ error: 'Account suspended', banned: true });
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-  const jwt = signToken({ id: user.id, isAdmin: user.isAdmin });
+  const ip = parseIp(req);
+  const ua = req.headers['user-agent'];
+  const now = new Date();
+
+  // Fetch all active sessions
+  const activeSessions = await prisma.session.findMany({
+    where: { userId: user.id, expiresAt: { gt: now } },
+  });
+
+  const sameDeviceSession = activeSessions.find((s) => s.deviceId === deviceId);
+  const otherDeviceSessions = activeSessions.filter((s) => s.deviceId !== deviceId);
+
+  // Happy path: known device, no conflicts
+  if (sameDeviceSession && otherDeviceSessions.length === 0) {
+    const jwtId = await createSession(user.id, deviceId, deviceLabel || 'Unknown browser', ip, ua);
+    const token = signToken({ id: user.id, isAdmin: user.isAdmin }, jwtId);
+    return res.json({
+      token,
+      user: {
+        id: user.id, email: user.email, username: user.username,
+        displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
+      },
+    });
+  }
+
+  // 2FA required: new device or conflict detected
+  const { challengeId, code } = await createTwoFactorToken(
+    user.id, 'TWO_FACTOR_LOGIN', deviceId || '', deviceLabel || 'Unknown browser', ip, ua,
+  );
+
+  sendTwoFactorEmail(email, user.displayName || user.username, code, 'login').catch(() => {});
+
+  const hasConflict = otherDeviceSessions.length > 0;
+  const conflictSession = otherDeviceSessions[0];
 
   res.json({
-    token: jwt,
+    requiresTwoFactor: true,
+    challengeId,
+    ...(hasConflict && {
+      activeSession: {
+        deviceLabel: conflictSession.deviceLabel,
+        ipAddress: conflictSession.ipAddress,
+        lastActiveAt: conflictSession.lastActiveAt,
+      },
+    }),
+  });
+}
+
+// ── Verify 2FA ────────────────────────────────────────────────────────────────
+
+export async function verifyTwoFactor(req: Request, res: Response) {
+  const { challengeId, code } = req.body;
+  if (!challengeId || !code) return res.status(400).json({ error: 'challengeId and code are required' });
+
+  const record = await prisma.token.findUnique({ where: { token: challengeId } });
+  if (!record) return res.status(400).json({ error: 'Invalid or expired code' });
+  if (record.type !== 'TWO_FACTOR_LOGIN' && record.type !== 'TWO_FACTOR_REGISTER') {
+    return res.status(400).json({ error: 'Invalid token type' });
+  }
+  if (record.expiresAt < new Date()) {
+    await prisma.token.delete({ where: { id: record.id } });
+    return res.status(400).json({ error: 'Code expired — please request a new one' });
+  }
+
+  const meta = JSON.parse(record.metadata || '{}');
+  const codeMatch = await bcrypt.compare(String(code), meta.hashedCode || '');
+  if (!codeMatch) return res.status(400).json({ error: 'Incorrect code' });
+
+  // Code is valid — consume it
+  await prisma.token.delete({ where: { id: record.id } });
+
+  const user = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: { id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true },
+  });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const { deviceId, deviceLabel, ipAddress, userAgent } = meta;
+  const now = new Date();
+
+  // Check for active sessions on other devices
+  const conflictSessions = await prisma.session.findMany({
+    where: { userId: user.id, deviceId: { not: deviceId }, expiresAt: { gt: now } },
+  });
+
+  if (conflictSessions.length > 0) {
+    // Issue a short-lived force token so the client can finalize after conflict resolution
+    const forceId = makeToken();
+    await prisma.token.create({
+      data: {
+        userId: user.id,
+        type: 'FORCE_SESSION',
+        token: forceId,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+        metadata: JSON.stringify({ deviceId, deviceLabel, ipAddress, userAgent }),
+      },
+    });
+
+    return res.json({
+      requiresForce: true,
+      forceId,
+      activeSession: {
+        deviceLabel: conflictSessions[0].deviceLabel,
+        ipAddress: conflictSessions[0].ipAddress,
+        lastActiveAt: conflictSessions[0].lastActiveAt,
+      },
+    });
+  }
+
+  // No conflict — create session immediately
+  const jwtId = await createSession(user.id, deviceId, deviceLabel, ipAddress, userAgent);
+
+  // For registration: send email verification link now
+  if (record.type === 'TWO_FACTOR_REGISTER') {
+    const verifyToken = makeToken();
+    await prisma.token.create({
+      data: {
+        userId: user.id,
+        type: 'EMAIL_VERIFICATION',
+        token: verifyToken,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+    sendVerificationEmail(user.email, user.displayName || user.username, verifyToken).catch(() => {});
+  } else {
+    // Login from new device — notify user
+    sendNewDeviceLoginEmail(user.email, user.displayName || user.username, deviceLabel, ipAddress).catch(() => {});
+  }
+
+  const token = signToken({ id: user.id, isAdmin: user.isAdmin }, jwtId);
+  const isRegistration = record.type === 'TWO_FACTOR_REGISTER';
+
+  res.status(isRegistration ? 201 : 200).json({
+    token,
     user: {
       id: user.id, email: user.email, username: user.username,
-      displayName: user.displayName, isAdmin: user.isAdmin,
-      emailVerified: user.emailVerified,
+      displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
     },
   });
+}
+
+// ── Force Login (after conflict resolution) ───────────────────────────────────
+
+export async function forceLogin(req: Request, res: Response) {
+  const { forceId } = req.body;
+  if (!forceId) return res.status(400).json({ error: 'forceId is required' });
+
+  const record = await prisma.token.findUnique({ where: { token: forceId } });
+  if (!record || record.type !== 'FORCE_SESSION') {
+    return res.status(400).json({ error: 'Invalid or expired session token' });
+  }
+  if (record.expiresAt < new Date()) {
+    await prisma.token.delete({ where: { id: record.id } });
+    return res.status(400).json({ error: 'Session token expired — please sign in again' });
+  }
+
+  await prisma.token.delete({ where: { id: record.id } });
+
+  const meta = JSON.parse(record.metadata || '{}');
+  const { deviceId, deviceLabel, ipAddress, userAgent } = meta;
+
+  // Revoke ALL other sessions for this user
+  await prisma.session.deleteMany({ where: { userId: record.userId } });
+
+  const user = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: { id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true },
+  });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const jwtId = await createSession(user.id, deviceId, deviceLabel, ipAddress, userAgent);
+  sendNewDeviceLoginEmail(user.email, user.displayName || user.username, deviceLabel, ipAddress).catch(() => {});
+
+  const token = signToken({ id: user.id, isAdmin: user.isAdmin }, jwtId);
+  res.json({
+    token,
+    user: {
+      id: user.id, email: user.email, username: user.username,
+      displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
+    },
+  });
+}
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+
+export async function logout(req: AuthRequest, res: Response) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (token) {
+    const { verifyToken } = await import('../utils/jwt');
+    const decoded = verifyToken(token);
+    if (decoded?.jti) {
+      await prisma.session.deleteMany({ where: { jwtId: decoded.jti } }).catch(() => {});
+    }
+  }
+  res.json({ ok: true });
 }
 
 // ── Get me ────────────────────────────────────────────────────────────────────
@@ -123,7 +358,6 @@ export async function uploadAvatar(req: AuthRequest, res: Response) {
   const file = (req as any).file as Express.Multer.File | undefined;
   if (!file) return res.status(400).json({ error: 'Image file required' });
 
-  // Delete existing avatar from R2 if present
   const existing = await prisma.user.findUnique({
     where: { id: req.user!.id },
     select: { avatar: true },
@@ -177,7 +411,6 @@ export async function resendVerification(req: AuthRequest, res: Response) {
   if (!user) return res.status(404).json({ error: 'User not found' });
   if (user.emailVerified) return res.status(400).json({ error: 'Email already verified' });
 
-  // Delete any existing verification tokens for this user
   await prisma.token.deleteMany({ where: { userId: user.id, type: 'EMAIL_VERIFICATION' } });
 
   const token = makeToken();
@@ -201,11 +434,8 @@ export async function forgotPassword(req: Request, res: Response) {
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   const user = await prisma.user.findUnique({ where: { email } });
-
-  // Always return success — don't reveal whether email exists
   if (!user) return res.json({ message: 'If that email exists, a reset link is on its way.' });
 
-  // Delete any existing reset tokens
   await prisma.token.deleteMany({ where: { userId: user.id, type: 'PASSWORD_RESET' } });
 
   const token = makeToken();
@@ -214,7 +444,7 @@ export async function forgotPassword(req: Request, res: Response) {
       userId: user.id,
       type: 'PASSWORD_RESET',
       token,
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
     },
   });
 
@@ -245,7 +475,9 @@ export async function resetPassword(req: Request, res: Response) {
   await Promise.all([
     prisma.user.update({ where: { id: record.userId }, data: { password: hashed } }),
     prisma.token.delete({ where: { id: record.id } }),
+    // Revoke all sessions on password reset
+    prisma.session.deleteMany({ where: { userId: record.userId } }),
   ]);
 
-  res.json({ message: 'Password updated successfully' });
+  res.json({ message: 'Password updated successfully. Please sign in again.' });
 }

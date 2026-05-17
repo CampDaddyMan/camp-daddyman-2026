@@ -35,6 +35,7 @@ model User {
   notifications          Notification[] @relation("NotificationRecipient")
   triggeredNotifications Notification[] @relation("NotificationActor")
   tokens                 Token[]
+  sessions               Session[]
   reports                Report[]       @relation("ReportedBy")
   polls                  Poll[]
   pollVotes              PollVote[]
@@ -46,6 +47,7 @@ model Token {
   userId    String
   type      TokenType
   token     String    @unique
+  metadata  String?   // JSON: device context or hashed OTP
   expiresAt DateTime
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
@@ -57,6 +59,28 @@ model Token {
 enum TokenType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
+  TWO_FACTOR_LOGIN
+  TWO_FACTOR_REGISTER
+  FORCE_SESSION
+}
+
+// ── Sessions ──────────────────────────────────────────────────────────────────
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jwtId        String   @unique
+  deviceId     String
+  deviceLabel  String
+  ipAddress    String
+  userAgent    String?
+  expiresAt    DateTime
+  lastActiveAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([jwtId])
 }
 
 // ── Content ───────────────────────────────────────────────────────────────────

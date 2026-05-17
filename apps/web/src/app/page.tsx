@@ -97,7 +97,7 @@ function ContinueWatchingRow({ items }: { items: HistoryItem[] }) {
   return (
     <section className="mb-10">
       <div className="flex items-baseline justify-between mb-4">
-        <h2 className="text-lg font-bold text-white">▶️ Continue Watching</h2>
+        <h2 className="text-xl font-bold text-white">▶️ Continue Watching</h2>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
         {items.map((item) => {
@@ -271,7 +271,7 @@ export default function HomePage() {
 
         {/* Section header */}
         <div className="mb-8 md:mb-10">
-          <p className="text-camp-400 text-sm font-bold uppercase tracking-[0.35em] mb-3">Explore the Camp</p>
+          <p className="text-camp-400 text-base font-bold uppercase tracking-[0.35em] mb-3">Explore the Camp</p>
           <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
             <h2 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
               What are you feeling?
@@ -363,7 +363,7 @@ export default function HomePage() {
             {(data?.creators ?? []).length > 0 && (
               <section className="mb-10">
                 <div className="flex items-baseline justify-between mb-4">
-                  <h2 className="text-lg font-bold text-white">👥 Featured Creators</h2>
+                  <h2 className="text-xl font-bold text-white">👥 Featured Creators</h2>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
                   {data!.creators.map((c) => (
@@ -382,7 +382,7 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50 bg-surface-800/40">
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-camp-400 text-xs uppercase tracking-[0.3em] mb-2">The Foundation</p>
+            <p className="text-camp-400 text-sm uppercase tracking-[0.3em] mb-2">The Foundation</p>
             <h2 className="text-2xl md:text-3xl font-bold text-white">Built on three pillars</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
@@ -418,7 +418,7 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50">
         <div className="max-w-5xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-2">Why Join</p>
+            <p className="text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-2">Why Join</p>
             <h2 className="text-2xl md:text-3xl font-bold text-white">Everything in one place</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -446,14 +446,14 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50 bg-surface-800/30">
         <div className="max-w-5xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-2">Membership</p>
+            <p className="text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-2">Membership</p>
             <h2 className="text-2xl md:text-3xl font-bold text-white">Simple, transparent pricing</h2>
             <p className="text-gray-400 text-sm mt-2">Start free. Upgrade when you're ready.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* FREE */}
             <div className="rounded-2xl border border-surface-600 bg-surface-800 p-7 flex flex-col">
-              <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Free</p>
+              <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">Free</p>
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-4xl font-bold text-white">$0</span>
                 <span className="text-gray-500 text-sm mb-1">/mo</span>
@@ -476,7 +476,7 @@ export default function HomePage() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-black text-xs font-bold px-4 py-1 rounded-full tracking-wide">
                 MOST POPULAR
               </div>
-              <p className="text-brand-400 text-xs uppercase tracking-widest mb-2">Pro Monthly</p>
+              <p className="text-brand-400 text-sm uppercase tracking-widest mb-2">Pro Monthly</p>
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-4xl font-bold text-white">$19.99</span>
                 <span className="text-gray-500 text-sm mb-1">/mo</span>
@@ -500,7 +500,7 @@ export default function HomePage() {
 
             {/* PRO ANNUAL */}
             <div className="rounded-2xl border border-surface-600 bg-surface-800 p-7 flex flex-col">
-              <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Pro Annual</p>
+              <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">Pro Annual</p>
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-4xl font-bold text-white">$99.99</span>
                 <span className="text-gray-500 text-sm mb-1">/yr</span>
@@ -521,7 +521,7 @@ export default function HomePage() {
 
             {/* CREATOR */}
             <div className="rounded-2xl border border-surface-600 bg-surface-800 p-7 flex flex-col">
-              <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Creator</p>
+              <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">Creator</p>
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-4xl font-bold text-white">$29.99</span>
                 <span className="text-gray-500 text-sm mb-1">/mo</span>
@@ -544,7 +544,7 @@ export default function HomePage() {
           {/* Uncs & Aunties teaser */}
           <div className="mt-8 rounded-2xl border border-brand-500/30 bg-surface-800/60 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-1">Special Support</p>
+              <p className="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-1">Special Support</p>
               <h3 className="text-white font-bold text-lg">Uncs & Aunties</h3>
               <p className="text-gray-400 text-sm mt-1">Got love for the Camp? Give what you feel — min $99.99, one-time or monthly.</p>
             </div>
@@ -561,7 +561,7 @@ export default function HomePage() {
       {/* ── Become a creator CTA ── */}
       <section className="border-t border-surface-700/50">
         <div className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-center">
-          <p className="text-brand-400/70 text-xs uppercase tracking-[0.3em] mb-4">For Creators</p>
+          <p className="text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-4">For Creators</p>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
             Your voice deserves<br className="hidden md:block" /> its own platform.
           </h2>

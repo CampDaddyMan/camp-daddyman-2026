@@ -95,7 +95,7 @@ export default function ContentRow({ title, items, seeAllHref, emptyText }: Cont
   return (
     <section className="mb-10">
       <div className="flex items-baseline justify-between mb-4">
-        <h2 className="text-lg font-bold text-white">{title}</h2>
+        <h2 className="text-xl font-bold text-white">{title}</h2>
         {seeAllHref && items.length > 0 && (
           <Link href={seeAllHref} className="text-sm text-brand-400 hover:underline">
             See all →

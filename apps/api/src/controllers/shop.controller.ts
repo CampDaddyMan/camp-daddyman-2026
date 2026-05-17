@@ -289,6 +289,15 @@ export async function getOrderBySession(req: AuthRequest, res: Response) {
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
+export async function adminUploadProductImage(req: AuthRequest, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'No image file provided' });
+
+  const { uploadToS3 } = await import('../utils/s3');
+  const url = await uploadToS3(file, 'products');
+  res.json({ url });
+}
+
 export async function adminListProducts(req: AuthRequest, res: Response) {
   const { status, type } = req.query;
   const where: any = {};

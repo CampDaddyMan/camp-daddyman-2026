@@ -2353,7 +2353,25 @@ function ProductFormModal({
   } : { ...EMPTY_PRODUCT, variants: [{ name: '', inventory: '0', price: '' }] });
 
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState('');
+  const imgInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageUpload(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const { data } = await api.post('/admin/products/upload-image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setField('imageUrl', data.url);
+    } catch {
+      setErr('Image upload failed. Try again.');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function setField(k: string, v: any) { setForm((f: any) => ({ ...f, [k]: v })); }
   function setVariant(i: number, k: string, v: string) {
@@ -2456,12 +2474,42 @@ function ProductFormModal({
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none" />
           </div>
 
-          {/* Image URL */}
+          {/* Image upload */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Image URL (R2 key or https://…)</label>
-            <input value={form.imageUrl} onChange={(e) => setField('imageUrl', e.target.value)}
-              placeholder="products/my-item.jpg"
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            <label className="block text-xs text-gray-400 mb-2">Product Image</label>
+            <div className="flex gap-3 items-start">
+              {/* Preview */}
+              <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-surface-700 border border-surface-600 flex items-center justify-center">
+                {form.imageUrl ? (
+                  <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl opacity-30">{form.type === 'DIGITAL' ? '📦' : '👕'}</span>
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={imgInputRef}
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => imgInputRef.current?.click()}
+                  disabled={uploading}
+                  className="w-full px-4 py-2.5 rounded-xl border border-dashed border-surface-500 hover:border-brand-400 text-gray-400 hover:text-brand-400 text-sm transition-colors disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading…' : '↑ Upload image'}
+                </button>
+                <input
+                  value={form.imageUrl}
+                  onChange={(e) => setField('imageUrl', e.target.value)}
+                  placeholder="Or paste a URL"
+                  className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-400"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Tags */}

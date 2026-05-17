@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import {
   getStats,
   listUsers,
@@ -12,6 +13,7 @@ import {
   resolveReport,
 } from '../controllers/admin.controller';
 import {
+  adminUploadProductImage,
   adminCreateProduct,
   adminUpdateProduct,
   adminListProducts,
@@ -20,6 +22,14 @@ import {
 } from '../controllers/shop.controller';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    cb(null, file.mimetype.startsWith('image/'));
+  },
+});
 
 const router = Router();
 router.use(authMiddleware, adminMiddleware);
@@ -36,6 +46,7 @@ router.get('/reports',                   readLimiter,  listReports);
 router.post('/reports/:id/resolve',      writeLimiter, resolveReport);
 
 // Shop admin
+router.post('/products/upload-image',    writeLimiter, imageUpload.single('image'), adminUploadProductImage);
 router.get('/products',                  readLimiter,  adminListProducts);
 router.post('/products',                 writeLimiter, adminCreateProduct);
 router.patch('/products/:id',            writeLimiter, adminUpdateProduct);

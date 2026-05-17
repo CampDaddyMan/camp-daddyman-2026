@@ -145,7 +145,11 @@ export async function sendPartnerInquiryEmail(inquiry: {
   type: string;
   message: string;
 }) {
-  const to = process.env.CONTACT_EMAIL || process.env.EMAIL_FROM || 'admin@campdaddyman.com';
+  const to = process.env.CONTACT_EMAIL || process.env.EMAIL_FROM;
+  if (!to) {
+    console.error('[email] CONTACT_EMAIL is not set — partner inquiry not delivered to admin');
+    return;
+  }
   const typeLabel: Record<string, string> = {
     ADVERTISER: 'Advertiser', SPONSOR: 'Sponsor', DONOR: 'Donor', COLLABORATOR: 'Collaborator',
   };

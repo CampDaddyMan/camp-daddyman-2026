@@ -543,13 +543,13 @@ export default function WatchPage() {
           <div className="flex gap-2">
             <button
               onClick={handleStartOver}
-              className="text-gray-400 hover:text-white transition-colors px-3 py-1.5"
+              className="border border-surface-500 hover:border-surface-400 text-gray-300 hover:text-white transition-colors px-3 py-1.5 rounded-lg text-sm font-medium"
             >
               Start over
             </button>
             <button
               onClick={handleResume}
-              className="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-1.5 rounded-lg transition-colors"
+              className="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-1.5 rounded-lg transition-colors text-sm"
             >
               Resume
             </button>

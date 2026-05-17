@@ -474,10 +474,14 @@ export async function getWatchHistory(req: AuthRequest, res: Response) {
     },
   });
 
-  // Filter out deleted/archived content and annotate with progress
-  const items = records
+  const raw = records
     .filter((r) => r.content.status === 'ACTIVE')
     .map((r) => ({ ...r.content, watchProgress: r.progress, watchedAt: r.watchedAt }));
+
+  const items = await Promise.all(raw.map(async (i) => ({
+    ...i,
+    thumbnailUrl: await signR2Url(i.thumbnailUrl),
+  })));
 
   res.json({ items });
 }

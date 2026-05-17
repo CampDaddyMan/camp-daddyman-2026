@@ -16,7 +16,7 @@ async function main() {
       update: {},
       create: {
         username:    'daddyman',
-        email:       'daddyman@campdaddyman.com',
+        email:       process.env.ADMIN_EMAIL || 'campdaddyman@gmail.com',
         password:    await hash('Camp2026!'),
         displayName: 'DaddyMan',
         bio:         'Discipline. Identity. Legacy. Est. 2023. Founder of Camp DaddyMan.',

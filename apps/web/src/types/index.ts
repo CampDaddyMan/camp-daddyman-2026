@@ -13,6 +13,7 @@ export interface User {
   bio?: string;
   isAdmin: boolean;
   isCreator: boolean;
+  isTester?: boolean;
   emailVerified?: boolean;
   subscription?: { plan: SubscriptionPlan; status: SubscriptionStatus; currentPeriodEnd?: string } | null;
 }

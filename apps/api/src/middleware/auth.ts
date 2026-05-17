@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
     username: string;
     isAdmin: boolean;
     isCreator: boolean;
+    isTester: boolean;
     isBanned: boolean;
     subscription?: { plan: string; status: string } | null;
   };
@@ -55,6 +56,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       username: true,
       isAdmin: true,
       isCreator: true,
+      isTester: true,
       isBanned: true,
       subscription: { select: { plan: true, status: true } },
     },
@@ -77,7 +79,7 @@ export async function optionalAuthMiddleware(req: AuthRequest, _res: Response, n
       if (session && session.expiresAt >= new Date()) {
         const user = await prisma.user.findUnique({
           where: { id: decoded.id },
-          select: { id: true, email: true, username: true, isAdmin: true, isCreator: true, isBanned: true, subscription: { select: { plan: true, status: true } } },
+          select: { id: true, email: true, username: true, isAdmin: true, isCreator: true, isTester: true, isBanned: true, subscription: { select: { plan: true, status: true } } },
         });
         if (user) req.user = user;
       }

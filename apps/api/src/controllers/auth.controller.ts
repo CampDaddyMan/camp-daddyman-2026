@@ -134,6 +134,20 @@ export async function login(req: Request, res: Response) {
   const ua = req.headers['user-agent'];
   const now = new Date();
 
+  // Admins and testers: bypass conflict detection, allow multi-device login
+  if (user.isAdmin || user.isTester) {
+    const jwtId = await createSession(user.id, deviceId || '', deviceLabel || 'Unknown browser', ip, ua);
+    const token = signToken({ id: user.id, isAdmin: user.isAdmin }, jwtId);
+    return res.json({
+      token,
+      user: {
+        id: user.id, email: user.email, username: user.username,
+        displayName: user.displayName, isAdmin: user.isAdmin, isTester: user.isTester,
+        emailVerified: user.emailVerified, subscription: user.subscription,
+      },
+    });
+  }
+
   // Fetch all active sessions
   const activeSessions = await prisma.session.findMany({
     where: { userId: user.id, expiresAt: { gt: now } },
@@ -150,8 +164,8 @@ export async function login(req: Request, res: Response) {
       token,
       user: {
         id: user.id, email: user.email, username: user.username,
-        displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
-        subscription: user.subscription,
+        displayName: user.displayName, isAdmin: user.isAdmin, isTester: user.isTester,
+        emailVerified: user.emailVerified, subscription: user.subscription,
       },
     });
   }
@@ -205,7 +219,8 @@ export async function verifyTwoFactor(req: Request, res: Response) {
   const user = await prisma.user.findUnique({
     where: { id: record.userId },
     select: {
-      id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true,
+      id: true, email: true, username: true, displayName: true,
+      isAdmin: true, isTester: true, emailVerified: true,
       subscription: { select: { plan: true, status: true } },
     },
   });
@@ -270,8 +285,8 @@ export async function verifyTwoFactor(req: Request, res: Response) {
     token,
     user: {
       id: user.id, email: user.email, username: user.username,
-      displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
-      subscription: user.subscription,
+      displayName: user.displayName, isAdmin: user.isAdmin, isTester: user.isTester,
+      emailVerified: user.emailVerified, subscription: user.subscription,
     },
   });
 }
@@ -302,7 +317,8 @@ export async function forceLogin(req: Request, res: Response) {
   const user = await prisma.user.findUnique({
     where: { id: record.userId },
     select: {
-      id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true,
+      id: true, email: true, username: true, displayName: true,
+      isAdmin: true, isTester: true, emailVerified: true,
       subscription: { select: { plan: true, status: true } },
     },
   });
@@ -316,8 +332,8 @@ export async function forceLogin(req: Request, res: Response) {
     token,
     user: {
       id: user.id, email: user.email, username: user.username,
-      displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
-      subscription: user.subscription,
+      displayName: user.displayName, isAdmin: user.isAdmin, isTester: user.isTester,
+      emailVerified: user.emailVerified, subscription: user.subscription,
     },
   });
 }

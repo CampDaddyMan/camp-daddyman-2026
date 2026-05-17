@@ -10,7 +10,7 @@ async function main() {
 
   const hash = (pw: string) => bcrypt.hash(pw, 10);
 
-  const [daddyman, kingsword, truthspeaker] = await Promise.all([
+  const [daddyman, , kingsword, truthspeaker] = await Promise.all([
     prisma.user.upsert({
       where: { username: 'daddyman' },
       update: {},
@@ -22,6 +22,22 @@ async function main() {
         bio:         'Discipline. Identity. Legacy. Est. 2023. Founder of Camp DaddyMan.',
         isCreator:   true,
         isAdmin:     true,
+        emailVerified: true,
+        subscription: {
+          create: { plan: 'PREMIUM', status: 'ACTIVE' },
+        },
+      },
+    }),
+    prisma.user.upsert({
+      where: { username: 'cdm-tester' },
+      update: {},
+      create: {
+        username:    'cdm-tester',
+        email:       process.env.TESTER_EMAIL || 'tester@campdaddyman.com',
+        password:    await hash('Test2026!'),
+        displayName: 'CDM Tester',
+        isAdmin:     true,
+        isTester:    true,
         emailVerified: true,
         subscription: {
           create: { plan: 'PREMIUM', status: 'ACTIVE' },
@@ -63,6 +79,7 @@ async function main() {
   ]);
 
   console.log('  Created creators:', daddyman.username, kingsword.username, truthspeaker.username);
+  console.log('  Note: cdm-tester account seeded separately (admin-tester role)');
 
   // ── Content ────────────────────────────────────────────────────────────────
 
@@ -388,8 +405,9 @@ async function main() {
 
   console.log('  Created follow relationships');
   console.log('\nSeed complete.');
-  console.log('\nCreator login credentials:');
-  console.log('  daddyman@campdaddyman.com  / Camp2026!  (admin)');
+  console.log('\nLogin credentials:');
+  console.log('  [ADMIN EMAIL] / Camp2026!  (daddyman — admin)');
+  console.log('  cdm-tester / Test2026!  (admin-tester — multi-device)');
   console.log('  kingsword@campdaddyman.com / Camp2026!');
   console.log('  truthspeaker@campdaddyman.com / Camp2026!');
 }

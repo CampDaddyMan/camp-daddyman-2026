@@ -348,7 +348,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <Link href="/upload"><Button size="md">+ Upload</Button></Link>
-          {!user.isAdmin && (
+          {!user.isAdmin && !user.isTester && (
             plan === 'FREE'
               ? <Link href="/subscribe"><Button variant="secondary" size="md">Upgrade</Button></Link>
               : (
@@ -365,7 +365,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Upgrade banner ── */}
-      {plan === 'FREE' && !user.isAdmin && (
+      {plan === 'FREE' && !user.isAdmin && !user.isTester && (
         <div className="bg-brand-500/10 border border-brand-500/30 rounded-xl px-6 py-4 mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="text-brand-400 font-semibold text-sm">Free plan</p>

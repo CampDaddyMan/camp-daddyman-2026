@@ -19,6 +19,7 @@ model User {
   bio         String?
   isAdmin        Boolean @default(false)
   isCreator      Boolean @default(false)
+  isTester       Boolean @default(false)
   isBanned       Boolean @default(false)
   emailVerified  Boolean @default(false)
 

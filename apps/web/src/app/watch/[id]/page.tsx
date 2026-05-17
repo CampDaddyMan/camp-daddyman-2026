@@ -212,7 +212,7 @@ const REPORT_REASONS = [
   { value: 'OTHER',          label: 'Other' },
 ];
 
-function ReportModal({ contentId, onClose }: { contentId: string; onClose: () => void }) {
+function ReportModal({ contentId, onClose, onReported }: { contentId: string; onClose: () => void; onReported: () => void }) {
   const [reason, setReason] = useState('INAPPROPRIATE');
   const [detail, setDetail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -233,10 +233,10 @@ function ReportModal({ contentId, onClose }: { contentId: string; onClose: () =>
       <div className="bg-surface-800 border border-surface-600 rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         {done ? (
           <div className="text-center py-4">
-            <p className="text-3xl mb-3">✅</p>
-            <p className="text-white font-semibold">Report submitted</p>
-            <p className="text-gray-400 text-sm mt-1 mb-4">Our team will review it shortly.</p>
-            <Button size="sm" onClick={onClose}>Close</Button>
+            <p className="text-3xl mb-3">🚫</p>
+            <p className="text-white font-semibold">Content hidden</p>
+            <p className="text-gray-400 text-sm mt-1 mb-4">This content has been removed from your feed. You can undo this anytime.</p>
+            <Button size="sm" onClick={onReported}>Done</Button>
           </div>
         ) : (
           <>
@@ -320,6 +320,7 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const [related, setRelated] = useState<{ fromCreator: RelatedContent[]; sameType: RelatedContent[] }>({ fromCreator: [], sameType: [] });
   const [reportOpen, setReportOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   // Resume playback state
   const [savedProgress, setSavedProgress] = useState(0);
@@ -341,6 +342,8 @@ export default function WatchPage() {
         if (err.response?.data?.requiresSubscription) {
           setSubRequired(true);
           setPreview(err.response.data.preview || null);
+        } else if (err.response?.data?.hidden) {
+          setHidden(true);
         } else {
           setError('Content not found.');
         }
@@ -398,9 +401,36 @@ export default function WatchPage() {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
   }
 
+  async function handleUnreport() {
+    await api.delete(`/content/${id}/report`).catch(() => {});
+    setHidden(false);
+    setLoading(true);
+    api.get(`/content/${id}`)
+      .then((r) => { setContent(r.data.content); setLiked(r.data.isLiked ?? false); })
+      .catch(() => setError('Content not found.'))
+      .finally(() => setLoading(false));
+  }
+
   if (loading) return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="aspect-video bg-surface-700 rounded-2xl animate-pulse mb-6" />
+    </div>
+  );
+
+  if (hidden) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
+      <p className="text-5xl mb-5">🚫</p>
+      <h1 className="text-white text-xl font-bold mb-2">You've hidden this content</h1>
+      <p className="text-gray-400 text-sm mb-8 max-w-sm">It won't appear in your feed, search results, or watch history. You can undo this if you change your mind.</p>
+      <div className="flex gap-3 flex-wrap justify-center">
+        <button
+          onClick={handleUnreport}
+          className="px-4 py-2 text-sm border border-surface-500 hover:border-surface-400 text-gray-300 hover:text-white rounded-lg transition-colors"
+        >
+          Undo — show it again
+        </button>
+        <Link href="/browse"><Button variant="secondary" size="md">Browse other content</Button></Link>
+      </div>
     </div>
   );
 
@@ -571,7 +601,7 @@ export default function WatchPage() {
       </div>
 
       {/* Report modal */}
-      {reportOpen && <ReportModal contentId={id} onClose={() => setReportOpen(false)} />}
+      {reportOpen && <ReportModal contentId={id} onClose={() => setReportOpen(false)} onReported={() => { setReportOpen(false); setHidden(true); }} />}
 
       {/* Actions */}
       <div className="flex items-center gap-3 mb-8 pb-8 border-b border-surface-700 flex-wrap">
@@ -584,7 +614,7 @@ export default function WatchPage() {
           </Button>
         </Link>
         <div className="ml-auto">
-          {user && (
+          {user && user.username !== content.creator.username && (
             <button
               onClick={() => setReportOpen(true)}
               className="text-xs text-gray-500 hover:text-red-400 transition-colors flex items-center gap-1"

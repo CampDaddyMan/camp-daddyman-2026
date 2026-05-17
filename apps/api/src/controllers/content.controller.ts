@@ -14,13 +14,15 @@ const CONTENT_SELECT = {
   _count: { select: { likes: true, comments: true } },
 } as const;
 
-export async function listContent(req: Request, res: Response) {
+export async function listContent(req: AuthRequest, res: Response) {
   const { type, page = '1', limit = '12', creator, sort, tag } = req.query;
+  const userId = req.user?.id;
 
   const where: any = { status: 'ACTIVE', privacy: 'PUBLIC' };
   if (type) where.type = String(type).toUpperCase();
   if (creator) where.creator = { username: creator };
   if (tag) where.tags = { has: String(tag).toLowerCase() };
+  if (userId) where.reports = { none: { reporterId: userId } };
 
   const orderBy = (sort === 'trending' || sort === 'popular') ? { views: 'desc' as const } : { createdAt: 'desc' as const };
 
@@ -43,8 +45,10 @@ export async function listContent(req: Request, res: Response) {
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }
 
-export async function getDiscovery(_req: Request, res: Response) {
-  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const };
+export async function getDiscovery(req: AuthRequest, res: Response) {
+  const userId = req.user?.id;
+  const notReported = userId ? { reports: { none: { reporterId: userId } } } : {};
+  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const, ...notReported };
 
   const [trending, newReleases, music, film, podcast, spokenWord, daddymanIsms, topCreators] = await Promise.all([
     prisma.content.findMany({
@@ -106,6 +110,17 @@ export async function getContent(req: AuthRequest, res: Response) {
 
   if (!content || content.status === 'DELETED') {
     return res.status(404).json({ error: 'Content not found' });
+  }
+
+  // If the requesting user reported this content, block their access
+  if (req.user && req.user.id !== content.creatorId && !req.user.isAdmin) {
+    const report = await prisma.report.findUnique({
+      where: { contentId_reporterId: { contentId: content.id, reporterId: req.user.id } },
+      select: { id: true },
+    });
+    if (report) {
+      return res.status(403).json({ hidden: true, reported: true, contentId: content.id });
+    }
   }
 
   // Gate private content — only the creator or an admin can see it
@@ -303,8 +318,9 @@ export async function getProgress(req: AuthRequest, res: Response) {
   res.json({ progress: record?.progress ?? 0, watchedAt: record?.watchedAt ?? null });
 }
 
-export async function searchContent(req: Request, res: Response) {
+export async function searchContent(req: AuthRequest, res: Response) {
   const { q, type, page = '1', limit = '12' } = req.query;
+  const userId = req.user?.id;
 
   if (!q || String(q).trim().length < 2) {
     return res.status(400).json({ error: 'Search query must be at least 2 characters' });
@@ -315,6 +331,7 @@ export async function searchContent(req: Request, res: Response) {
   const where: any = {
     status: 'ACTIVE',
     privacy: 'PUBLIC',
+    ...(userId && { reports: { none: { reporterId: userId } } }),
     OR: [
       { title:       { contains: term, mode: 'insensitive' } },
       { description: { contains: term, mode: 'insensitive' } },
@@ -458,7 +475,11 @@ export async function uploadMedia(req: AuthRequest, res: Response) {
 
 export async function getWatchHistory(req: AuthRequest, res: Response) {
   const records = await prisma.watchHistory.findMany({
-    where: { userId: req.user!.id, progress: { gt: 5 } },
+    where: {
+      userId: req.user!.id,
+      progress: { gt: 5 },
+      content: { status: 'ACTIVE', reports: { none: { reporterId: req.user!.id } } },
+    },
     orderBy: { watchedAt: 'desc' },
     take: 20,
     include: {
@@ -474,9 +495,7 @@ export async function getWatchHistory(req: AuthRequest, res: Response) {
     },
   });
 
-  const raw = records
-    .filter((r) => r.content.status === 'ACTIVE')
-    .map((r) => ({ ...r.content, watchProgress: r.progress, watchedAt: r.watchedAt }));
+  const raw = records.map((r) => ({ ...r.content, watchProgress: r.progress, watchedAt: r.watchedAt }));
 
   const items = await Promise.all(raw.map(async (i) => ({
     ...i,
@@ -486,7 +505,7 @@ export async function getWatchHistory(req: AuthRequest, res: Response) {
   res.json({ items });
 }
 
-export async function getRelatedContent(req: Request, res: Response) {
+export async function getRelatedContent(req: AuthRequest, res: Response) {
   const content = await prisma.content.findUnique({
     where: { id: req.params.id },
     select: { type: true, creatorId: true, tags: true },
@@ -494,7 +513,9 @@ export async function getRelatedContent(req: Request, res: Response) {
 
   if (!content) return res.status(404).json({ error: 'Content not found' });
 
-  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const, id: { not: req.params.id } };
+  const userId = req.user?.id;
+  const notReported = userId ? { reports: { none: { reporterId: userId } } } : {};
+  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const, id: { not: req.params.id }, ...notReported };
 
   // 1. More from the same creator
   // 2. Same type, exclude same creator
@@ -541,9 +562,12 @@ export async function reportContent(req: AuthRequest, res: Response) {
 
   const content = await prisma.content.findUnique({
     where: { id: req.params.id },
-    select: { id: true },
+    select: { id: true, creatorId: true },
   });
   if (!content) return res.status(404).json({ error: 'Content not found' });
+  if (content.creatorId === req.user!.id) {
+    return res.status(400).json({ error: 'You cannot report your own content' });
+  }
 
   // Upsert so a user can only report a piece once (update reason if they re-report)
   await prisma.report.upsert({
@@ -562,4 +586,11 @@ export async function reportContent(req: AuthRequest, res: Response) {
   });
 
   res.json({ reported: true });
+}
+
+export async function unreportContent(req: AuthRequest, res: Response) {
+  await prisma.report.deleteMany({
+    where: { contentId: req.params.id, reporterId: req.user!.id },
+  });
+  res.json({ reported: false });
 }

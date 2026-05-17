@@ -7,6 +7,9 @@ import { startTranscodeWorker } from './workers/transcoder';
 
 const app = express();
 
+// Trust Railway's load balancer so express-rate-limit reads the real client IP
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({
   origin: true,

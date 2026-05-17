@@ -30,10 +30,6 @@ router.use(authMiddleware, adminMiddleware);
 
 router.get('/',                                           readLimiter,  listPartners);
 router.post('/',                                          writeLimiter, createPartner);
-router.get('/:id',                                        readLimiter,  getPartner);
-router.patch('/:id',                                      writeLimiter, updatePartner);
-router.post('/:id/logo', imgUpload.single('logo'),        writeLimiter, uploadPartnerLogo);
-router.delete('/:id',                                     writeLimiter, deletePartner);
 
 router.get('/placements/list',                            readLimiter,  listPlacements);
 router.post('/placements',                                writeLimiter, createPlacement);
@@ -45,5 +41,10 @@ router.post('/ads',                                       writeLimiter, createAd
 router.patch('/ads/:id',                                  writeLimiter, updateAd);
 router.post('/ads/:id/image', imgUpload.single('image'),  writeLimiter, uploadAdImage);
 router.delete('/ads/:id',                                 writeLimiter, deleteAd);
+
+router.get('/:id',                                        readLimiter,  getPartner);
+router.patch('/:id',                                      writeLimiter, updatePartner);
+router.post('/:id/logo', imgUpload.single('logo'),        writeLimiter, uploadPartnerLogo);
+router.delete('/:id',                                     writeLimiter, deletePartner);
 
 export default router;

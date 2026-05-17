@@ -43,5 +43,7 @@ RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
 
 EXPOSE 4000
 
-# Run migrations then start the server
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma && node apps/api/dist/server.js"]
+COPY apps/api/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]

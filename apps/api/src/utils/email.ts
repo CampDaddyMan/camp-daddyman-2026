@@ -120,6 +120,24 @@ export async function sendAdminEmail(to: string, username: string, subject: stri
   });
 }
 
+export async function sendPartnerInquiryAcknowledgement(to: string, name: string, type: string) {
+  const typeLabel: Record<string, string> = {
+    ADVERTISER: 'Advertiser', SPONSOR: 'Sponsor', DONOR: 'Donor', COLLABORATOR: 'Collaborator',
+  };
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `We received your inquiry — Camp DaddyMan`,
+    html: base('Inquiry received', `
+      ${h2(`Hey ${name} — we got your message.`)}
+      ${p(`Thanks for reaching out about a <strong style="color:#fff;">${typeLabel[type] ?? type}</strong> opportunity with Camp DaddyMan. Your inquiry is in our hands and someone from our team will be reaching out directly.`)}
+      ${p(`In the meantime, explore what we're building at Camp DaddyMan — music, film, podcasts, spoken word, and more.`)}
+      ${btn(APP_URL + '/partners', 'Visit Our Partners Page')}
+      ${p(`<span style="font-size:13px;color:#555;">If you didn't submit this inquiry, you can safely ignore this email.</span>`)}
+    `),
+  });
+}
+
 export async function sendPartnerInquiryEmail(inquiry: {
   name: string;
   email: string;

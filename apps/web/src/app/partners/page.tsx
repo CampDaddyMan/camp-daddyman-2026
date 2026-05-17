@@ -103,8 +103,8 @@ function InquiryForm() {
     return (
       <div className="text-center py-12">
         <p className="text-4xl mb-4">✅</p>
-        <h3 className="text-xl font-bold text-white mb-2">Message received!</h3>
-        <p className="text-gray-400 text-sm">We'll be in touch within 1–2 business days.</p>
+        <h3 className="text-xl font-bold text-white mb-2">Inquiry received!</h3>
+        <p className="text-gray-400 text-sm">Check your inbox — a confirmation is on its way. Our team is on it.</p>
       </div>
     );
   }
@@ -223,13 +223,7 @@ export default function PartnersPage() {
         )}
 
         {!loading && partners.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-4xl mb-4">🤝</p>
-            <h2 className="text-xl font-bold text-white mb-2">Partner With Us</h2>
-            <p className="text-gray-400 max-w-md mx-auto">
-              We're building something special. If you want to align your brand with culture, community, and impact — use the form below.
-            </p>
-          </div>
+          <div className="py-8" />
         )}
 
         {!loading && featured.length > 0 && (
@@ -274,13 +268,22 @@ export default function PartnersPage() {
           </div>
         </section>
 
+        {/* Partner With Us — permanent section, no CTA button since the form handles it */}
+        <section className="mb-10 text-center">
+          <p className="text-4xl mb-4">🤝</p>
+          <h2 className="text-2xl font-black text-white mb-3">Partner With Us</h2>
+          <p className="text-gray-400 max-w-xl mx-auto">
+            We're building something special. Align your brand with culture, community, and impact — fill out the form below and our team will reach out directly.
+          </p>
+        </section>
+
         {/* Inquiry form */}
         <section id="inquiry" className="rounded-2xl border border-surface-700 bg-surface-800 p-8">
           <div className="mb-8">
             <p className="text-brand-400 text-xs font-bold uppercase tracking-widest mb-2">Get In Touch</p>
             <h2 className="text-2xl font-black text-white mb-2">Start the Conversation</h2>
             <p className="text-gray-400 text-sm">
-              Tell us what you're looking for and we'll get back to you within 1–2 business days.
+              Your message goes straight to our team.
             </p>
           </div>
           <InquiryForm />

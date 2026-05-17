@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { uploadToS3, signR2Url } from '../utils/s3';
-import { sendPartnerInquiryEmail } from '../utils/email';
+import { sendPartnerInquiryEmail, sendPartnerInquiryAcknowledgement } from '../utils/email';
 import { AuthRequest } from '../middleware/auth';
 
 // ── Public: partner inquiry form ──────────────────────────────────────────────
@@ -16,13 +16,20 @@ export async function submitInquiry(req: Request, res: Response) {
   const validTypes = ['ADVERTISER', 'SPONSOR', 'DONOR', 'COLLABORATOR'];
   const inquiryType = validTypes.includes(String(type).toUpperCase()) ? String(type).toUpperCase() : 'ADVERTISER';
 
-  sendPartnerInquiryEmail({
-    name:    name.trim(),
-    email:   email.trim().toLowerCase(),
-    company: company?.trim() || undefined,
-    type:    inquiryType,
-    message: message.trim(),
-  }).catch(() => {});
+  const cleanName  = name.trim();
+  const cleanEmail = email.trim().toLowerCase();
+
+  // Notify admin and acknowledge inquirer in parallel — fire and forget
+  Promise.all([
+    sendPartnerInquiryEmail({
+      name:    cleanName,
+      email:   cleanEmail,
+      company: company?.trim() || undefined,
+      type:    inquiryType,
+      message: message.trim(),
+    }),
+    sendPartnerInquiryAcknowledgement(cleanEmail, cleanName, inquiryType),
+  ]).catch(() => {});
 
   res.json({ ok: true });
 }

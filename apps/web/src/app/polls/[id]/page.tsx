@@ -69,6 +69,8 @@ function AudioPlayer({ src, label }: { src: string; label: string }) {
         </div>
       </div>
       <audio ref={ref} src={src}
+        controlsList="nodownload"
+        onContextMenu={(e) => e.preventDefault()}
         onTimeUpdate={() => {
           const el = ref.current;
           if (el?.duration) setProgress((el.currentTime / el.duration) * 100);

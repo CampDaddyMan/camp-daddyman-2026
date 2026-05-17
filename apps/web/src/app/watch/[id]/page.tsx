@@ -62,8 +62,11 @@ function HlsVideoPlayer({
     <video
       ref={videoRef}
       controls
+      controlsList="nodownload noremoteplayback"
+      disablePictureInPicture
       className="w-full h-full"
       playsInline
+      onContextMenu={(e) => e.preventDefault()}
     />
   );
 }
@@ -472,7 +475,9 @@ export default function WatchPage() {
             <audio
               src={content.mediaUrl ?? undefined}
               controls
+              controlsList="nodownload"
               className="w-full max-w-md"
+              onContextMenu={(e) => e.preventDefault()}
               onLoadedMetadata={() => handlePlayerReady()}
               onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
               onError={(e) => {
@@ -488,8 +493,11 @@ export default function WatchPage() {
             <video
               src={content.mediaUrl ?? undefined}
               controls
+              controlsList="nodownload noremoteplayback"
+              disablePictureInPicture
               playsInline
               className="w-full h-full"
+              onContextMenu={(e) => e.preventDefault()}
               onLoadedMetadata={handlePlayerReady}
               onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLVideoElement).currentTime; }}
               onError={(e) => {
@@ -516,27 +524,13 @@ export default function WatchPage() {
       {error === 'MOV_COMPAT' ? (
         <div className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4 mb-3">
           <p className="text-white font-medium mb-1">MOV file — limited browser support</p>
-          <p className="text-gray-400 text-sm mb-3">
-            MOV (QuickTime) plays natively on Safari and Apple devices. On Chrome or Firefox, use the button below or re-upload as MP4 for universal playback.
+          <p className="text-gray-400 text-sm">
+            MOV (QuickTime) plays natively on Safari and Apple devices. On Chrome or Firefox, please re-upload as MP4 for universal playback.
           </p>
-          <div className="flex gap-3 flex-wrap">
-            {content.mediaUrl && (
-              <a href={content.mediaUrl} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-black text-sm font-semibold rounded-lg transition-colors">
-                Open / Download File
-              </a>
-            )}
-          </div>
         </div>
       ) : error ? (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-3 space-y-2">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-3">
           <p>{error}</p>
-          {content.mediaUrl && (
-            <a href={content.mediaUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-block text-xs underline text-red-300 hover:text-white">
-              → Open file directly
-            </a>
-          )}
         </div>
       ) : null}
 

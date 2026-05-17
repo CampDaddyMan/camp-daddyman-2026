@@ -182,10 +182,10 @@ export default function HomePage() {
         {/* Atmospheric background */}
         <div className="absolute inset-0 bg-surface-900" />
         {/* Jamaican flag — gold centre glow, green corner glows */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_60%_at_50%_45%,rgba(232,184,0,0.18),transparent_65%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_0%_100%,rgba(0,155,58,0.22),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_100%_0%,rgba(0,155,58,0.22),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,155,58,0.07)_0%,transparent_38%,transparent_62%,rgba(0,155,58,0.07)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_60%_at_50%_45%,rgba(248,194,2,0.18),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_0%_100%,rgba(2,65,25,0.28),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_100%_0%,rgba(2,65,25,0.28),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(2,65,25,0.09)_0%,transparent_38%,transparent_62%,rgba(2,65,25,0.09)_100%)]" />
         {/* Jamaican flag accent stripe — black / gold / green */}
         <div className="absolute top-0 left-0 right-0 flex h-1">
           <div className="flex-1 bg-black" />
@@ -201,7 +201,7 @@ export default function HomePage() {
           {/* Logo */}
           <div className="relative">
             <div className="absolute inset-0 rounded-full blur-2xl bg-brand-500/20 scale-110" />
-            <div className="relative w-52 h-52 md:w-64 md:h-64 rounded-full overflow-hidden ring-1 ring-brand-500/30 shadow-[0_0_100px_rgba(232,184,0,0.18)]">
+            <div className="relative w-52 h-52 md:w-64 md:h-64 rounded-full overflow-hidden ring-1 ring-brand-500/30 shadow-[0_0_100px_rgba(248,194,2,0.18)]">
               <Image
                 src="/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png"
                 alt="Camp DaddyMan"
@@ -220,7 +220,7 @@ export default function HomePage() {
 
           {/* Headline */}
           <div>
-            <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-bold text-camp-400 leading-tight tracking-tight">
               Music. Film. Teachings.
             </h1>
             <p className="text-gray-400 text-base md:text-lg mt-3 max-w-lg mx-auto leading-relaxed">
@@ -240,13 +240,13 @@ export default function HomePage() {
           <div className="flex gap-3 flex-wrap justify-center">
             <Link
               href="/browse"
-              className="bg-camp-500 hover:bg-camp-600 text-white px-7 py-3 rounded-xl text-sm font-semibold transition-colors shadow-[0_0_20px_rgba(0,155,58,0.3)]"
+              className="bg-camp-500 hover:bg-camp-600 text-white px-7 py-3 rounded-xl text-sm font-semibold transition-colors shadow-[0_0_20px_rgba(2,65,25,0.5)]"
             >
               Browse all
             </Link>
             <Link
               href="/register"
-              className="bg-brand-500 hover:bg-brand-600 text-black px-7 py-3 rounded-xl text-sm font-bold transition-colors shadow-[0_0_24px_rgba(232,184,0,0.3)]"
+              className="bg-brand-500 hover:bg-brand-600 text-black px-7 py-3 rounded-xl text-sm font-bold transition-colors shadow-[0_0_24px_rgba(248,194,2,0.3)]"
             >
               Join for free →
             </Link>
@@ -257,7 +257,7 @@ export default function HomePage() {
         {/* Scroll cue — gold bouncing arrow */}
         <div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
-          style={{ color: '#e8b800', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(232,184,0,0.5)' }}
+          style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}
         >
           ↓
         </div>
@@ -300,7 +300,7 @@ export default function HomePage() {
             <Link
               key={cat.label}
               href={cat.href}
-              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-camp-500 transition-all duration-300 shadow-[0_0_0_0_rgba(0,155,58,0)] hover:shadow-[0_0_16px_rgba(0,155,58,0.25)]"
+              className="group relative overflow-hidden rounded-2xl aspect-video border border-surface-700 hover:border-camp-500 transition-all duration-300 shadow-[0_0_0_0_rgba(2,65,25,0)] hover:shadow-[0_0_16px_rgba(2,65,25,0.4)]"
             >
               {cat.image ? (
                 <Image
@@ -472,7 +472,7 @@ export default function HomePage() {
             </div>
 
             {/* PRO MONTHLY — highlighted */}
-            <div className="rounded-2xl border border-brand-500/60 bg-surface-800 p-7 flex flex-col relative shadow-[0_0_40px_rgba(232,184,0,0.12)]">
+            <div className="rounded-2xl border border-brand-500/60 bg-surface-800 p-7 flex flex-col relative shadow-[0_0_40px_rgba(248,194,2,0.12)]">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-black text-xs font-bold px-4 py-1 rounded-full tracking-wide">
                 MOST POPULAR
               </div>
@@ -492,7 +492,7 @@ export default function HomePage() {
               <button
                 onClick={() => handleCheckout('PRO')}
                 disabled={checkoutLoading === 'PRO'}
-                className="block w-full text-center bg-brand-500 hover:bg-brand-600 text-black font-bold py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(232,184,0,0.2)] disabled:opacity-60"
+                className="block w-full text-center bg-brand-500 hover:bg-brand-600 text-black font-bold py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(248,194,2,0.2)] disabled:opacity-60"
               >
                 {checkoutLoading === 'PRO' ? 'Redirecting…' : 'Join Pro →'}
               </button>
@@ -550,7 +550,7 @@ export default function HomePage() {
             </div>
             <Link
               href="/membership#supporter"
-              className="flex-shrink-0 bg-brand-500 hover:bg-brand-600 text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(232,184,0,0.2)] whitespace-nowrap"
+              className="flex-shrink-0 bg-brand-500 hover:bg-brand-600 text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-[0_0_20px_rgba(248,194,2,0.2)] whitespace-nowrap"
             >
               Support the Camp →
             </Link>
@@ -569,7 +569,7 @@ export default function HomePage() {
             Upload your music, films, podcasts, and teachings. Grow a following, gate premium content, and get paid — on your terms.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/register" className="bg-brand-500 hover:bg-brand-600 text-black font-bold px-8 py-3.5 rounded-xl text-sm transition-colors shadow-[0_0_30px_rgba(232,184,0,0.25)]">
+            <Link href="/register" className="bg-brand-500 hover:bg-brand-600 text-black font-bold px-8 py-3.5 rounded-xl text-sm transition-colors shadow-[0_0_30px_rgba(248,194,2,0.25)]">
               Start creating →
             </Link>
             <Link href="/browse" className="border border-surface-600 hover:border-surface-500 text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-colors">

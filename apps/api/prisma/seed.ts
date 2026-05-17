@@ -404,6 +404,53 @@ async function main() {
   ]);
 
   console.log('  Created follow relationships');
+
+  // ── Shop products ──────────────────────────────────────────────────────────
+
+  await prisma.product.upsert({
+    where: { slug: 'camp-daddyman-classic-tee' },
+    update: {},
+    create: {
+      slug:        'camp-daddyman-classic-tee',
+      name:        'Camp DaddyMan Classic Tee',
+      description: 'Heavyweight cotton tee bearing the Camp DaddyMan crest. Discipline. Identity. Legacy.',
+      type:        'PHYSICAL',
+      price:       34.99,
+      comparePrice: 44.99,
+      status:      'ACTIVE',
+      featured:    true,
+      tags:        ['merch', 'apparel', 'featured'],
+      images:      [],
+      variants: {
+        create: [
+          { name: 'Small',      sku: 'CDM-TEE-S',  inventory: 25 },
+          { name: 'Medium',     sku: 'CDM-TEE-M',  inventory: 50 },
+          { name: 'Large',      sku: 'CDM-TEE-L',  inventory: 50 },
+          { name: 'XL',         sku: 'CDM-TEE-XL', inventory: 30 },
+          { name: 'XXL',        sku: 'CDM-TEE-2XL',inventory: 20 },
+        ],
+      },
+    },
+  });
+
+  await prisma.product.upsert({
+    where: { slug: 'discipline-walk-single' },
+    update: {},
+    create: {
+      slug:        'discipline-walk-single',
+      name:        'Discipline Walk — Digital Single',
+      description: 'Download the full Discipline Walk single in high-quality MP3. Includes a printable lyric sheet.',
+      type:        'DIGITAL',
+      price:       2.99,
+      status:      'ACTIVE',
+      featured:    false,
+      tags:        ['music', 'digital', 'download'],
+      images:      [],
+      variants:    { create: [{ name: 'MP3 Download', sku: 'CDM-DW-MP3', inventory: 9999 }] },
+    },
+  });
+
+  console.log('  Created 2 shop products (Classic Tee + Discipline Walk single)');
   console.log('\nSeed complete.');
   console.log('\nLogin credentials:');
   console.log('  [ADMIN EMAIL] / Camp2026!  (daddyman — admin)');

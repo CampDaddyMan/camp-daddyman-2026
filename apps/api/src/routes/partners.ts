@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import {
   listPartners, getPartner, createPartner, updatePartner, uploadPartnerLogo, deletePartner,
-  listPublicPartners,
+  listPublicPartners, submitInquiry,
   listPlacements, createPlacement, updatePlacement, deletePlacement,
   listAds, createAd, updateAd, uploadAdImage, deleteAd,
   serveAd, trackAdClick,
@@ -22,6 +22,7 @@ const imgUpload = multer({
 
 // ── Public ────────────────────────────────────────────────────────────────────
 router.get('/public',                optionalAuthMiddleware, readLimiter,  listPublicPartners);
+router.post('/inquiry',              writeLimiter,           submitInquiry);
 router.get('/serve/:location',       optionalAuthMiddleware, readLimiter,  serveAd);
 router.post('/ads/:id/click',        optionalAuthMiddleware, writeLimiter, trackAdClick);
 

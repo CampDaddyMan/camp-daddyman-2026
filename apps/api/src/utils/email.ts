@@ -120,6 +120,47 @@ export async function sendAdminEmail(to: string, username: string, subject: stri
   });
 }
 
+export async function sendPartnerInquiryEmail(inquiry: {
+  name: string;
+  email: string;
+  company?: string;
+  type: string;
+  message: string;
+}) {
+  const to = process.env.CONTACT_EMAIL || process.env.EMAIL_FROM || 'admin@campdaddyman.com';
+  const typeLabel: Record<string, string> = {
+    ADVERTISER: 'Advertiser', SPONSOR: 'Sponsor', DONOR: 'Donor', COLLABORATOR: 'Collaborator',
+  };
+
+  const rows = [
+    ['Name',    inquiry.name],
+    ['Email',   `<a href="mailto:${inquiry.email}" style="color:#a78bfa;">${inquiry.email}</a>`],
+    ['Company', inquiry.company || '—'],
+    ['Type',    typeLabel[inquiry.type] ?? inquiry.type],
+  ].map(([label, val]) =>
+    `<tr>
+      <td style="padding:6px 0;color:#888;font-size:13px;width:90px;">${label}</td>
+      <td style="padding:6px 0;color:#fff;font-size:13px;">${val}</td>
+    </tr>`
+  ).join('');
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: inquiry.email,
+    subject: `New Partner Inquiry — ${inquiry.name}${inquiry.company ? ` (${inquiry.company})` : ''}`,
+    html: base('New Partner Inquiry', `
+      ${h2('New Partner Inquiry')}
+      <table cellpadding="0" cellspacing="0" style="margin-bottom:20px;">${rows}</table>
+      <div style="background:#0f0f17;border:1px solid #2e2e3e;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+        <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Message</p>
+        <p style="margin:0;color:#d0d0e0;font-size:14px;line-height:1.6;">${inquiry.message.replace(/\n/g, '<br/>')}</p>
+      </div>
+      ${btn(`mailto:${inquiry.email}`, 'Reply to Inquiry')}
+    `),
+  });
+}
+
 export async function sendNewContentEmail(
   to: string,
   recipientUsername: string,

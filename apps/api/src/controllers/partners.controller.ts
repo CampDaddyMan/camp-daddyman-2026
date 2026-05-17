@@ -1,7 +1,31 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { uploadToS3, signR2Url } from '../utils/s3';
+import { sendPartnerInquiryEmail } from '../utils/email';
 import { AuthRequest } from '../middleware/auth';
+
+// ── Public: partner inquiry form ──────────────────────────────────────────────
+
+export async function submitInquiry(req: Request, res: Response) {
+  const { name, email, company, type, message } = req.body;
+
+  if (!name?.trim())    return res.status(400).json({ error: 'Name is required' });
+  if (!email?.trim())   return res.status(400).json({ error: 'Email is required' });
+  if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+
+  const validTypes = ['ADVERTISER', 'SPONSOR', 'DONOR', 'COLLABORATOR'];
+  const inquiryType = validTypes.includes(String(type).toUpperCase()) ? String(type).toUpperCase() : 'ADVERTISER';
+
+  sendPartnerInquiryEmail({
+    name:    name.trim(),
+    email:   email.trim().toLowerCase(),
+    company: company?.trim() || undefined,
+    type:    inquiryType,
+    message: message.trim(),
+  }).catch(() => {});
+
+  res.json({ ok: true });
+}
 
 // ── Partners ──────────────────────────────────────────────────────────────────
 

@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -17,9 +16,9 @@ interface Partner {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  ADVERTISER: 'Advertiser',
-  SPONSOR: 'Sponsor',
-  DONOR: 'Donor',
+  ADVERTISER:   'Advertiser',
+  SPONSOR:      'Sponsor',
+  DONOR:        'Donor',
   COLLABORATOR: 'Collaborator',
 };
 
@@ -71,6 +70,111 @@ function PartnerCard({ partner }: { partner: Partner }) {
   );
 }
 
+const INQUIRY_TYPES = [
+  { value: 'ADVERTISER',   label: 'Advertiser — banner / video / podcast ads' },
+  { value: 'SPONSOR',      label: 'Sponsor — branded content & partnerships' },
+  { value: 'DONOR',        label: 'Donor — support the mission' },
+  { value: 'COLLABORATOR', label: 'Collaborator — creative or business project' },
+];
+
+function InquiryForm() {
+  const [form, setForm] = useState({ name: '', email: '', company: '', type: 'ADVERTISER', message: '' });
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/partners/inquiry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || 'Submission failed');
+      }
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong — please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-4xl mb-4">✅</p>
+        <h3 className="text-xl font-bold text-white mb-2">Message received!</h3>
+        <p className="text-gray-400 text-sm">We'll be in touch within 1–2 business days.</p>
+      </div>
+    );
+  }
+
+  const inputCls = 'w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-600';
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {error && (
+        <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 px-4 py-3 rounded-xl">{error}</p>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-widest mb-1.5">Name *</label>
+          <input required value={form.name} onChange={set('name')} placeholder="Your name" className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-widest mb-1.5">Email *</label>
+          <input required type="email" value={form.email} onChange={set('email')} placeholder="you@company.com" className={inputCls} />
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-widest mb-1.5">Company / Organization</label>
+          <input value={form.company} onChange={set('company')} placeholder="Optional" className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-widest mb-1.5">I'm interested in</label>
+          <select value={form.type} onChange={set('type')} className={inputCls}>
+            {INQUIRY_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 uppercase tracking-widest mb-1.5">Message *</label>
+        <textarea
+          required
+          rows={5}
+          value={form.message}
+          onChange={set('message')}
+          placeholder="Tell us about your goals, budget, timeline — anything that helps us understand what you're looking for."
+          className={`${inputCls} resize-none`}
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-brand-500 hover:bg-brand-400 text-black font-bold py-3.5 rounded-xl text-sm transition-colors disabled:opacity-50 shadow-[0_0_24px_rgba(232,184,0,0.2)]"
+      >
+        {loading ? 'Sending...' : 'Send Inquiry →'}
+      </button>
+    </form>
+  );
+}
+
 export default function PartnersPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading,  setLoading]  = useState(true);
@@ -100,26 +204,23 @@ export default function PartnersPage() {
         </div>
         <div className="relative max-w-5xl mx-auto px-4 text-center">
           <p className="text-brand-400 text-xs font-bold uppercase tracking-widest mb-3">Community & Commerce</p>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
-            Our Partners
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">Our Partners</h1>
           <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
             The brands, sponsors, and collaborators who believe in the Camp DaddyMan mission — building culture, identity, and legacy.
           </p>
-
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="mailto:partners@campdaddyman.com"
+            <a
+              href="#inquiry"
               className="px-6 py-3 bg-brand-500 text-black font-bold rounded-xl hover:bg-brand-400 transition-colors"
             >
               Advertise With Us
-            </Link>
-            <Link
-              href="mailto:sponsors@campdaddyman.com"
+            </a>
+            <a
+              href="#inquiry"
               className="px-6 py-3 bg-surface-700 text-white font-semibold rounded-xl hover:bg-surface-600 transition-colors border border-surface-600"
             >
               Become a Sponsor
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -132,17 +233,17 @@ export default function PartnersPage() {
         )}
 
         {!loading && partners.length === 0 && (
-          <div className="text-center py-20">
+          <div className="text-center py-16">
             <p className="text-4xl mb-4">🤝</p>
             <h2 className="text-xl font-bold text-white mb-2">Partner With Us</h2>
-            <p className="text-gray-400 max-w-md mx-auto">
+            <p className="text-gray-400 max-w-md mx-auto mb-6">
               We're building something special. If you want to align your brand with culture, community, and impact — let's talk.
             </p>
             <a
-              href="mailto:partners@campdaddyman.com"
-              className="mt-6 inline-block px-6 py-3 bg-brand-500 text-black font-bold rounded-xl hover:bg-brand-400 transition-colors"
+              href="#inquiry"
+              className="inline-block px-6 py-3 bg-brand-500 text-black font-bold rounded-xl hover:bg-brand-400 transition-colors"
             >
-              Get in Touch
+              Get in Touch →
             </a>
           </div>
         )}
@@ -165,8 +266,8 @@ export default function PartnersPage() {
           </section>
         )}
 
-        {/* Ad placements pitch */}
-        <section className="mt-12 rounded-2xl border border-brand-500/20 bg-gradient-to-br from-brand-500/5 to-camp-500/5 p-8">
+        {/* Why advertise */}
+        <section className="mt-4 rounded-2xl border border-brand-500/20 bg-gradient-to-br from-brand-500/5 to-camp-500/5 p-8 mb-12">
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="flex-1">
               <h2 className="text-2xl font-black text-white mb-3">Why Advertise on Camp DaddyMan?</h2>
@@ -180,14 +281,25 @@ export default function PartnersPage() {
             </div>
             <div className="flex-shrink-0">
               <a
-                href="mailto:partners@campdaddyman.com"
+                href="#inquiry"
                 className="block px-8 py-4 bg-brand-500 text-black font-bold rounded-xl hover:bg-brand-400 transition-colors text-center"
               >
                 Request Media Kit
               </a>
-              <p className="text-xs text-gray-500 text-center mt-2">partners@campdaddyman.com</p>
             </div>
           </div>
+        </section>
+
+        {/* Inquiry form */}
+        <section id="inquiry" className="rounded-2xl border border-surface-700 bg-surface-800 p-8">
+          <div className="mb-8">
+            <p className="text-brand-400 text-xs font-bold uppercase tracking-widest mb-2">Get In Touch</p>
+            <h2 className="text-2xl font-black text-white mb-2">Start the Conversation</h2>
+            <p className="text-gray-400 text-sm">
+              Tell us what you're looking for and we'll get back to you within 1–2 business days.
+            </p>
+          </div>
+          <InquiryForm />
         </section>
       </div>
     </main>

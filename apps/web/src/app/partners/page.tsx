@@ -99,6 +99,8 @@ function InquiryForm() {
     }
   }
 
+  const inputCls = 'w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-600';
+
   if (sent) {
     return (
       <div className="text-center py-12">
@@ -109,10 +111,13 @@ function InquiryForm() {
     );
   }
 
-  const inputCls = 'w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-600';
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <>
+      <div className="mb-8">
+        <p className="text-brand-400 text-xs font-bold uppercase tracking-widest mb-2">Get In Touch</p>
+        <h2 className="text-2xl font-black text-white mb-2">Start the Conversation</h2>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
         <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 px-4 py-3 rounded-xl">{error}</p>
       )}
@@ -163,6 +168,7 @@ function InquiryForm() {
         {loading ? 'Sending...' : 'Send Inquiry →'}
       </button>
     </form>
+    </>
   );
 }
 
@@ -279,13 +285,6 @@ export default function PartnersPage() {
 
         {/* Inquiry form */}
         <section id="inquiry" className="rounded-2xl border border-surface-700 bg-surface-800 p-8">
-          <div className="mb-8">
-            <p className="text-brand-400 text-xs font-bold uppercase tracking-widest mb-2">Get In Touch</p>
-            <h2 className="text-2xl font-black text-white mb-2">Start the Conversation</h2>
-            <p className="text-gray-400 text-sm">
-              Your message goes straight to our team.
-            </p>
-          </div>
           <InquiryForm />
         </section>
       </div>

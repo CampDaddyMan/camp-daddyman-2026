@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -44,6 +44,15 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null);
+
+  function handleImageMouseMove(e: MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setZoomPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }
 
   useEffect(() => {
     api.get(`/shop/products/${id}`)
@@ -113,11 +122,24 @@ export default function ProductDetailPage() {
       <div className="grid md:grid-cols-2 gap-10">
         {/* Images */}
         <div className="space-y-3">
-          <div className="relative aspect-square bg-surface-800 rounded-2xl overflow-hidden border border-surface-700">
+          <div
+            className="relative aspect-square bg-surface-800 rounded-2xl overflow-hidden border border-surface-700 cursor-crosshair"
+            onMouseMove={handleImageMouseMove}
+            onMouseLeave={() => setZoomPos(null)}
+          >
             {allImages[activeImg] ? (
-              allImages[activeImg].startsWith('http')
-                ? <img src={allImages[activeImg]} alt={product.name} className="w-full h-full object-cover" />
-                : <Image src={allImages[activeImg]} alt={product.name} fill className="object-cover" />
+              <div
+                className="w-full h-full"
+                style={zoomPos ? {
+                  transform: 'scale(2.5)',
+                  transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                } : undefined}
+              >
+                {allImages[activeImg].startsWith('http')
+                  ? <img src={allImages[activeImg]} alt={product.name} className="w-full h-full object-cover" />
+                  : <Image src={allImages[activeImg]} alt={product.name} fill className="object-cover" />
+                }
+              </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-20">
                 {product.type === 'DIGITAL' ? '📦' : '👕'}

@@ -356,7 +356,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
 }
 
 export async function adminUpdateProduct(req: AuthRequest, res: Response) {
-  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl } = req.body;
+  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants } = req.body;
 
   const data: any = {};
   if (name !== undefined) { data.name = name; data.slug = slugify(name); }
@@ -369,6 +369,21 @@ export async function adminUpdateProduct(req: AuthRequest, res: Response) {
   if (featured !== undefined) data.featured = featured;
   if (tags !== undefined) data.tags = tags;
   if (fileUrl !== undefined) data.fileUrl = fileUrl;
+
+  if (variants !== undefined) {
+    await prisma.productVariant.deleteMany({ where: { productId: req.params.id } });
+    if (variants.length) {
+      data.variants = {
+        create: variants.map((v: any) => ({
+          name: v.name,
+          sku: v.sku,
+          price: v.price != null ? Number(v.price) : null,
+          inventory: Number(v.inventory || 0),
+          options: v.options || {},
+        })),
+      };
+    }
+  }
 
   const product = await prisma.product.update({
     where: { id: req.params.id },

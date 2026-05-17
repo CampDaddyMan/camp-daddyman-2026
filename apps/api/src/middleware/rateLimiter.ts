@@ -6,7 +6,7 @@ const isProd = process.env.NODE_ENV === 'production';
 // Tight limit — protects against credential stuffing and brute force on login/register
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProd ? 10 : 100,
+  max: isProd ? 20 : 100,
   message: { error: 'Too many attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,

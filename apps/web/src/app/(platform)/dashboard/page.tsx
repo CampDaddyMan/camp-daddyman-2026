@@ -348,23 +348,24 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <Link href="/upload"><Button size="md">+ Upload</Button></Link>
-          {plan === 'FREE'
-            ? <Link href="/subscribe"><Button variant="secondary" size="md">Upgrade</Button></Link>
-            : (
-              <button
-                onClick={handleManageBilling}
-                disabled={portalLoading}
-                className="inline-flex items-center px-4 py-2 text-sm bg-surface-700 text-brand-400 rounded-lg font-semibold border border-surface-600 hover:bg-surface-600 transition-colors disabled:opacity-50"
-              >
-                {portalLoading ? 'Redirecting...' : `${plan} · Manage`}
-              </button>
-            )
-          }
+          {!user.isAdmin && (
+            plan === 'FREE'
+              ? <Link href="/subscribe"><Button variant="secondary" size="md">Upgrade</Button></Link>
+              : (
+                <button
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="inline-flex items-center px-4 py-2 text-sm bg-surface-700 text-brand-400 rounded-lg font-semibold border border-surface-600 hover:bg-surface-600 transition-colors disabled:opacity-50"
+                >
+                  {portalLoading ? 'Redirecting...' : `${plan} · Manage`}
+                </button>
+              )
+          )}
         </div>
       </div>
 
       {/* ── Upgrade banner ── */}
-      {plan === 'FREE' && (
+      {plan === 'FREE' && !user.isAdmin && (
         <div className="bg-brand-500/10 border border-brand-500/30 rounded-xl px-6 py-4 mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="text-brand-400 font-semibold text-sm">Free plan</p>

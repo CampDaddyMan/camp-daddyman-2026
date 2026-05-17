@@ -120,7 +120,10 @@ export async function register(req: Request, res: Response) {
 export async function login(req: Request, res: Response) {
   const { email, password, deviceId, deviceLabel } = req.body;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { subscription: { select: { plan: true, status: true } } },
+  });
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   if (user.isBanned) return res.status(403).json({ error: 'Account suspended', banned: true });
 
@@ -148,6 +151,7 @@ export async function login(req: Request, res: Response) {
       user: {
         id: user.id, email: user.email, username: user.username,
         displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
+        subscription: user.subscription,
       },
     });
   }
@@ -200,7 +204,10 @@ export async function verifyTwoFactor(req: Request, res: Response) {
 
   const user = await prisma.user.findUnique({
     where: { id: record.userId },
-    select: { id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true },
+    select: {
+      id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true,
+      subscription: { select: { plan: true, status: true } },
+    },
   });
   if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -264,6 +271,7 @@ export async function verifyTwoFactor(req: Request, res: Response) {
     user: {
       id: user.id, email: user.email, username: user.username,
       displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
+      subscription: user.subscription,
     },
   });
 }
@@ -293,7 +301,10 @@ export async function forceLogin(req: Request, res: Response) {
 
   const user = await prisma.user.findUnique({
     where: { id: record.userId },
-    select: { id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true },
+    select: {
+      id: true, email: true, username: true, displayName: true, isAdmin: true, emailVerified: true,
+      subscription: { select: { plan: true, status: true } },
+    },
   });
   if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -306,6 +317,7 @@ export async function forceLogin(req: Request, res: Response) {
     user: {
       id: user.id, email: user.email, username: user.username,
       displayName: user.displayName, isAdmin: user.isAdmin, emailVerified: user.emailVerified,
+      subscription: user.subscription,
     },
   });
 }

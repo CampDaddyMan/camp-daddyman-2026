@@ -91,25 +91,30 @@ export default function SubscribePage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
   async function handleUpgrade(planKey: string) {
     if (!user) return router.push('/login');
+    setCheckoutError('');
     setLoading(planKey);
     try {
       const { data } = await api.post('/subscriptions/checkout', { plan: planKey });
       window.location.href = data.url;
     } catch {
       setLoading(null);
+      setCheckoutError('Unable to reach checkout — please try again in a moment.');
     }
   }
 
   async function handleManage() {
+    setCheckoutError('');
     setPortalLoading(true);
     try {
       const { data } = await api.post('/subscriptions/portal');
       window.location.href = data.url;
     } catch {
       setPortalLoading(false);
+      setCheckoutError('Unable to reach billing portal — please try again in a moment.');
     }
   }
 
@@ -118,6 +123,12 @@ export default function SubscribePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-16">
+      {checkoutError && (
+        <div className="mb-8 bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center px-4 py-3 rounded-xl">
+          {checkoutError}
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center mb-12">
         <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Membership</p>

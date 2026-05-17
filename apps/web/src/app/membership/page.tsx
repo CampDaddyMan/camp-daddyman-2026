@@ -90,15 +90,18 @@ export default function MembershipPage() {
   const [supporterLoading, setSupporterLoading] = useState(false);
   const [amountError, setAmountError] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState('');
 
   async function handleCheckout(planKey: string) {
     if (!user) { router.push('/register'); return; }
+    setCheckoutError('');
     setCheckoutLoading(planKey);
     try {
       const { data } = await api.post('/subscriptions/checkout', { plan: planKey });
       window.location.href = data.url;
     } catch {
       setCheckoutLoading(null);
+      setCheckoutError('Unable to reach checkout — please try again in a moment.');
     }
   }
 
@@ -116,6 +119,7 @@ export default function MembershipPage() {
       window.location.href = data.url;
     } catch {
       setSupporterLoading(false);
+      setAmountError('Unable to reach checkout — please try again in a moment.');
     }
   }
 
@@ -127,6 +131,12 @@ export default function MembershipPage() {
         <h1 className="text-4xl font-bold text-white mb-3">Simple, transparent pricing</h1>
         <p className="text-gray-400 text-lg">Start free. Upgrade when you're ready.</p>
       </div>
+
+      {checkoutError && (
+        <div className="mb-8 bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center px-4 py-3 rounded-xl">
+          {checkoutError}
+        </div>
+      )}
 
       {/* Plans grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -131,8 +131,8 @@ export async function sendPartnerInquiryAcknowledgement(to: string, name: string
     html: base('Inquiry received', `
       ${h2(`Hey ${name} — we got your message.`)}
       ${p(`Thanks for reaching out about a <strong style="color:#fff;">${typeLabel[type] ?? type}</strong> opportunity with Camp DaddyMan. Your inquiry is in our hands and someone from our team will be reaching out directly.`)}
-      ${p(`In the meantime, explore what we're building at Camp DaddyMan — music, film, podcasts, spoken word, and more.`)}
-      ${btn(APP_URL + '/partners', 'Visit Our Partners Page')}
+      ${p(`While you wait, take a look at the platform your brand would be a part of — the music, film, podcasts, spoken word, and creators that make up the Camp DaddyMan audience.`)}
+      ${btn(APP_URL + '/browse', 'Explore the Platform')}
       ${p(`<span style="font-size:13px;color:#555;">If you didn't submit this inquiry, you can safely ignore this email.</span>`)}
     `),
   });

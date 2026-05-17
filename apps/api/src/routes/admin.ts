@@ -11,6 +11,12 @@ import {
   listReports,
   resolveReport,
 } from '../controllers/admin.controller';
+import {
+  adminCreateProduct,
+  adminUpdateProduct,
+  adminListOrders,
+  adminUpdateOrder,
+} from '../controllers/shop.controller';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
 
@@ -27,5 +33,11 @@ router.get('/content',                   readLimiter,  listAllContent);
 router.post('/content/:id/status',       writeLimiter, setContentStatus);
 router.get('/reports',                   readLimiter,  listReports);
 router.post('/reports/:id/resolve',      writeLimiter, resolveReport);
+
+// Shop admin
+router.post('/products',                 writeLimiter, adminCreateProduct);
+router.patch('/products/:id',            writeLimiter, adminUpdateProduct);
+router.get('/orders',                    readLimiter,  adminListOrders);
+router.patch('/orders/:id',              writeLimiter, adminUpdateOrder);
 
 export default router;

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/layout/Navbar';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://campdaddyman.com';
@@ -33,11 +34,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <AuthProvider>
+          <CartProvider>
           <Navbar />
           <main className="min-h-screen">{children}</main>
           <footer className="border-t border-surface-700 py-8 text-center text-sm text-gray-500">
             © {new Date().getFullYear()} Camp DaddyMan. All rights reserved.
           </footer>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

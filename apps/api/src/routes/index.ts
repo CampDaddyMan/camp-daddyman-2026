@@ -8,6 +8,7 @@ import notificationRoutes from './notifications';
 import dashboardRoutes from './dashboard';
 import pollRoutes from './polls';
 import partnerRoutes from './partners';
+import shopRoutes from './shop';
 
 export const router = Router();
 
@@ -20,3 +21,4 @@ router.use('/notifications', notificationRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/polls', pollRoutes);
 router.use('/partners', partnerRoutes);
+router.use('/shop', shopRoutes);

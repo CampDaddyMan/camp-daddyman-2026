@@ -347,6 +347,7 @@ export default function DashboardPage() {
           <p className="text-gray-400 text-sm mt-1">@{user.username}</p>
         </div>
         <div className="flex gap-3 flex-wrap">
+          <Link href="/shop/orders"><Button variant="secondary" size="md">My Orders</Button></Link>
           <Link href="/upload"><Button size="md">+ Upload</Button></Link>
           {!user.isAdmin && !user.isTester && (
             plan === 'FREE'

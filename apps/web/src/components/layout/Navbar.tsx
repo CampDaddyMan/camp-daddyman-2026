@@ -4,10 +4,12 @@ import Image from 'next/image';
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { totalItems } = useCart();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,6 +49,7 @@ export default function Navbar() {
           <Link href="/polls" className="text-gray-300 hover:text-white transition-colors">Polls 🗳️</Link>
           <Link href="/partners" className="text-gray-300 hover:text-white transition-colors">Partners</Link>
           <Link href="/membership" className="text-brand-400 hover:text-brand-300 font-semibold transition-colors">Membership</Link>
+          <Link href="/shop" className="text-gray-300 hover:text-white transition-colors">The Ark 🛒</Link>
         </div>
 
         {/* Desktop search */}
@@ -63,6 +66,14 @@ export default function Navbar() {
         </form>
 
         <div className="hidden md:flex items-center gap-3">
+          <Link href="/shop/cart" className="relative text-gray-300 hover:text-brand-400 transition-colors text-lg">
+            🛒
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-brand-500 text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                {totalItems > 9 ? '9+' : totalItems}
+              </span>
+            )}
+          </Link>
           {user ? (
             <>
               <Link href="/feed" className="text-sm text-gray-300 hover:text-white transition-colors">Following</Link>
@@ -110,6 +121,7 @@ export default function Navbar() {
           <Link href="/polls" onClick={() => setOpen(false)} className="text-gray-300">Polls 🗳️</Link>
           <Link href="/partners" onClick={() => setOpen(false)} className="text-gray-300">Partners</Link>
           <Link href="/membership" onClick={() => setOpen(false)} className="text-brand-400 font-semibold">Membership</Link>
+          <Link href="/shop" onClick={() => setOpen(false)} className="text-gray-300 flex items-center justify-between">The Ark — Merch Store {totalItems > 0 && <span className="bg-brand-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">{totalItems}</span>}</Link>
           {/* Mobile search */}
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
@@ -127,6 +139,7 @@ export default function Navbar() {
               <Link href="/feed" onClick={() => setOpen(false)} className="text-gray-300">Following</Link>
               <Link href="/notifications" onClick={() => setOpen(false)} className="text-gray-300">Notifications</Link>
               <Link href="/dashboard" onClick={() => setOpen(false)} className="text-gray-300">Dashboard</Link>
+              <Link href="/shop/orders" onClick={() => setOpen(false)} className="text-gray-300">My Orders</Link>
               <Link href="/upload" onClick={() => setOpen(false)} className="text-gray-300">Upload</Link>
               {user.isAdmin && <Link href="/admin" onClick={() => setOpen(false)} className="text-brand-400">Admin</Link>}
               <button onClick={() => { logout(); setOpen(false); }} className="text-left text-gray-400">Sign out</button>

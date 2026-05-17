@@ -14,6 +14,7 @@ import {
 import {
   adminCreateProduct,
   adminUpdateProduct,
+  adminListProducts,
   adminListOrders,
   adminUpdateOrder,
 } from '../controllers/shop.controller';
@@ -35,6 +36,7 @@ router.get('/reports',                   readLimiter,  listReports);
 router.post('/reports/:id/resolve',      writeLimiter, resolveReport);
 
 // Shop admin
+router.get('/products',                  readLimiter,  adminListProducts);
 router.post('/products',                 writeLimiter, adminCreateProduct);
 router.patch('/products/:id',            writeLimiter, adminUpdateProduct);
 router.get('/orders',                    readLimiter,  adminListOrders);

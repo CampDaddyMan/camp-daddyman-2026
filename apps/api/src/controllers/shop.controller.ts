@@ -289,6 +289,20 @@ export async function getOrderBySession(req: AuthRequest, res: Response) {
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
+export async function adminListProducts(req: AuthRequest, res: Response) {
+  const { status, type } = req.query;
+  const where: any = {};
+  if (status && status !== 'ALL') where.status = String(status).toUpperCase();
+  if (type && type !== 'ALL') where.type = String(type).toUpperCase();
+
+  const products = await prisma.product.findMany({
+    where,
+    orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }],
+    include: { variants: true },
+  });
+  res.json({ products });
+}
+
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }

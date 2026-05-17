@@ -40,7 +40,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -2304,6 +2304,497 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
   );
 }
 
+// ── Shop Tab ──────────────────────────────────────────────────────────────────
+
+interface AdminProduct {
+  id: string; name: string; slug: string; type: string; price: number;
+  comparePrice?: number; status: string; featured: boolean; tags: string[];
+  imageUrl?: string; description?: string;
+  variants: { id: string; name: string; inventory: number; price?: number }[];
+}
+
+interface AdminOrder {
+  id: string; email: string; status: string; total: number; discount: number;
+  trackingNumber?: string; createdAt: string;
+  user?: { username: string; email: string } | null;
+  items: { name: string; variantName?: string; quantity: number; price: number }[];
+}
+
+const ORDER_STATUSES = ['ALL','PENDING','PAID','PROCESSING','SHIPPED','DELIVERED','CANCELLED','REFUNDED'];
+const STATUS_COLORS: Record<string, string> = {
+  ACTIVE: 'text-camp-400', DRAFT: 'text-yellow-400', ARCHIVED: 'text-gray-500',
+  PAID: 'text-camp-400', PROCESSING: 'text-yellow-400', SHIPPED: 'text-blue-400',
+  DELIVERED: 'text-brand-400', CANCELLED: 'text-red-400', REFUNDED: 'text-gray-400', PENDING: 'text-gray-400',
+};
+
+const EMPTY_PRODUCT = {
+  name: '', type: 'PHYSICAL', price: '', comparePrice: '', description: '',
+  imageUrl: '', status: 'DRAFT', featured: false, tags: '',
+  variants: [{ name: '', inventory: '0', price: '' }],
+};
+
+function ProductFormModal({
+  initial, onSave, onClose,
+}: {
+  initial?: AdminProduct | null;
+  onSave: (p: AdminProduct) => void;
+  onClose: () => void;
+}) {
+  const editing = !!initial;
+  const [form, setForm] = useState<any>(initial ? {
+    name: initial.name, type: initial.type, price: String(initial.price),
+    comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',
+    description: initial.description || '', imageUrl: initial.imageUrl || '',
+    status: initial.status, featured: initial.featured,
+    tags: initial.tags.join(', '),
+    variants: initial.variants.length
+      ? initial.variants.map((v) => ({ name: v.name, inventory: String(v.inventory), price: v.price != null ? String(v.price) : '' }))
+      : [{ name: '', inventory: '0', price: '' }],
+  } : { ...EMPTY_PRODUCT, variants: [{ name: '', inventory: '0', price: '' }] });
+
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+
+  function setField(k: string, v: any) { setForm((f: any) => ({ ...f, [k]: v })); }
+  function setVariant(i: number, k: string, v: string) {
+    setForm((f: any) => {
+      const vars = [...f.variants];
+      vars[i] = { ...vars[i], [k]: v };
+      return { ...f, variants: vars };
+    });
+  }
+  function addVariant() { setForm((f: any) => ({ ...f, variants: [...f.variants, { name: '', inventory: '0', price: '' }] })); }
+  function removeVariant(i: number) { setForm((f: any) => ({ ...f, variants: f.variants.filter((_: any, j: number) => j !== i) })); }
+
+  async function handleSave() {
+    if (!form.name.trim() || !form.price) { setErr('Name and price are required.'); return; }
+    setSaving(true); setErr('');
+    try {
+      const payload = {
+        name: form.name.trim(),
+        type: form.type,
+        price: Number(form.price),
+        comparePrice: form.comparePrice ? Number(form.comparePrice) : null,
+        description: form.description || null,
+        imageUrl: form.imageUrl || null,
+        status: form.status,
+        featured: form.featured,
+        tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+        variants: form.variants.filter((v: any) => v.name.trim()).map((v: any) => ({
+          name: v.name.trim(),
+          inventory: Number(v.inventory || 0),
+          price: v.price ? Number(v.price) : null,
+        })),
+      };
+      const { data } = editing
+        ? await api.patch(`/admin/products/${initial!.id}`, payload)
+        : await api.post('/admin/products', payload);
+      onSave(data.product);
+    } catch (e: any) {
+      setErr(e.response?.data?.error || 'Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="bg-surface-800 border border-surface-600 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-5 border-b border-surface-700 flex items-center justify-between">
+          <h3 className="text-white font-bold text-lg">{editing ? 'Edit Product' : 'New Product'}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
+        </div>
+
+        <div className="px-6 py-5 space-y-4">
+          {/* Name */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Product Name *</label>
+            <input value={form.name} onChange={(e) => setField('name', e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          {/* Type + Status row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Type</label>
+              <select value={form.type} onChange={(e) => setField('type', e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+                <option value="PHYSICAL">Physical</option>
+                <option value="DIGITAL">Digital</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Status</label>
+              <select value={form.status} onChange={(e) => setField('status', e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+                <option value="DRAFT">Draft</option>
+                <option value="ACTIVE">Active</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Price + Compare price */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Price (USD) *</label>
+              <input type="number" step="0.01" min="0" value={form.price} onChange={(e) => setField('price', e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Compare Price (strike-through)</label>
+              <input type="number" step="0.01" min="0" value={form.comparePrice} onChange={(e) => setField('comparePrice', e.target.value)}
+                placeholder="Optional"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Description</label>
+            <textarea value={form.description} onChange={(e) => setField('description', e.target.value)} rows={3}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+
+          {/* Image URL */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Image URL (R2 key or https://…)</label>
+            <input value={form.imageUrl} onChange={(e) => setField('imageUrl', e.target.value)}
+              placeholder="products/my-item.jpg"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Tags (comma-separated)</label>
+            <input value={form.tags} onChange={(e) => setField('tags', e.target.value)}
+              placeholder="merch, music, limited"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          {/* Featured */}
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={form.featured} onChange={(e) => setField('featured', e.target.checked)}
+              className="w-4 h-4 accent-brand-500 rounded" />
+            <span className="text-sm text-gray-300">Featured product (shown with badge, sorted first)</span>
+          </label>
+
+          {/* Variants */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-gray-400">Variants (sizes, editions, etc.)</label>
+              <button onClick={addVariant} className="text-xs text-brand-400 hover:text-brand-300">+ Add variant</button>
+            </div>
+            <div className="space-y-2">
+              {form.variants.map((v: any, i: number) => (
+                <div key={i} className="grid grid-cols-7 gap-2 items-center">
+                  <input value={v.name} onChange={(e) => setVariant(i, 'name', e.target.value)}
+                    placeholder="e.g. Large"
+                    className="col-span-3 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                  <input type="number" value={v.inventory} onChange={(e) => setVariant(i, 'inventory', e.target.value)}
+                    placeholder="Qty"
+                    className="col-span-2 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                  <input type="number" step="0.01" value={v.price} onChange={(e) => setVariant(i, 'price', e.target.value)}
+                    placeholder="$"
+                    className="col-span-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                  <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">✕</button>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-600 mt-1.5">Leave variant name blank to skip. Price overrides base price if set.</p>
+          </div>
+
+          {err && <p className="text-red-400 text-sm">{err}</p>}
+        </div>
+
+        <div className="px-6 py-4 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-brand-500 text-black font-bold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Product'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShopTab() {
+  const [subTab, setSubTab] = useState<'products' | 'orders'>('products');
+
+  // ── Products state ───────────────────────────────────────────────────────────
+  const [products, setProducts]   = useState<AdminProduct[]>([]);
+  const [prodLoading, setProdLoad] = useState(true);
+  const [showForm, setShowForm]   = useState(false);
+  const [editProduct, setEditProduct] = useState<AdminProduct | null>(null);
+
+  // ── Orders state ─────────────────────────────────────────────────────────────
+  const [orders, setOrders]         = useState<AdminOrder[]>([]);
+  const [ordersLoading, setOrdLoad] = useState(false);
+  const [orderStatus, setOrderStatus] = useState('ALL');
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [trackingInput, setTrackingInput] = useState<Record<string, string>>({});
+  const [updatingOrder, setUpdatingOrder] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get('/admin/products').then((r) => setProducts(r.data.products)).catch(() => {}).finally(() => setProdLoad(false));
+  }, []);
+
+  useEffect(() => {
+    if (subTab !== 'orders') return;
+    setOrdLoad(true);
+    const q = orderStatus !== 'ALL' ? `?status=${orderStatus}` : '';
+    api.get(`/admin/orders${q}`).then((r) => setOrders(r.data.orders)).catch(() => {}).finally(() => setOrdLoad(false));
+  }, [subTab, orderStatus]);
+
+  function onProductSaved(p: AdminProduct) {
+    setProducts((prev) => {
+      const idx = prev.findIndex((x) => x.id === p.id);
+      return idx >= 0 ? prev.map((x, i) => (i === idx ? p : x)) : [p, ...prev];
+    });
+    setShowForm(false);
+    setEditProduct(null);
+  }
+
+  async function toggleStatus(p: AdminProduct) {
+    const next = p.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE';
+    try {
+      const { data } = await api.patch(`/admin/products/${p.id}`, { status: next });
+      setProducts((prev) => prev.map((x) => (x.id === p.id ? data.product : x)));
+    } catch {}
+  }
+
+  async function updateOrder(orderId: string, payload: object) {
+    setUpdatingOrder(orderId);
+    try {
+      const { data } = await api.patch(`/admin/orders/${orderId}`, payload);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...data.order } : o)));
+    } catch {}
+    setUpdatingOrder(null);
+  }
+
+  const ORDER_STATUS_COLORS: Record<string, string> = {
+    PAID: 'text-camp-400 bg-camp-500/10 border-camp-500/30',
+    PROCESSING: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
+    SHIPPED: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
+    DELIVERED: 'text-brand-400 bg-brand-500/10 border-brand-500/30',
+    CANCELLED: 'text-red-400 bg-red-500/10 border-red-500/30',
+    REFUNDED: 'text-gray-400 bg-surface-700 border-surface-600',
+    PENDING: 'text-gray-400 bg-surface-700 border-surface-600',
+  };
+
+  return (
+    <div>
+      {/* Sub-tab bar */}
+      <div className="flex gap-2 mb-6">
+        {(['products', 'orders'] as const).map((t) => (
+          <button key={t} onClick={() => setSubTab(t)}
+            className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors border ${
+              subTab === t ? 'bg-brand-500 text-black border-brand-500' : 'border-surface-600 text-gray-400 hover:text-white bg-surface-800'
+            }`}>
+            {t === 'products' ? '📦 Products' : '🧾 Orders'}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Products ── */}
+      {subTab === 'products' && (
+        <div>
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-gray-400 text-sm">{products.length} product{products.length !== 1 ? 's' : ''}</p>
+            <button onClick={() => { setEditProduct(null); setShowForm(true); }}
+              className="bg-brand-500 hover:bg-brand-600 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+              + New Product
+            </button>
+          </div>
+
+          {prodLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-surface-800 rounded-xl h-14 animate-pulse" />
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-4xl mb-3">📦</p>
+              <p className="text-gray-400 mb-4">No products yet. Add your first one.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-surface-700">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-surface-700 bg-surface-800/60">
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Product</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Type</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Price</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Status</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Variants</th>
+                    <th className="text-right px-4 py-3 text-gray-400 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-surface-700">
+                  {products.map((p) => (
+                    <tr key={p.id} className="bg-surface-800 hover:bg-surface-700/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {p.imageUrl && p.imageUrl.startsWith('http') ? (
+                            <img src={p.imageUrl} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-surface-700 flex items-center justify-center text-lg flex-shrink-0">
+                              {p.type === 'DIGITAL' ? '📦' : '👕'}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-white font-medium leading-snug">{p.name}</p>
+                            {p.featured && <span className="text-xs text-brand-400">Featured</span>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400">{p.type === 'DIGITAL' ? 'Digital' : 'Physical'}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-brand-400 font-semibold">${p.price.toFixed(2)}</span>
+                        {p.comparePrice && <span className="text-gray-600 text-xs line-through ml-1">${p.comparePrice.toFixed(2)}</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-semibold ${STATUS_COLORS[p.status] || 'text-gray-400'}`}>{p.status}</span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400">{p.variants.length}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => { setEditProduct(p); setShowForm(true); }}
+                            className="text-xs text-gray-400 hover:text-white border border-surface-600 hover:border-surface-400 px-3 py-1.5 rounded-lg transition-colors">
+                            Edit
+                          </button>
+                          <button onClick={() => toggleStatus(p)}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                              p.status === 'ACTIVE'
+                                ? 'text-red-400 border-red-500/30 hover:bg-red-500/10'
+                                : 'text-camp-400 border-camp-500/30 hover:bg-camp-500/10'
+                            }`}>
+                            {p.status === 'ACTIVE' ? 'Archive' : 'Activate'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Orders ── */}
+      {subTab === 'orders' && (
+        <div>
+          {/* Status filter */}
+          <div className="flex gap-2 flex-wrap mb-5">
+            {ORDER_STATUSES.map((s) => (
+              <button key={s} onClick={() => setOrderStatus(s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  orderStatus === s ? 'bg-brand-500 text-black border-brand-500' : 'border-surface-600 text-gray-400 hover:text-white bg-surface-800'
+                }`}>
+                {s}
+              </button>
+            ))}
+          </div>
+
+          {ordersLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => <div key={i} className="bg-surface-800 rounded-xl h-14 animate-pulse" />)}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-4xl mb-3">🧾</p>
+              <p className="text-gray-400">No orders found.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {orders.map((order) => {
+                const isOpen = expandedOrder === order.id;
+                const colorClass = ORDER_STATUS_COLORS[order.status] || 'text-gray-400 bg-surface-700 border-surface-600';
+                return (
+                  <div key={order.id} className="bg-surface-800 border border-surface-700 rounded-xl overflow-hidden">
+                    <button onClick={() => setExpandedOrder(isOpen ? null : order.id)}
+                      className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-surface-700/40 transition-colors">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${colorClass}`}>{order.status}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium">#{order.id.slice(-8).toUpperCase()}</p>
+                        <p className="text-gray-500 text-xs">{order.user?.username || order.email} · {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      </div>
+                      <span className="text-brand-400 font-bold text-sm">${order.total.toFixed(2)}</span>
+                      <span className="text-gray-500 text-xs">{isOpen ? '▲' : '▼'}</span>
+                    </button>
+
+                    {isOpen && (
+                      <div className="border-t border-surface-700 px-5 py-4 space-y-4">
+                        {/* Items */}
+                        <div className="space-y-1">
+                          {order.items.map((item, i) => (
+                            <div key={i} className="flex justify-between text-sm">
+                              <span className="text-gray-300">{item.name}{item.variantName ? ` — ${item.variantName}` : ''} ×{item.quantity}</span>
+                              <span className="text-gray-400">${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                          {order.discount > 0 && (
+                            <div className="flex justify-between text-xs text-brand-400">
+                              <span>Member discount</span><span>−${order.discount.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Tracking */}
+                        <div className="flex gap-2">
+                          <input
+                            value={trackingInput[order.id] ?? order.trackingNumber ?? ''}
+                            onChange={(e) => setTrackingInput((t) => ({ ...t, [order.id]: e.target.value }))}
+                            placeholder="Tracking number"
+                            className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-brand-400"
+                          />
+                          <button
+                            onClick={() => updateOrder(order.id, { trackingNumber: trackingInput[order.id] ?? order.trackingNumber ?? '' })}
+                            disabled={updatingOrder === order.id}
+                            className="px-3 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 rounded-lg text-xs transition-colors disabled:opacity-50">
+                            Save
+                          </button>
+                        </div>
+
+                        {/* Status controls */}
+                        <div className="flex gap-2 flex-wrap">
+                          {['PROCESSING','SHIPPED','DELIVERED','CANCELLED'].map((s) => (
+                            <button key={s} disabled={order.status === s || updatingOrder === order.id}
+                              onClick={() => updateOrder(order.id, { status: s })}
+                              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-40 ${
+                                order.status === s
+                                  ? 'border-brand-500 text-brand-400 bg-brand-500/10'
+                                  : 'border-surface-600 text-gray-400 hover:text-white bg-surface-800'
+                              }`}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Product form modal */}
+      {showForm && (
+        <ProductFormModal
+          initial={editProduct}
+          onSave={onProductSaved}
+          onClose={() => { setShowForm(false); setEditProduct(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function AdminInner() {
@@ -2336,6 +2827,7 @@ function AdminInner() {
     { key: 'reports',   label: 'Reports',   emoji: '⚑' },
     { key: 'polls',     label: 'Polls',     emoji: '🗳️' },
     { key: 'partners',  label: 'Partners',  emoji: '🤝' },
+    { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
   ];
 
   return (
@@ -2371,6 +2863,7 @@ function AdminInner() {
       {tab === 'reports'   && <ReportsTab />}
       {tab === 'polls'     && <PollsTab autoCreate={autoCreatePoll} />}
       {tab === 'partners'  && <PartnersTab />}
+      {tab === 'shop'      && <ShopTab />}
     </div>
   );
 }

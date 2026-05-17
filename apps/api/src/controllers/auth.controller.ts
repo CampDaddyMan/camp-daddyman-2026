@@ -134,8 +134,8 @@ export async function login(req: Request, res: Response) {
   const ua = req.headers['user-agent'];
   const now = new Date();
 
-  // Admins and testers: bypass conflict detection, allow multi-device login
-  if (user.isAdmin || user.isTester) {
+  // Testers only: bypass 2FA and conflict detection (for QA multi-device testing)
+  if (user.isTester) {
     const jwtId = await createSession(user.id, deviceId || '', deviceLabel || 'Unknown browser', ip, ua);
     const token = signToken({ id: user.id, isAdmin: user.isAdmin }, jwtId);
     return res.json({

@@ -49,7 +49,8 @@ export async function getProduct(req: Request, res: Response) {
   if (!product) return res.status(404).json({ error: 'Product not found' });
 
   const imageUrl = await signR2Url(product.imageUrl);
-  res.json({ product: { ...product, imageUrl } });
+  const optionGroups = await signOptionGroupImages(product.optionGroups);
+  res.json({ product: { ...product, imageUrl, optionGroups } });
 }
 
 // ── Coupon validation (public) ────────────────────────────────────────────────

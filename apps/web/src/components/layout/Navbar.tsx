@@ -1,31 +1,130 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, FormEvent } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import NotificationBell from './NotificationBell';
+
+function IconCart() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+  );
+}
+
+function IconSearch() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
+
+function IconMenu() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+
+function IconClose() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function IconChevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+      strokeLinecap="round" strokeLinejoin="round"
+      className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function MobileSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="px-4 pt-4 pb-2">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1 px-3">{label}</p>
+      <div className="flex flex-col">{children}</div>
+    </div>
+  );
+}
+
+function MobileLink({ href, onClick, accent, children }: { href: string; onClick: () => void; accent?: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`px-3 py-2.5 text-sm rounded-lg transition-colors ${accent ? 'text-brand-400 font-semibold hover:text-brand-300' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+const BROWSE_ITEMS = [
+  { label: 'All Content', href: '/browse' },
+  { label: 'Music', href: '/browse?type=MUSIC' },
+  { label: 'Film', href: '/browse?type=FILM' },
+  { label: 'Podcasts', href: '/browse?type=PODCAST' },
+  { label: 'Spoken Word', href: '/browse?type=SPOKEN_WORD' },
+];
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const browseRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (browseRef.current && !browseRef.current.contains(e.target as Node)) {
+        setBrowseOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    setBrowseOpen(false);
+  }, [pathname]);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
     if (searchQuery.trim().length < 2) return;
     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery('');
-    setOpen(false);
+    setMobileOpen(false);
   }
 
+  const isBrowseActive = pathname?.startsWith('/browse');
+
   return (
-    <nav className="sticky top-0 z-50 bg-surface-900/95 backdrop-blur border-b-0" style={{boxShadow:'0 1px 0 0 rgba(0,155,58,0.4), 0 2px 0 0 rgba(232,184,0,0.2)'}}>
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-        <Link href="/" className="flex items-center gap-2.5 group">
+    <nav
+      className="sticky top-0 z-50 bg-surface-900/95 backdrop-blur border-b-0"
+      style={{ boxShadow: '0 1px 0 0 rgba(0,155,58,0.4), 0 2px 0 0 rgba(232,184,0,0.2)' }}
+    >
+      <div className="max-w-7xl mx-auto px-4 flex items-center h-16 gap-3">
+
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group shrink-0 mr-1">
           <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-brand-500/40 group-hover:ring-brand-400/60 transition-all shadow-[0_0_12px_rgba(232,184,0,0.15)]">
             <Image
               src="/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png"
@@ -35,68 +134,125 @@ export default function Navbar() {
               className="object-cover"
             />
           </div>
-          <span className="text-brand-400 font-bold text-lg tracking-tight leading-none">Camp DaddyMan</span>
+          <span className="text-brand-400 font-bold text-lg tracking-tight leading-none hidden lg:block">Camp DaddyMan</span>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-6 text-sm">
-          <Link href="/" className="text-gray-300 hover:text-white transition-colors">Home</Link>
-          <Link href="/browse" className="text-gray-300 hover:text-white transition-colors">Browse</Link>
-          <Link href="/browse?type=MUSIC" className="text-gray-300 hover:text-white transition-colors">Music</Link>
-          <Link href="/browse?type=FILM" className="text-gray-300 hover:text-white transition-colors">Film</Link>
-          <Link href="/browse?type=PODCAST" className="text-gray-300 hover:text-white transition-colors">Podcasts</Link>
-          <Link href="/browse?type=SPOKEN_WORD" className="text-gray-300 hover:text-white transition-colors">Spoken Word</Link>
-          <Link href="/polls" className="text-gray-300 hover:text-white transition-colors">Polls 🗳️</Link>
-          <Link href="/partners" className="text-gray-300 hover:text-white transition-colors">Partners</Link>
-          <Link href="/membership" className="text-brand-400 hover:text-brand-300 font-semibold transition-colors">Membership</Link>
-          <Link href="/shop" className="text-gray-300 hover:text-white transition-colors">The Ark 🛒</Link>
+        {/* Desktop center nav */}
+        <div className="hidden md:flex items-center gap-0.5 flex-1">
+
+          {/* Browse dropdown */}
+          <div ref={browseRef} className="relative">
+            <button
+              onClick={() => setBrowseOpen(!browseOpen)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                browseOpen || isBrowseActive
+                  ? 'text-white bg-surface-700'
+                  : 'text-gray-300 hover:text-white hover:bg-surface-800'
+              }`}
+            >
+              Browse
+              <IconChevron open={browseOpen} />
+            </button>
+            {browseOpen && (
+              <div className="absolute top-full left-0 mt-1.5 w-48 bg-surface-800 border border-surface-600/60 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+                {BROWSE_ITEMS.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setBrowseOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link
+            href="/polls"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/polls' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            Polls
+          </Link>
+          <Link
+            href="/partners"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/partners' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            Partners
+          </Link>
         </div>
 
-        {/* Desktop search */}
-        <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2">
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search..."
-            className="bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-1.5 text-sm w-48 focus:outline-none focus:border-brand-400 focus:w-64 transition-all"
-          />
-          <button type="submit" className="text-gray-400 hover:text-brand-400 transition-colors text-lg leading-none">
-            🔍
-          </button>
-        </form>
+        {/* Desktop right section */}
+        <div className="hidden md:flex items-center gap-2 ml-auto">
 
-        <div className="hidden md:flex items-center gap-3">
-          <Link href="/shop/cart" className="relative text-gray-300 hover:text-brand-400 transition-colors text-lg">
-            🛒
+          {/* Search */}
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="bg-surface-700/70 border border-surface-600 text-white rounded-lg pl-3 pr-8 py-1.5 text-sm w-36 focus:outline-none focus:border-brand-400/60 focus:w-48 focus:bg-surface-700 transition-all"
+            />
+            <button type="submit" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-brand-400 transition-colors">
+              <IconSearch />
+            </button>
+          </form>
+
+          <div className="w-px h-5 bg-surface-600 mx-0.5" />
+
+          {/* Membership pill */}
+          <Link
+            href="/membership"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-brand-500/15 text-brand-400 border border-brand-500/30 hover:bg-brand-500/25 hover:border-brand-400/60 hover:text-brand-300 transition-all whitespace-nowrap"
+          >
+            <span className="text-[11px]">★</span>
+            Membership
+          </Link>
+
+          {/* The Ark pill */}
+          <Link
+            href="/shop"
+            className="flex items-center px-3.5 py-1.5 rounded-full text-sm font-semibold bg-surface-700 text-gray-200 border border-surface-600 hover:bg-surface-600 hover:text-white hover:border-surface-500 transition-all whitespace-nowrap"
+          >
+            The Ark
+          </Link>
+
+          <div className="w-px h-5 bg-surface-600 mx-0.5" />
+
+          {/* Cart */}
+          <Link href="/shop/cart" className="relative p-2 text-gray-400 hover:text-brand-400 transition-colors rounded-lg hover:bg-surface-800">
+            <IconCart />
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-brand-500 text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+              <span className="absolute top-0 right-0 bg-brand-500 text-black text-[9px] font-bold min-w-[16px] h-4 px-0.5 rounded-full flex items-center justify-center leading-none">
                 {totalItems > 9 ? '9+' : totalItems}
               </span>
             )}
           </Link>
+
+          {/* User area */}
           {user ? (
             <>
-              <Link href="/feed" className="text-sm text-gray-300 hover:text-white transition-colors">Following</Link>
               <NotificationBell />
-              <Link href="/dashboard" className="text-sm text-gray-300 hover:text-white transition-colors">
+              <Link href="/dashboard" className="text-sm text-gray-300 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-surface-800 max-w-[120px] truncate">
                 {user.displayName || user.username}
               </Link>
+              <Link href="/upload" className="text-sm bg-surface-700 hover:bg-surface-600 border border-surface-600 hover:border-surface-500 text-gray-200 px-3 py-1.5 rounded-lg font-medium transition-all">
+                Upload
+              </Link>
               {user.isAdmin && (
-                <Link href="/admin" className="text-xs bg-brand-500 text-black px-3 py-1 rounded-full font-semibold">
+                <Link href="/admin" className="text-xs bg-brand-500 hover:bg-brand-400 text-black px-3 py-1 rounded-full font-semibold transition-colors">
                   Admin
                 </Link>
               )}
-              <Link href="/upload" className="text-sm bg-surface-600 hover:bg-surface-500 px-4 py-2 rounded-lg transition-colors">
-                Upload
-              </Link>
-              <button onClick={logout} className="text-sm text-gray-400 hover:text-white transition-colors">
+              <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
                 Sign out
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm text-gray-300 hover:text-white transition-colors">Sign in</Link>
-              <Link href="/register" className="text-sm bg-brand-500 hover:bg-brand-600 text-black px-4 py-2 rounded-lg font-semibold transition-colors">
+              <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors px-2">Sign in</Link>
+              <Link href="/register" className="text-sm bg-brand-500 hover:bg-brand-400 text-black px-4 py-2 rounded-lg font-semibold transition-colors">
                 Join
               </Link>
             </>
@@ -104,52 +260,112 @@ export default function Navbar() {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setOpen(!open)}>
-          {open ? '✕' : '☰'}
+        <button
+          className="md:hidden ml-auto p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-surface-800"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+        >
+          {mobileOpen ? <IconClose /> : <IconMenu />}
         </button>
       </div>
 
       {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden bg-surface-800 border-t border-surface-700 px-4 py-4 flex flex-col gap-4 text-sm">
-          <Link href="/" onClick={() => setOpen(false)} className="text-gray-300">Home</Link>
-          <Link href="/browse" onClick={() => setOpen(false)} className="text-gray-300">Browse</Link>
-          <Link href="/browse?type=MUSIC" onClick={() => setOpen(false)} className="text-gray-300">Music</Link>
-          <Link href="/browse?type=FILM" onClick={() => setOpen(false)} className="text-gray-300">Film</Link>
-          <Link href="/browse?type=PODCAST" onClick={() => setOpen(false)} className="text-gray-300">Podcasts</Link>
-          <Link href="/browse?type=SPOKEN_WORD" onClick={() => setOpen(false)} className="text-gray-300">Spoken Word</Link>
-          <Link href="/polls" onClick={() => setOpen(false)} className="text-gray-300">Polls 🗳️</Link>
-          <Link href="/partners" onClick={() => setOpen(false)} className="text-gray-300">Partners</Link>
-          <Link href="/membership" onClick={() => setOpen(false)} className="text-brand-400 font-semibold">Membership</Link>
-          <Link href="/shop" onClick={() => setOpen(false)} className="text-gray-300 flex items-center justify-between">The Ark — Merch Store {totalItems > 0 && <span className="bg-brand-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">{totalItems}</span>}</Link>
-          {/* Mobile search */}
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
-            />
-            <button type="submit" className="bg-brand-500 text-black px-3 py-2 rounded-lg text-sm font-semibold">
-              Go
-            </button>
-          </form>
-          {user ? (
-            <>
-              <Link href="/feed" onClick={() => setOpen(false)} className="text-gray-300">Following</Link>
-              <Link href="/notifications" onClick={() => setOpen(false)} className="text-gray-300">Notifications</Link>
-              <Link href="/dashboard" onClick={() => setOpen(false)} className="text-gray-300">Dashboard</Link>
-              <Link href="/shop/orders" onClick={() => setOpen(false)} className="text-gray-300">My Orders</Link>
-              <Link href="/upload" onClick={() => setOpen(false)} className="text-gray-300">Upload</Link>
-              {user.isAdmin && <Link href="/admin" onClick={() => setOpen(false)} className="text-brand-400">Admin</Link>}
-              <button onClick={() => { logout(); setOpen(false); }} className="text-left text-gray-400">Sign out</button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" onClick={() => setOpen(false)} className="text-gray-300">Sign in</Link>
-              <Link href="/register" onClick={() => setOpen(false)} className="text-brand-400 font-semibold">Join</Link>
-            </>
+      {mobileOpen && (
+        <div className="md:hidden bg-surface-900 border-t border-surface-700/60 overflow-y-auto max-h-[85vh]">
+
+          {/* Search */}
+          <div className="px-4 pt-4 pb-2">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search content..."
+                className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+              />
+              <button type="submit" className="bg-brand-500 text-black px-4 py-2 rounded-xl text-sm font-bold hover:bg-brand-400 transition-colors">
+                Go
+              </button>
+            </form>
+          </div>
+
+          {/* Membership CTA for logged-out */}
+          {!user && (
+            <div className="mx-4 mt-3 mb-1 p-4 bg-brand-500/10 border border-brand-500/25 rounded-xl">
+              <p className="text-sm text-brand-300 font-bold mb-1">Join Camp DaddyMan</p>
+              <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                Exclusive music, film, podcasts &amp; merch discounts — all in one place.
+              </p>
+              <Link
+                href="/register"
+                onClick={() => setMobileOpen(false)}
+                className="block text-center bg-brand-500 text-black text-sm font-bold px-4 py-2.5 rounded-lg hover:bg-brand-400 transition-colors"
+              >
+                Join Now — It&apos;s Free
+              </Link>
+            </div>
           )}
+
+          {/* Explore */}
+          <MobileSection label="Explore">
+            <MobileLink href="/browse" onClick={() => setMobileOpen(false)}>All Content</MobileLink>
+            <MobileLink href="/browse?type=MUSIC" onClick={() => setMobileOpen(false)}>Music</MobileLink>
+            <MobileLink href="/browse?type=FILM" onClick={() => setMobileOpen(false)}>Film</MobileLink>
+            <MobileLink href="/browse?type=PODCAST" onClick={() => setMobileOpen(false)}>Podcasts</MobileLink>
+            <MobileLink href="/browse?type=SPOKEN_WORD" onClick={() => setMobileOpen(false)}>Spoken Word</MobileLink>
+          </MobileSection>
+
+          {/* Community */}
+          <MobileSection label="Community">
+            <MobileLink href="/polls" onClick={() => setMobileOpen(false)}>Polls</MobileLink>
+            <MobileLink href="/partners" onClick={() => setMobileOpen(false)}>Partners</MobileLink>
+          </MobileSection>
+
+          {/* Store */}
+          <MobileSection label="Store">
+            <MobileLink href="/shop" onClick={() => setMobileOpen(false)}>The Ark — Merch</MobileLink>
+            <MobileLink href="/shop/cart" onClick={() => setMobileOpen(false)}>
+              <span className="flex items-center justify-between">
+                Cart
+                {totalItems > 0 && (
+                  <span className="bg-brand-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">{totalItems}</span>
+                )}
+              </span>
+            </MobileLink>
+            <Link
+              href="/membership"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-brand-400 font-semibold hover:text-brand-300 transition-colors rounded-lg"
+            >
+              <span className="text-[12px]">★</span>
+              Membership
+            </Link>
+          </MobileSection>
+
+          {/* Account */}
+          {user ? (
+            <MobileSection label="Account">
+              <MobileLink href="/feed" onClick={() => setMobileOpen(false)}>Following</MobileLink>
+              <MobileLink href="/notifications" onClick={() => setMobileOpen(false)}>Notifications</MobileLink>
+              <MobileLink href="/dashboard" onClick={() => setMobileOpen(false)}>{user.displayName || user.username}</MobileLink>
+              <MobileLink href="/shop/orders" onClick={() => setMobileOpen(false)}>My Orders</MobileLink>
+              <MobileLink href="/upload" onClick={() => setMobileOpen(false)}>Upload</MobileLink>
+              {user.isAdmin && (
+                <MobileLink href="/admin" onClick={() => setMobileOpen(false)} accent>Admin Panel</MobileLink>
+              )}
+              <button
+                onClick={() => { logout(); setMobileOpen(false); }}
+                className="w-full text-left px-3 py-2.5 text-sm text-gray-400 hover:text-white transition-colors rounded-lg"
+              >
+                Sign out
+              </button>
+            </MobileSection>
+          ) : (
+            <MobileSection label="Account">
+              <MobileLink href="/login" onClick={() => setMobileOpen(false)}>Sign in</MobileLink>
+            </MobileSection>
+          )}
+
+          <div className="h-6" />
         </div>
       )}
     </nav>

@@ -157,6 +157,12 @@ export default function ShopPage() {
           siteSettings.shop_stat_value_css && `.shop-intro .shop-stat-value{${siteSettings.shop_stat_value_css}}`,
           siteSettings.shop_stat_label_css && `.shop-intro .shop-stat-label{${siteSettings.shop_stat_label_css}}`,
           siteSettings.shop_subheading_css && `.shop-intro .shop-subheading{${siteSettings.shop_subheading_css}}`,
+          // Font-size inputs — after CSS textarea so they take precedence
+          siteSettings.shop_eyebrow_font_size    && `.shop-intro .shop-eyebrow{font-size:${siteSettings.shop_eyebrow_font_size}}`,
+          siteSettings.shop_heading_font_size    && `.shop-intro .shop-title{font-size:${siteSettings.shop_heading_font_size}}`,
+          siteSettings.shop_stat_value_font_size && `.shop-intro .shop-stat-value{font-size:${siteSettings.shop_stat_value_font_size}}`,
+          siteSettings.shop_stat_label_font_size && `.shop-intro .shop-stat-label{font-size:${siteSettings.shop_stat_label_font_size}}`,
+          siteSettings.shop_subheading_font_size && `.shop-intro .shop-subheading{font-size:${siteSettings.shop_subheading_font_size}}`,
         ].filter(Boolean).join('');
         return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
       })()}

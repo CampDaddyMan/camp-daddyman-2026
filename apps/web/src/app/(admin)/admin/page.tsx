@@ -3333,19 +3333,26 @@ function SaveBtn({ k }: { k: string }) {
 }
 
 function FieldBlock({
-  label, textKey, placeholder, cssKey, cssClass, snippets,
+  label, textKey, placeholder, cssKey, cssClass, fontSizeKey, snippets,
 }: {
   label: string; textKey?: string; placeholder?: string;
-  cssKey: string; cssClass: string;
+  cssKey: string; cssClass: string; fontSizeKey?: string;
   snippets: { tag: string; css: string }[];
 }) {
   const { settings, set, loading } = useContext(SettingsCtx);
+
+  const parseFontSize = (raw: string) => {
+    const m = (raw ?? '').trim().match(/^([\d.]+)(px|rem|em|vw|vh|%)$/);
+    return { num: m?.[1] ?? '', unit: (m?.[2] ?? 'px') as string };
+  };
+
   return (
     <div className="space-y-2 pb-6 border-b border-surface-800/50 last:border-0">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-white">{label}</span>
         <code className="text-[10px] text-brand-400/70 bg-surface-800 px-2 py-0.5 rounded font-mono">.{cssClass}</code>
       </div>
+
       {textKey ? (
         <div className="flex gap-2">
           <input
@@ -3361,11 +3368,46 @@ function FieldBlock({
       ) : (
         <p className="text-xs text-gray-600 italic">Content is dynamic — pulled live from the database.</p>
       )}
+
+      {fontSizeKey && (() => {
+        const { num, unit } = parseFontSize(settings[fontSizeKey] ?? '');
+        return (
+          <div>
+            <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Font Size</label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                min={1}
+                step={1}
+                value={num}
+                onChange={(e) => set(fontSizeKey, e.target.value ? `${e.target.value}${unit}` : '')}
+                placeholder="24"
+                disabled={loading}
+                className="w-24 bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <select
+                value={unit}
+                onChange={(e) => set(fontSizeKey, num ? `${num}${e.target.value}` : '')}
+                disabled={loading}
+                className="bg-surface-900 border border-surface-600 text-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <option value="px">px</option>
+                <option value="rem">rem</option>
+                <option value="em">em</option>
+                <option value="vw">vw</option>
+                <option value="%">%</option>
+              </select>
+              <SaveBtn k={fontSizeKey} />
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="flex gap-2">
         <textarea
           value={settings[cssKey] ?? ''}
           onChange={(e) => set(cssKey, e.target.value)}
-          placeholder={`/* styles for .${cssClass} */\ncolor: #ffffff;\nfont-size: 2rem;`}
+          placeholder={`/* styles for .${cssClass} */\ncolor: #ffffff;`}
           disabled={loading}
           rows={3}
           spellCheck={false}
@@ -3446,6 +3488,7 @@ function SettingsTab() {
             placeholder="Camp DaddyMan Official Store"
             cssKey="shop_eyebrow_css"
             cssClass="shop-eyebrow"
+            fontSizeKey="shop_eyebrow_font_size"
             snippets={[
               { tag: 'Gold',       css: 'color: #f8c202;' },
               { tag: 'Teal',       css: 'color: #0ba691;' },
@@ -3467,6 +3510,7 @@ function SettingsTab() {
             placeholder="Merch, Music & Limited Drops"
             cssKey="shop_heading_css"
             cssClass="shop-title"
+            fontSizeKey="shop_heading_font_size"
             snippets={[
               { tag: 'Glow Gold',    css: 'text-shadow: 0 0 40px rgba(248,194,2,0.7), 0 0 80px rgba(248,194,2,0.3);' },
               { tag: 'Glow Teal',    css: 'text-shadow: 0 0 40px rgba(11,166,145,0.8), 0 0 80px rgba(11,166,145,0.3);' },
@@ -3491,6 +3535,7 @@ function SettingsTab() {
             placeholder="Straight from the Camp."
             cssKey="shop_subheading_css"
             cssClass="shop-subheading"
+            fontSizeKey="shop_subheading_font_size"
             snippets={[
               { tag: 'White',     css: 'color: #ffffff;' },
               { tag: 'Gold',      css: 'color: #f8c202;' },
@@ -3511,6 +3556,7 @@ function SettingsTab() {
             label="Stat Values (2 · 15% · 1 — dynamic)"
             cssKey="shop_stat_value_css"
             cssClass="shop-stat-value"
+            fontSizeKey="shop_stat_value_font_size"
             snippets={[
               { tag: 'Glow Gold',    css: 'text-shadow: 0 0 24px rgba(248,194,2,1), 0 0 56px rgba(248,194,2,0.5);' },
               { tag: 'Glow Green',   css: 'text-shadow: 0 0 24px rgba(11,166,145,1), 0 0 56px rgba(11,166,145,0.5);' },
@@ -3532,6 +3578,7 @@ function SettingsTab() {
             label="Stat Labels (Products · Max Discount · Featured Drop — dynamic)"
             cssKey="shop_stat_label_css"
             cssClass="shop-stat-label"
+            fontSizeKey="shop_stat_label_font_size"
             snippets={[
               { tag: 'Gold',      css: 'color: #f8c202;' },
               { tag: 'Teal',      css: 'color: #0ba691;' },

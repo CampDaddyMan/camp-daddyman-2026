@@ -163,23 +163,21 @@ export default function ShopPage() {
         {/* Bottom fade into the page */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-black to-transparent" />
 
-        {/* Overlaid content — sits at the bottom of the banner */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 px-4">
-          <div className="text-center max-w-3xl mx-auto">
+        {/* Overlaid content — centered where THE ARK headline was */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
 
-          {/* Sub */}
-          <p className="text-white/80 text-base md:text-lg max-w-md mx-auto mb-6 leading-relaxed drop-shadow-lg">
-            Merch, music & limited drops — straight from the Camp.
+          <p className="text-white/80 text-base md:text-lg drop-shadow-lg">
+            Merch, music &amp; limited drops — straight from the Camp.
             {!user && <><br /><span className="text-brand-400 font-semibold">Members save up to 15%.</span></>}
-            {memberRate > 0 && <><br /><span className="text-camp-400 font-semibold">You're saving {memberRate}% today.</span></>}
+            {memberRate > 0 && <><br /><span className="text-camp-400 font-semibold">You&apos;re saving {memberRate}% today.</span></>}
           </p>
 
-          {/* Stats row */}
           {!loading && products.length > 0 && (
-            <div className="flex items-center justify-center gap-6 md:gap-10 mb-6">
+            <div className="flex items-center justify-center gap-6 md:gap-10">
               {[
                 { value: String(products.length), label: 'Products' },
-                { value: '15%', label: 'Member Discount', gold: true },
+                { value: '15%', label: 'Max Discount', gold: true },
                 { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
               ].map(({ value, label, gold }) => (
                 <div key={label} className="text-center drop-shadow-lg">
@@ -190,8 +188,7 @@ export default function ShopPage() {
             </div>
           )}
 
-          {/* CTAs */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
+          <div className="flex items-center justify-center gap-3 flex-wrap pt-2">
             <button
               onClick={scrollToCollection}
               className="bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
@@ -205,6 +202,7 @@ export default function ShopPage() {
               <span>🛒</span> Cart
             </Link>
           </div>
+        </div>
         </div>
       </section>
 

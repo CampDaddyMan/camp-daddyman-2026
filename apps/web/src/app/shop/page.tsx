@@ -159,75 +159,81 @@ export default function ShopPage() {
       </section>
 
       {/* ── Shop intro — stacked editorial block ────────────────────────────── */}
-      <section className="bg-[#050505] border-b border-brand-500/10 px-[5%] pt-16 pb-12">
-        <div className="w-full max-w-[90%] mx-auto">
+      {(() => {
+        const align = siteSettings.shop_intro_align || 'center';
+        const isCenter = align === 'center';
+        return (
+          <section className="shop-intro bg-[#050505] border-b border-brand-500/10 px-[5%] pt-16 pb-12">
+            <div className={`w-full max-w-[90%] mx-auto flex flex-col ${isCenter ? 'items-center text-center' : 'items-start text-left'}`}>
 
-          {/* Row 1: eyebrow */}
-          <p className="text-brand-400 text-[11px] font-bold uppercase tracking-[0.28em] mb-4">
-            {siteSettings.shop_eyebrow || 'Camp DaddyMan Official Store'}
-          </p>
+              {/* Row 1: eyebrow */}
+              <p className="text-brand-400 text-[11px] font-bold uppercase tracking-[0.28em] mb-4">
+                {siteSettings.shop_eyebrow || 'Camp DaddyMan Official Store'}
+              </p>
 
-          {/* Row 2: main heading */}
-          <h1 className="shop-title font-black text-[#f5f1e8] leading-[0.95] tracking-tight mb-7 [font-family:Georgia,serif] text-[clamp(38px,5vw,72px)] w-full">
-            {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
-          </h1>
+              {/* Row 2: main heading */}
+              <h1 className="shop-title font-black text-[#f5f1e8] leading-[0.95] tracking-tight mb-7 [font-family:Georgia,serif] text-[clamp(38px,5vw,72px)] w-full">
+                {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
+              </h1>
 
-          {/* Row 3: stats — full width on mobile, auto on desktop */}
-          {!loading && products.length > 0 && (
-            <div className="w-full sm:w-auto sm:inline-flex flex flex-col sm:flex-row mb-5 rounded-[14px] overflow-hidden border border-white/[0.08] bg-white/[0.035]">
-              {[
-                { value: String(products.length), label: 'Products' },
-                { value: '15%', label: 'Max Discount', gold: true },
-                { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drop' },
-              ].map(({ value, label, gold }, i, arr) => (
-                <div
-                  key={label}
-                  className={`flex-1 sm:flex-none px-6 py-4 text-center
-                    ${i < arr.length - 1 ? 'border-b sm:border-b-0 sm:border-r border-white/[0.08]' : ''}`}
-                >
-                  <strong className={`shop-stat-value block text-3xl sm:text-[34px] leading-none mb-2 [font-family:Georgia,serif] ${gold ? 'text-[#ffd21a]' : 'text-[#f5f1e8]'}`}>
-                    {value}
-                  </strong>
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>
+              {/* Row 3: stats */}
+              {!loading && products.length > 0 && (
+                <div className="flex flex-col sm:flex-row mb-5 rounded-[14px] overflow-hidden border border-white/[0.08] bg-white/[0.035] w-full sm:w-auto">
+                  {[
+                    { value: String(products.length), label: 'Products' },
+                    { value: '15%', label: 'Max Discount', gold: true },
+                    { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drop' },
+                  ].map(({ value, label, gold }, i, arr) => (
+                    <div
+                      key={label}
+                      className={`flex-1 sm:flex-none px-6 py-4 text-center
+                        ${i < arr.length - 1 ? 'border-b sm:border-b-0 sm:border-r border-white/[0.08]' : ''}`}
+                    >
+                      <strong className={`shop-stat-value block text-3xl sm:text-[34px] leading-none mb-2 [font-family:Georgia,serif] ${gold ? 'text-[#ffd21a]' : 'text-[#f5f1e8]'}`}>
+                        {value}
+                      </strong>
+                      <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* Row 4: subheading */}
+              <p className="text-[#cfc7b7] text-base mb-2">
+                {siteSettings.shop_subheading || 'Straight from the Camp.'}
+              </p>
+
+              {/* Row 5: member line */}
+              {!user && (
+                <p className="text-brand-400 font-semibold text-sm mb-7">
+                  Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
+                </p>
+              )}
+              {memberRate > 0 && (
+                <p className="text-[#00c878] font-bold text-[15px] mb-7">You&apos;re saving {memberRate}% today.</p>
+              )}
+              {!user && memberRate === 0 && <div className="mb-7" />}
+
+              {/* Buttons */}
+              <div className={`flex flex-col sm:flex-row gap-4 w-full sm:w-auto ${isCenter ? 'sm:justify-center' : ''}`}>
+                <button
+                  onClick={scrollToCollection}
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm uppercase tracking-[0.06em] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] text-center"
+                >
+                  Shop the Collection
+                </button>
+                <Link
+                  href="/shop/cart"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0ba691] hover:bg-[#09907d] text-white font-black text-sm uppercase tracking-[0.06em] transition-all flex items-center justify-center gap-2"
+                >
+                  <span>🛒</span> Cart
+                </Link>
+              </div>
+
             </div>
-          )}
-
-          {/* Row 4: subheading */}
-          <p className="text-[#cfc7b7] text-base mb-2">
-            {siteSettings.shop_subheading || 'Straight from the Camp.'}
-          </p>
-
-          {/* Row 5: member line */}
-          {!user && (
-            <p className="text-brand-400 font-semibold text-sm mb-7">
-              Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
-            </p>
-          )}
-          {memberRate > 0 && (
-            <p className="text-[#00c878] font-bold text-[15px] mb-7">You&apos;re saving {memberRate}% today.</p>
-          )}
-          {!user && memberRate === 0 && <div className="mb-7" />}
-
-          {/* Buttons — full width on mobile, auto on desktop */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={scrollToCollection}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm uppercase tracking-[0.06em] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] text-center"
-            >
-              Shop the Collection
-            </button>
-            <Link
-              href="/shop/cart"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0ba691] hover:bg-[#09907d] text-white font-black text-sm uppercase tracking-[0.06em] transition-all flex items-center justify-center gap-2"
-            >
-              <span>🛒</span> Cart
-            </Link>
-          </div>
-
-        </div>
-      </section>
+          </section>
+        );
+      })()}
 
       {/* ── Collection + Featured Sidebar ──────────────────────────────────── */}
       <div ref={collectionRef} className="pb-28">

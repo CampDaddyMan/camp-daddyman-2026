@@ -3385,6 +3385,28 @@ function SettingsTab() {
             </div>
           </div>
         ))}
+
+        {/* Text alignment */}
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Text Alignment</label>
+          <div className="flex gap-2 items-center">
+            {(['left', 'center'] as const).map((val) => (
+              <button
+                key={val}
+                disabled={loading}
+                onClick={() => set('shop_intro_align', val)}
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors capitalize disabled:opacity-50 ${
+                  (settings['shop_intro_align'] || 'center') === val
+                    ? 'bg-brand-500 text-black border-brand-500'
+                    : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
+                }`}
+              >
+                {val === 'left' ? '⬅ Left' : '↔ Center'}
+              </button>
+            ))}
+            <SaveBtn k="shop_intro_align" />
+          </div>
+        </div>
       </div>
 
       {/* ── Custom CSS ── */}

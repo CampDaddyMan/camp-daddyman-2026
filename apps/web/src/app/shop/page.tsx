@@ -153,33 +153,22 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen bg-black">
 
-      <section className="relative min-h-[92vh] flex flex-col items-center justify-center overflow-hidden">
-        {/* Banner image */}
+      <section className="relative overflow-hidden">
+        {/* Banner image — full width, natural height */}
         <img
           src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          alt="The Ark — Camp DaddyMan Official Store"
+          className="w-full block"
         />
-        {/* Dark overlay so text stays readable */}
-        <div className="absolute inset-0 bg-black/55" />
-        {/* Atmospheric color wash */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,rgba(248,194,2,0.07),transparent_65%)]" />
+        {/* Bottom fade into the page */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-black to-transparent" />
 
-        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-          {/* Eyebrow pill */}
-          <div className="inline-flex items-center gap-2.5 bg-brand-500/8 border border-brand-500/25 rounded-full px-5 py-2 mb-10">
-            <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
-            <span className="text-brand-400 text-[11px] font-black uppercase tracking-[0.35em]">Camp DaddyMan Official Store</span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-[clamp(4.5rem,16vw,13rem)] font-black text-white leading-[0.82] tracking-tight mb-8 select-none">
-            THE<br /><span className="text-brand-400">ARK</span>
-          </h1>
+        {/* Overlaid content — sits at the bottom of the banner */}
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 px-4">
+          <div className="text-center max-w-3xl mx-auto">
 
           {/* Sub */}
-          <p className="text-gray-400 text-lg md:text-xl max-w-md mx-auto mb-10 leading-relaxed">
+          <p className="text-white/80 text-base md:text-lg max-w-md mx-auto mb-6 leading-relaxed drop-shadow-lg">
             Merch, music & limited drops — straight from the Camp.
             {!user && <><br /><span className="text-brand-400 font-semibold">Members save up to 15%.</span></>}
             {memberRate > 0 && <><br /><span className="text-camp-400 font-semibold">You're saving {memberRate}% today.</span></>}
@@ -187,15 +176,15 @@ export default function ShopPage() {
 
           {/* Stats row */}
           {!loading && products.length > 0 && (
-            <div className="flex items-center justify-center gap-8 md:gap-14 mb-12">
+            <div className="flex items-center justify-center gap-6 md:gap-10 mb-6">
               {[
                 { value: String(products.length), label: 'Products' },
-                { value: '15%', label: 'Max Discount', gold: true },
+                { value: '15%', label: 'Member Discount', gold: true },
                 { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
               ].map(({ value, label, gold }) => (
-                <div key={label} className="text-center">
-                  <p className={`text-2xl md:text-4xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                  <p className="text-gray-600 text-[10px] uppercase tracking-[0.25em] mt-1">{label}</p>
+                <div key={label} className="text-center drop-shadow-lg">
+                  <p className={`text-xl md:text-3xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                  <p className="text-white/50 text-[10px] uppercase tracking-[0.2em] mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
@@ -217,18 +206,6 @@ export default function ShopPage() {
             </Link>
           </div>
         </div>
-
-        {/* Scroll hint */}
-        <button
-          onClick={scrollToCollection}
-          className="absolute bottom-8 flex flex-col items-center gap-2 text-gray-700 hover:text-gray-500 transition-colors"
-          aria-label="Scroll to collection"
-        >
-          <span className="text-[10px] uppercase tracking-[0.3em]">Explore</span>
-          <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
       </section>
 
       {/* ── Featured Drops ──────────────────────────────────────────────────── */}

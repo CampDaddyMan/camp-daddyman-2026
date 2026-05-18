@@ -2311,7 +2311,7 @@ interface OptionGroup { name: string; values: string[] }
 interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
   comparePrice?: number; status: string; featured: boolean; tags: string[];
-  imageUrl?: string; description?: string;
+  imageUrl?: string; imagePreviewUrl?: string; description?: string;
   optionGroups?: OptionGroup[];
   variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string,string> }[];
 }
@@ -2373,9 +2373,11 @@ function ProductFormModal({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string>(initial?.imagePreviewUrl || '');
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   async function handleImageUpload(file: File) {
+    setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
     try {
       const fd = new FormData();
@@ -2385,6 +2387,7 @@ function ProductFormModal({
       });
       setField('imageUrl', data.url);
     } catch {
+      setPreviewUrl(initial?.imagePreviewUrl || '');
       setErr('Image upload failed. Try again.');
     } finally {
       setUploading(false);
@@ -2512,8 +2515,8 @@ function ProductFormModal({
             <div className="flex gap-3 items-start">
               {/* Preview */}
               <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-surface-700 border border-surface-600 flex items-center justify-center">
-                {form.imageUrl ? (
-                  <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
+                {previewUrl ? (
+                  <img src={previewUrl} alt="preview" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-3xl opacity-30">{form.type === 'DIGITAL' ? '📦' : '👕'}</span>
                 )}
@@ -2536,7 +2539,7 @@ function ProductFormModal({
                 </button>
                 <input
                   value={form.imageUrl}
-                  onChange={(e) => setField('imageUrl', e.target.value)}
+                  onChange={(e) => { setField('imageUrl', e.target.value); setPreviewUrl(e.target.value); }}
                   placeholder="Or paste a URL"
                   className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-400"
                 />

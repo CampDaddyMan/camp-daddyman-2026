@@ -311,7 +311,13 @@ export async function adminListProducts(req: AuthRequest, res: Response) {
     orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }],
     include: { variants: true },
   });
-  res.json({ products });
+
+  const signed = await Promise.all(products.map(async (p) => ({
+    ...p,
+    imagePreviewUrl: await signR2Url(p.imageUrl),
+  })));
+
+  res.json({ products: signed });
 }
 
 function slugify(name: string): string {

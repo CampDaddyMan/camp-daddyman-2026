@@ -12,6 +12,7 @@ import {
   listReports,
   resolveReport,
 } from '../controllers/admin.controller';
+import { adminGetSettings, adminUpdateSetting } from '../controllers/settings.controller';
 import {
   adminUploadProductImage,
   adminCreateProduct,
@@ -62,5 +63,9 @@ router.get('/coupons',                   readLimiter,  adminListCoupons);
 router.post('/coupons',                  writeLimiter, adminCreateCoupon);
 router.patch('/coupons/:id',             writeLimiter, adminUpdateCoupon);
 router.delete('/coupons/:id',            writeLimiter, adminDeleteCoupon);
+
+// Site settings admin
+router.get('/settings',                  readLimiter,  adminGetSettings);
+router.put('/settings',                  writeLimiter, adminUpdateSetting);
 
 export default router;

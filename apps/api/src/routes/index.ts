@@ -9,6 +9,7 @@ import dashboardRoutes from './dashboard';
 import pollRoutes from './polls';
 import partnerRoutes from './partners';
 import shopRoutes from './shop';
+import { getPublicCss } from '../controllers/settings.controller';
 
 export const router = Router();
 
@@ -22,3 +23,4 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/polls', pollRoutes);
 router.use('/partners', partnerRoutes);
 router.use('/shop', shopRoutes);
+router.get('/site-settings/css', getPublicCss);

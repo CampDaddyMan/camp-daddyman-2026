@@ -29,17 +29,38 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function getCustomCss(): Promise<string> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    const res = await fetch(`${apiUrl}/site-settings/css`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data.css || '';
+  } catch {
+    return '';
+  }
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const customCss = await getCustomCss();
+
   return (
     <html lang="en">
+      <head>
+        {customCss && (
+          <style dangerouslySetInnerHTML={{ __html: customCss }} />
+        )}
+      </head>
       <body>
         <AuthProvider>
           <CartProvider>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <footer className="border-t border-surface-700 py-8 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} Camp DaddyMan. All rights reserved.
-          </footer>
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+            <footer className="border-t border-surface-700 py-8 text-center text-sm text-gray-500">
+              © {new Date().getFullYear()} Camp DaddyMan. All rights reserved.
+            </footer>
           </CartProvider>
         </AuthProvider>
       </body>

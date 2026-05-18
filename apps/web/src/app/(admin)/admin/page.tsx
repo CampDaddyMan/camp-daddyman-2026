@@ -40,7 +40,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -3302,6 +3302,91 @@ function ShopTab() {
   );
 }
 
+// ── Settings Tab ──────────────────────────────────────────────────────────────
+
+function SettingsTab() {
+  const [css, setCss] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.get('/admin/settings')
+      .then((r) => setCss(r.data.settings?.custom_css ?? ''))
+      .catch(() => setError('Failed to load settings.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    setError('');
+    try {
+      await api.put('/admin/settings', { key: 'custom_css', value: css });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      setError('Failed to save. Try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="max-w-4xl space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-white mb-1">Custom CSS</h2>
+        <p className="text-gray-400 text-sm">
+          CSS written here is injected into every page of the site (inside{' '}
+          <code className="bg-surface-700 px-1.5 py-0.5 rounded text-xs text-brand-400">&lt;head&gt;</code>
+          ). Changes go live within 60 seconds after saving.
+        </p>
+      </div>
+
+      {error && (
+        <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
+      )}
+
+      <div className="relative">
+        <textarea
+          value={loading ? '' : css}
+          onChange={(e) => { setCss(e.target.value); setSaved(false); }}
+          placeholder={loading ? 'Loading…' : '/* Add custom CSS here */\n\n.ark-poster-img {\n  width: 100%;\n  height: auto;\n  display: block;\n}'}
+          disabled={loading}
+          spellCheck={false}
+          rows={28}
+          className="w-full bg-surface-900 border border-surface-600 text-gray-200 font-mono text-sm rounded-2xl px-5 py-4 focus:outline-none focus:border-brand-400 resize-y transition-colors leading-relaxed placeholder:text-gray-700 disabled:opacity-50"
+        />
+        <div className="absolute bottom-3 right-3 text-[10px] text-gray-700 font-mono">
+          {css.length} chars
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving || loading}
+          className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-colors ${
+            saved
+              ? 'bg-camp-500 text-white'
+              : 'bg-brand-500 hover:bg-brand-600 text-black disabled:opacity-50'
+          }`}
+        >
+          {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save CSS'}
+        </button>
+        <button
+          onClick={() => { setCss(''); setSaved(false); }}
+          disabled={saving || loading}
+          className="px-4 py-2.5 rounded-xl text-sm text-gray-500 hover:text-red-400 border border-surface-700 transition-colors disabled:opacity-40"
+        >
+          Clear
+        </button>
+        <span className="text-xs text-gray-600 ml-2">Refreshes across the site within ~60 seconds</span>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function AdminInner() {
@@ -3309,7 +3394,7 @@ function AdminInner() {
   const router       = useRouter();
   const searchParams = useSearchParams();
 
-  const urlTab    = searchParams.get('tab') as Tab | null;
+  const urlTab = searchParams.get('tab') as Tab | null;
   const urlAction = searchParams.get('action');
 
   const [tab, setTab]                   = useState<Tab>(urlTab || 'overview');
@@ -3335,6 +3420,7 @@ function AdminInner() {
     { key: 'polls',     label: 'Polls',     emoji: '🗳️' },
     { key: 'partners',  label: 'Partners',  emoji: '🤝' },
     { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
+    { key: 'settings',  label: 'CSS',        emoji: '🎨' },
   ];
 
   return (
@@ -3371,6 +3457,7 @@ function AdminInner() {
       {tab === 'polls'     && <PollsTab autoCreate={autoCreatePoll} />}
       {tab === 'partners'  && <PartnersTab />}
       {tab === 'shop'      && <ShopTab />}
+      {tab === 'settings'  && <SettingsTab />}
     </div>
   );
 }

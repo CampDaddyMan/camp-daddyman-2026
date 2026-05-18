@@ -585,3 +585,11 @@ enum OrderStatus {
   CANCELLED
   REFUNDED
 }
+
+// ── Site Settings ─────────────────────────────────────────────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}

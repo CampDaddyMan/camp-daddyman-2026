@@ -2319,9 +2319,17 @@ interface AdminProduct {
 
 interface AdminOrder {
   id: string; email: string; status: string; total: number; discount: number;
+  couponCode?: string | null; couponDiscount?: number;
   trackingNumber?: string; createdAt: string;
   user?: { username: string; email: string } | null;
   items: { name: string; variantName?: string; quantity: number; price: number }[];
+}
+
+interface AdminCoupon {
+  id: string; code: string; type: 'PERCENTAGE' | 'FIXED'; value: number;
+  minOrderAmount?: number | null; maxUses?: number | null; usedCount: number;
+  active: boolean; expiresAt?: string | null; createdAt: string;
+  _count: { orders: number };
 }
 
 const ORDER_STATUSES = ['ALL','PENDING','PAID','PROCESSING','SHIPPED','DELIVERED','CANCELLED','REFUNDED'];
@@ -2656,8 +2664,143 @@ function ProductFormModal({
   );
 }
 
+function CouponFormModal({
+  initial, onSave, onClose,
+}: {
+  initial?: AdminCoupon | null;
+  onSave: (c: AdminCoupon) => void;
+  onClose: () => void;
+}) {
+  const editing = !!initial;
+  const [form, setForm] = useState({
+    code: initial?.code ?? '',
+    type: initial?.type ?? 'PERCENTAGE',
+    value: initial ? String(initial.value) : '',
+    minOrderAmount: initial?.minOrderAmount ? String(initial.minOrderAmount) : '',
+    maxUses: initial?.maxUses ? String(initial.maxUses) : '',
+    active: initial?.active ?? true,
+    expiresAt: initial?.expiresAt ? initial.expiresAt.slice(0, 10) : '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+
+  function setF(k: string, v: any) { setForm((f) => ({ ...f, [k]: v })); }
+
+  async function handleSave() {
+    if (!form.code.trim() || !form.value) { setErr('Code and value are required.'); return; }
+    setSaving(true); setErr('');
+    try {
+      const payload = {
+        code: form.code.trim().toUpperCase(),
+        type: form.type,
+        value: Number(form.value),
+        minOrderAmount: form.minOrderAmount ? Number(form.minOrderAmount) : null,
+        maxUses: form.maxUses ? Number(form.maxUses) : null,
+        active: form.active,
+        expiresAt: form.expiresAt || null,
+      };
+      const { data } = editing
+        ? await api.patch(`/admin/coupons/${initial!.id}`, payload)
+        : await api.post('/admin/coupons', payload);
+      onSave(data.coupon);
+    } catch (e: any) {
+      setErr(e.response?.data?.error || 'Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="bg-surface-800 border border-surface-600 rounded-2xl w-full max-w-md">
+        <div className="px-6 py-5 border-b border-surface-700 flex items-center justify-between">
+          <h3 className="text-white font-bold text-lg">{editing ? 'Edit Coupon' : 'New Coupon'}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
+        </div>
+
+        <div className="px-6 py-5 space-y-4">
+          {/* Code */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Code *</label>
+            <input
+              value={form.code}
+              onChange={(e) => setF('code', e.target.value.toUpperCase().replace(/\s/g, ''))}
+              placeholder="SUMMER20"
+              maxLength={32}
+              className="w-full bg-surface-700 border border-surface-600 text-white font-mono rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 uppercase tracking-wider"
+            />
+          </div>
+
+          {/* Type + Value */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Type *</label>
+              <select value={form.type} onChange={(e) => setF('type', e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+                <option value="PERCENTAGE">Percentage (%)</option>
+                <option value="FIXED">Fixed ($)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                {form.type === 'PERCENTAGE' ? 'Percent off (1–100) *' : 'Amount off ($) *'}
+              </label>
+              <input type="number" step={form.type === 'FIXED' ? '0.01' : '1'} min="0"
+                value={form.value} onChange={(e) => setF('value', e.target.value)}
+                placeholder={form.type === 'PERCENTAGE' ? '20' : '10.00'}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          </div>
+
+          {/* Min order + Max uses */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Min order ($)</label>
+              <input type="number" step="0.01" min="0" value={form.minOrderAmount}
+                onChange={(e) => setF('minOrderAmount', e.target.value)}
+                placeholder="Optional"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Max uses</label>
+              <input type="number" step="1" min="1" value={form.maxUses}
+                onChange={(e) => setF('maxUses', e.target.value)}
+                placeholder="Unlimited"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          </div>
+
+          {/* Expiry */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Expires on (optional)</label>
+            <input type="date" value={form.expiresAt} onChange={(e) => setF('expiresAt', e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+
+          {/* Active */}
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={form.active} onChange={(e) => setF('active', e.target.checked)}
+              className="w-4 h-4 accent-brand-500 rounded" />
+            <span className="text-sm text-gray-300">Active (can be applied at checkout)</span>
+          </label>
+
+          {err && <p className="text-red-400 text-sm">{err}</p>}
+        </div>
+
+        <div className="px-6 py-4 border-t border-surface-700 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-brand-500 text-black font-bold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
+            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Coupon'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ShopTab() {
-  const [subTab, setSubTab] = useState<'products' | 'orders'>('products');
+  const [subTab, setSubTab] = useState<'products' | 'orders' | 'coupons'>('products');
 
   // ── Products state ───────────────────────────────────────────────────────────
   const [products, setProducts]   = useState<AdminProduct[]>([]);
@@ -2673,6 +2816,12 @@ function ShopTab() {
   const [trackingInput, setTrackingInput] = useState<Record<string, string>>({});
   const [updatingOrder, setUpdatingOrder] = useState<string | null>(null);
 
+  // ── Coupons state ─────────────────────────────────────────────────────────────
+  const [coupons, setCoupons]           = useState<AdminCoupon[]>([]);
+  const [couponsLoading, setCoupLoad]   = useState(false);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [editCoupon, setEditCoupon]     = useState<AdminCoupon | null>(null);
+
   useEffect(() => {
     api.get('/admin/products').then((r) => setProducts(r.data.products)).catch(() => {}).finally(() => setProdLoad(false));
   }, []);
@@ -2683,6 +2832,12 @@ function ShopTab() {
     const q = orderStatus !== 'ALL' ? `?status=${orderStatus}` : '';
     api.get(`/admin/orders${q}`).then((r) => setOrders(r.data.orders)).catch(() => {}).finally(() => setOrdLoad(false));
   }, [subTab, orderStatus]);
+
+  useEffect(() => {
+    if (subTab !== 'coupons') return;
+    setCoupLoad(true);
+    api.get('/admin/coupons').then((r) => setCoupons(r.data.coupons)).catch(() => {}).finally(() => setCoupLoad(false));
+  }, [subTab]);
 
   function onProductSaved(p: AdminProduct) {
     setProducts((prev) => {
@@ -2724,12 +2879,12 @@ function ShopTab() {
     <div>
       {/* Sub-tab bar */}
       <div className="flex gap-2 mb-6">
-        {(['products', 'orders'] as const).map((t) => (
+        {(['products', 'orders', 'coupons'] as const).map((t) => (
           <button key={t} onClick={() => setSubTab(t)}
             className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors border ${
               subTab === t ? 'bg-brand-500 text-black border-brand-500' : 'border-surface-600 text-gray-400 hover:text-white bg-surface-800'
             }`}>
-            {t === 'products' ? '📦 Products' : '🧾 Orders'}
+            {t === 'products' ? '📦 Products' : t === 'orders' ? '🧾 Orders' : '🏷️ Coupons'}
           </button>
         ))}
       </div>
@@ -2878,6 +3033,12 @@ function ShopTab() {
                               <span>Member discount</span><span>−${order.discount.toFixed(2)}</span>
                             </div>
                           )}
+                          {(order.couponDiscount ?? 0) > 0 && (
+                            <div className="flex justify-between text-xs text-camp-400">
+                              <span>Coupon <span className="font-mono">{order.couponCode}</span></span>
+                              <span>−${order.couponDiscount!.toFixed(2)}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Tracking */}
@@ -2920,12 +3081,124 @@ function ShopTab() {
         </div>
       )}
 
+      {/* ── Coupons ── */}
+      {subTab === 'coupons' && (
+        <div>
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-gray-400 text-sm">{coupons.length} coupon{coupons.length !== 1 ? 's' : ''}</p>
+            <button onClick={() => { setEditCoupon(null); setShowCouponForm(true); }}
+              className="bg-brand-500 hover:bg-brand-600 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+              + New Coupon
+            </button>
+          </div>
+
+          {couponsLoading ? (
+            <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="bg-surface-800 rounded-xl h-12 animate-pulse" />)}</div>
+          ) : coupons.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-4xl mb-3">🏷️</p>
+              <p className="text-gray-400">No coupons yet. Create one above.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-surface-700">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-surface-700 bg-surface-800/60">
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Code</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Discount</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Min Order</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Uses</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Expires</th>
+                    <th className="text-left px-4 py-3 text-gray-400 font-medium">Status</th>
+                    <th className="text-right px-4 py-3 text-gray-400 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-surface-700">
+                  {coupons.map((c) => {
+                    const expired = c.expiresAt && new Date(c.expiresAt) < new Date();
+                    const exhausted = c.maxUses != null && c.usedCount >= c.maxUses;
+                    const statusLabel = !c.active ? 'Inactive' : expired ? 'Expired' : exhausted ? 'Exhausted' : 'Active';
+                    const statusColor = !c.active || expired || exhausted ? 'text-gray-500' : 'text-camp-400';
+                    return (
+                      <tr key={c.id} className="bg-surface-800 hover:bg-surface-700/50 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-white">{c.code}</td>
+                        <td className="px-4 py-3 text-brand-400 font-semibold">
+                          {c.type === 'PERCENTAGE' ? `${c.value}%` : `$${c.value.toFixed(2)}`}
+                        </td>
+                        <td className="px-4 py-3 text-gray-400">{c.minOrderAmount ? `$${c.minOrderAmount.toFixed(2)}` : '—'}</td>
+                        <td className="px-4 py-3 text-gray-400">
+                          {c.usedCount}{c.maxUses != null ? ` / ${c.maxUses}` : ''}
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">
+                          {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs font-semibold ${statusColor}`}>{statusLabel}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => { setEditCoupon(c); setShowCouponForm(true); }}
+                              className="text-xs text-gray-400 hover:text-white border border-surface-600 hover:border-surface-400 px-3 py-1.5 rounded-lg transition-colors">
+                              Edit
+                            </button>
+                            <button
+                              onClick={async () => {
+                                const next = !c.active;
+                                try {
+                                  const { data } = await api.patch(`/admin/coupons/${c.id}`, { active: next });
+                                  setCoupons((prev) => prev.map((x) => x.id === c.id ? { ...x, ...data.coupon } : x));
+                                } catch {}
+                              }}
+                              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                                c.active ? 'text-red-400 border-red-500/30 hover:bg-red-500/10' : 'text-camp-400 border-camp-500/30 hover:bg-camp-500/10'
+                              }`}>
+                              {c.active ? 'Disable' : 'Enable'}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm(`Delete coupon ${c.code}?`)) return;
+                                try {
+                                  await api.delete(`/admin/coupons/${c.id}`);
+                                  setCoupons((prev) => prev.filter((x) => x.id !== c.id));
+                                } catch {}
+                              }}
+                              className="text-xs text-gray-600 hover:text-red-400 border border-surface-700 hover:border-red-500/30 px-3 py-1.5 rounded-lg transition-colors">
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Product form modal */}
       {showForm && (
         <ProductFormModal
           initial={editProduct}
           onSave={onProductSaved}
           onClose={() => { setShowForm(false); setEditProduct(null); }}
+        />
+      )}
+
+      {/* Coupon form modal */}
+      {showCouponForm && (
+        <CouponFormModal
+          initial={editCoupon}
+          onSave={(c) => {
+            setCoupons((prev) => {
+              const idx = prev.findIndex((x) => x.id === c.id);
+              return idx >= 0 ? prev.map((x, i) => (i === idx ? c : x)) : [c, ...prev];
+            });
+            setShowCouponForm(false);
+            setEditCoupon(null);
+          }}
+          onClose={() => { setShowCouponForm(false); setEditCoupon(null); }}
         />
       )}
     </div>

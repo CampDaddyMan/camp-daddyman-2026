@@ -498,6 +498,11 @@ model Order {
   stripeSessionId String?
   stripePaymentId String?
 
+  couponId       String?
+  coupon         Coupon?  @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  couponCode     String?
+  couponDiscount Float    @default(0)
+
   shippingName    String?
   shippingLine1   String?
   shippingLine2   String?
@@ -543,6 +548,26 @@ model OrderItem {
 enum ProductType {
   PHYSICAL
   DIGITAL
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  type           CouponType
+  value          Float
+  minOrderAmount Float?
+  maxUses        Int?
+  usedCount      Int        @default(0)
+  active         Boolean    @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  orders         Order[]
 }
 
 enum ProductStatus {

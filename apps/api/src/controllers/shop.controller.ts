@@ -52,6 +52,47 @@ export async function getProduct(req: Request, res: Response) {
   res.json({ product: { ...product, imageUrl } });
 }
 
+// ── Coupon validation (public) ────────────────────────────────────────────────
+
+export async function validateCoupon(req: Request, res: Response) {
+  const { code, subtotal } = req.body;
+  if (!code) return res.status(400).json({ valid: false, error: 'No code provided' });
+
+  const coupon = await prisma.coupon.findUnique({
+    where: { code: String(code).toUpperCase().trim() },
+  });
+
+  if (!coupon || !coupon.active) {
+    return res.json({ valid: false, error: 'Invalid or inactive coupon code' });
+  }
+  if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+    return res.json({ valid: false, error: 'This coupon has expired' });
+  }
+  if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) {
+    return res.json({ valid: false, error: 'This coupon has reached its usage limit' });
+  }
+
+  const orderSubtotal = Number(subtotal) || 0;
+  if (coupon.minOrderAmount != null && orderSubtotal < coupon.minOrderAmount) {
+    return res.json({
+      valid: false,
+      error: `Minimum order of $${coupon.minOrderAmount.toFixed(2)} required`,
+    });
+  }
+
+  const discountAmount = coupon.type === 'PERCENTAGE'
+    ? Math.round(orderSubtotal * coupon.value / 100 * 100) / 100
+    : Math.round(Math.min(coupon.value, orderSubtotal) * 100) / 100;
+
+  res.json({
+    valid: true,
+    code: coupon.code,
+    type: coupon.type,
+    value: coupon.value,
+    discountAmount,
+  });
+}
+
 // ── Checkout ──────────────────────────────────────────────────────────────────
 
 interface CartItemInput {
@@ -62,7 +103,7 @@ interface CartItemInput {
 }
 
 export async function createCheckoutSession(req: AuthRequest, res: Response) {
-  const { items, email }: { items: CartItemInput[]; email?: string } = req.body;
+  const { items, email, couponCode }: { items: CartItemInput[]; email?: string; couponCode?: string } = req.body;
 
   if (!items?.length) return res.status(400).json({ error: 'Cart is empty' });
 
@@ -129,8 +170,45 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
       return sum + i.unitPrice * i.quantity * rate;
     }, 0) * 100,
   ) / 100;
-  const total = Math.round((subtotal - discount) * 100) / 100;
 
+  // Post-member-discount subtotal is the base for coupon calculation
+  const memberDiscountedSubtotal = Math.round((subtotal - discount) * 100) / 100;
+
+  // Validate coupon if provided
+  let coupon: any = null;
+  if (couponCode) {
+    coupon = await prisma.coupon.findUnique({
+      where: { code: String(couponCode).toUpperCase().trim() },
+    });
+    if (!coupon || !coupon.active) {
+      return res.status(400).json({ error: 'Invalid or inactive coupon code' });
+    }
+    if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+      return res.status(400).json({ error: 'Coupon has expired' });
+    }
+    if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) {
+      return res.status(400).json({ error: 'Coupon usage limit reached' });
+    }
+    if (coupon.minOrderAmount != null && subtotal < coupon.minOrderAmount) {
+      return res.status(400).json({
+        error: `Minimum order of $${coupon.minOrderAmount.toFixed(2)} required`,
+      });
+    }
+  }
+
+  // Coupon discount computed on the post-member subtotal
+  const couponDiscount = coupon
+    ? coupon.type === 'PERCENTAGE'
+      ? Math.round(memberDiscountedSubtotal * coupon.value / 100 * 100) / 100
+      : Math.round(Math.min(coupon.value, memberDiscountedSubtotal) * 100) / 100
+    : 0;
+
+  // Proportional multiplier distributes coupon across all line items
+  const couponMultiplier = memberDiscountedSubtotal > 0
+    ? (memberDiscountedSubtotal - couponDiscount) / memberDiscountedSubtotal
+    : 1;
+
+  const total = Math.round((memberDiscountedSubtotal - couponDiscount) * 100) / 100;
   const hasPhysical = resolved.some((i) => i.type === 'PHYSICAL');
 
   // Create pending order
@@ -140,6 +218,9 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
       email: customerEmail,
       subtotal,
       discount,
+      couponId: coupon?.id ?? null,
+      couponCode: coupon?.code ?? null,
+      couponDiscount,
       total,
       items: {
         create: resolved.map((i) => ({
@@ -154,9 +235,9 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
     },
   });
 
-  // Build Stripe line items — apply discount per-item only when memberDiscountEnabled
+  // Build Stripe line items — member discount per-item, coupon distributed proportionally
   const lineItems = resolved.map((i) => {
-    const rate = i.memberDiscountEnabled ? memberDiscountRate : 0;
+    const mRate = i.memberDiscountEnabled ? memberDiscountRate : 0;
     return {
       price_data: {
         currency: 'usd',
@@ -164,7 +245,7 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
           name: i.variantName ? `${i.name} — ${i.variantName}` : i.name,
           ...(i.imageUrl && { images: [i.imageUrl] }),
         },
-        unit_amount: Math.round(i.unitPrice * (1 - rate) * 100),
+        unit_amount: Math.round(i.unitPrice * (1 - mRate) * couponMultiplier * 100),
       },
       quantity: i.quantity,
     };
@@ -249,6 +330,14 @@ export async function handleWebhook(req: Request, res: Response) {
         ...shippingData,
       },
     });
+
+    // Increment coupon usage on confirmed payment
+    if (order.couponId) {
+      await prisma.coupon.update({
+        where: { id: order.couponId },
+        data: { usedCount: { increment: 1 } },
+      });
+    }
   }
 
   res.json({ received: true });
@@ -464,4 +553,67 @@ export async function adminUpdateOrder(req: AuthRequest, res: Response) {
   });
 
   res.json({ order });
+}
+
+// ── Admin: Coupons ────────────────────────────────────────────────────────────
+
+export async function adminListCoupons(req: AuthRequest, res: Response) {
+  const coupons = await prisma.coupon.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { _count: { select: { orders: true } } },
+  });
+  res.json({ coupons });
+}
+
+export async function adminCreateCoupon(req: AuthRequest, res: Response) {
+  const { code, type, value, minOrderAmount, maxUses, active, expiresAt } = req.body;
+
+  if (!code || !type || value == null) {
+    return res.status(400).json({ error: 'code, type, and value are required' });
+  }
+  if (!['PERCENTAGE', 'FIXED'].includes(type)) {
+    return res.status(400).json({ error: 'type must be PERCENTAGE or FIXED' });
+  }
+  if (type === 'PERCENTAGE' && (Number(value) <= 0 || Number(value) > 100)) {
+    return res.status(400).json({ error: 'Percentage value must be 1–100' });
+  }
+
+  const coupon = await prisma.coupon.create({
+    data: {
+      code: String(code).toUpperCase().trim(),
+      type,
+      value: Number(value),
+      minOrderAmount: minOrderAmount ? Number(minOrderAmount) : null,
+      maxUses: maxUses ? Number(maxUses) : null,
+      active: active ?? true,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+    },
+  });
+
+  res.status(201).json({ coupon });
+}
+
+export async function adminUpdateCoupon(req: AuthRequest, res: Response) {
+  const { code, type, value, minOrderAmount, maxUses, active, expiresAt } = req.body;
+
+  const data: any = {};
+  if (code !== undefined) data.code = String(code).toUpperCase().trim();
+  if (type !== undefined) data.type = type;
+  if (value !== undefined) data.value = Number(value);
+  if (minOrderAmount !== undefined) data.minOrderAmount = minOrderAmount ? Number(minOrderAmount) : null;
+  if (maxUses !== undefined) data.maxUses = maxUses ? Number(maxUses) : null;
+  if (active !== undefined) data.active = active;
+  if (expiresAt !== undefined) data.expiresAt = expiresAt ? new Date(expiresAt) : null;
+
+  const coupon = await prisma.coupon.update({
+    where: { id: req.params.id },
+    data,
+  });
+
+  res.json({ coupon });
+}
+
+export async function adminDeleteCoupon(req: AuthRequest, res: Response) {
+  await prisma.coupon.delete({ where: { id: req.params.id } });
+  res.json({ ok: true });
 }

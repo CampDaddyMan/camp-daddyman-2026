@@ -19,6 +19,10 @@ import {
   adminListProducts,
   adminListOrders,
   adminUpdateOrder,
+  adminListCoupons,
+  adminCreateCoupon,
+  adminUpdateCoupon,
+  adminDeleteCoupon,
 } from '../controllers/shop.controller';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -52,5 +56,11 @@ router.post('/products',                 writeLimiter, adminCreateProduct);
 router.patch('/products/:id',            writeLimiter, adminUpdateProduct);
 router.get('/orders',                    readLimiter,  adminListOrders);
 router.patch('/orders/:id',              writeLimiter, adminUpdateOrder);
+
+// Coupon admin
+router.get('/coupons',                   readLimiter,  adminListCoupons);
+router.post('/coupons',                  writeLimiter, adminCreateCoupon);
+router.patch('/coupons/:id',             writeLimiter, adminUpdateCoupon);
+router.delete('/coupons/:id',            writeLimiter, adminDeleteCoupon);
 
 export default router;

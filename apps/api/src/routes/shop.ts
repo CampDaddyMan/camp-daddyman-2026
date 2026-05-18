@@ -3,6 +3,7 @@ import {
   listProducts,
   getProduct,
   createCheckoutSession,
+  validateCoupon,
   handleWebhook,
   getMyOrders,
   getOrder,
@@ -19,6 +20,9 @@ router.post('/webhook', raw({ type: 'application/json' }), handleWebhook);
 // Public
 router.get('/products',            readLimiter, listProducts);
 router.get('/products/:idOrSlug',  readLimiter, getProduct);
+
+// Coupon validation (public — no auth needed to validate a code)
+router.post('/coupons/validate', writeLimiter, validateCoupon);
 
 // Checkout — optional auth (members get discount, guests can still checkout)
 router.post('/checkout', optionalAuthMiddleware, writeLimiter, createCheckoutSession);

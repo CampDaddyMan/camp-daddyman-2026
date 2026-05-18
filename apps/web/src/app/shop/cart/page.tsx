@@ -7,12 +7,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import api from '@/lib/api';
 
-const DISCOUNT_LABELS: Record<string, string> = {
-  PRO: 'PRO — 10% off',
-  PREMIUM: 'PREMIUM — 15% off',
-  CREATOR: 'CREATOR — 15% off',
-};
-
 export default function CartPage() {
   const { user } = useAuth();
   const { items, removeItem, updateQty, clearCart, subtotal } = useCart();
@@ -22,8 +16,38 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const plan = user?.subscription?.plan as string | undefined;
-  const discountLabel = plan ? DISCOUNT_LABELS[plan] : null;
+  // Coupon state
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string; type: string; value: number; discountAmount: number;
+  } | null>(null);
+
+  async function handleApplyCoupon() {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const { data } = await api.post('/shop/coupons/validate', { code, subtotal });
+      if (data.valid) {
+        setAppliedCoupon(data);
+        setCouponInput('');
+      } else {
+        setCouponError(data.error || 'Invalid coupon');
+      }
+    } catch {
+      setCouponError('Could not validate coupon. Try again.');
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null);
+    setCouponError('');
+  }
 
   async function handleCheckout() {
     const email = user?.email || guestEmail.trim();
@@ -35,6 +59,7 @@ export default function CartPage() {
     try {
       const payload = {
         email,
+        couponCode: appliedCoupon?.code ?? undefined,
         items: items.map((i) => ({
           productId: i.productId,
           variantId: i.variantId,
@@ -67,6 +92,8 @@ export default function CartPage() {
       </div>
     );
   }
+
+  const estimatedTotal = subtotal - (appliedCoupon?.discountAmount ?? 0);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
@@ -153,20 +180,71 @@ export default function CartPage() {
                 <span>Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
-              {discountLabel && (
+              {appliedCoupon && (
                 <div className="flex justify-between text-brand-400">
-                  <span>{discountLabel}</span>
-                  <span>applied at checkout</span>
+                  <span>
+                    Coupon{' '}
+                    <span className="font-mono font-bold">{appliedCoupon.code}</span>
+                    {appliedCoupon.type === 'PERCENTAGE' && (
+                      <span className="text-gray-500 ml-1">({appliedCoupon.value}% off)</span>
+                    )}
+                  </span>
+                  <span>−${appliedCoupon.discountAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="border-t border-surface-600 pt-3 flex justify-between text-white font-bold text-base">
                 <span>Estimated Total</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>${Math.max(0, estimatedTotal).toFixed(2)}</span>
               </div>
-              {discountLabel && (
-                <p className="text-xs text-gray-500">Your member discount will be applied by Stripe at checkout.</p>
+              {user?.subscription?.plan && (
+                <p className="text-xs text-gray-500">Member discounts applied to eligible items at checkout.</p>
               )}
             </div>
+
+            {/* Coupon input */}
+            {!appliedCoupon ? (
+              <div className="mb-4">
+                <label className="block text-xs text-gray-400 mb-1.5">Coupon code</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                    placeholder="ENTER CODE"
+                    maxLength={32}
+                    className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm font-mono tracking-wider uppercase focus:outline-none focus:border-brand-400 transition-colors placeholder:font-sans placeholder:tracking-normal placeholder:normal-case"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="px-4 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {couponLoading ? '…' : 'Apply'}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="text-red-400 text-xs mt-1.5">{couponError}</p>
+                )}
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center justify-between bg-brand-500/10 border border-brand-500/30 rounded-xl px-4 py-2.5">
+                <div>
+                  <span className="text-brand-400 font-mono font-bold text-sm">{appliedCoupon.code}</span>
+                  <span className="text-gray-400 text-xs ml-2">
+                    {appliedCoupon.type === 'PERCENTAGE'
+                      ? `${appliedCoupon.value}% off`
+                      : `$${appliedCoupon.value.toFixed(2)} off`}
+                  </span>
+                </div>
+                <button
+                  onClick={handleRemoveCoupon}
+                  className="text-gray-500 hover:text-red-400 text-xs transition-colors ml-3"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
 
             {!user && (
               <div className="mb-4">

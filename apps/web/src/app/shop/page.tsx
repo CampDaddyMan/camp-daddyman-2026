@@ -24,16 +24,14 @@ const MEMBER_RATES: Record<string, number> = { PRO: 10, PREMIUM: 15, CREATOR: 15
 
 // ── Product Card ──────────────────────────────────────────────────────────────
 
-function ProductCard({ product, large = false }: { product: Product; large?: boolean }) {
+function ProductCard({ product }: { product: Product }) {
   const hasDiscount = !!(product.comparePrice && product.comparePrice > product.price);
   const savePct = hasDiscount ? Math.round((1 - product.price / product.comparePrice!) * 100) : 0;
   const outOfStock = product.variants.length > 0 && product.variants.every((v) => v.inventory <= 0);
 
   return (
     <Link href={`/shop/${product.slug || product.id}`} className="group block">
-      {/* Image container */}
-      <div className={`relative ${large ? 'aspect-[3/4]' : 'aspect-[4/5]'} bg-surface-800 rounded-2xl overflow-hidden border border-surface-700/60 transition-all duration-500 group-hover:border-brand-500/50 group-hover:shadow-[0_8px_48px_rgba(248,194,2,0.12)]`}>
-
+      <div className="relative aspect-[4/5] bg-surface-800 rounded-2xl overflow-hidden border border-surface-700/60 transition-all duration-500 group-hover:border-brand-500/50 group-hover:shadow-[0_8px_48px_rgba(248,194,2,0.12)]">
         {product.imageUrl ? (
           product.imageUrl.startsWith('http')
             ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
@@ -44,19 +42,16 @@ function ProductCard({ product, large = false }: { product: Product; large?: boo
           </div>
         )}
 
-        {/* Persistent bottom gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-        {/* Hover overlay CTA */}
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="absolute bottom-4 inset-x-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
-            <div className="bg-brand-500 text-black font-black text-center py-3 rounded-xl text-sm tracking-wide">
+            <div className="bg-brand-500 text-black font-black text-center py-3 rounded-xl text-sm tracking-wide uppercase">
               View Product →
             </div>
           </div>
         </div>
 
-        {/* Top-left badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {product.featured && (
             <span className="bg-brand-500 text-black text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">Drop</span>
@@ -72,7 +67,6 @@ function ProductCard({ product, large = false }: { product: Product; large?: boo
           )}
         </div>
 
-        {/* Top-right member badge */}
         {product.memberDiscountEnabled && (
           <div className="absolute top-3 right-3">
             <span className="bg-black/70 backdrop-blur-md text-brand-400 text-[10px] font-black px-2.5 py-1 rounded-full border border-brand-500/40 uppercase tracking-wide">
@@ -82,7 +76,6 @@ function ProductCard({ product, large = false }: { product: Product; large?: boo
         )}
       </div>
 
-      {/* Text beneath */}
       <div className="mt-3 px-0.5">
         {product.tags.length > 0 && (
           <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-1 truncate">
@@ -149,70 +142,86 @@ export default function ShopPage() {
     collectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // ── Hero ────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-black">
 
-      <section className="relative overflow-hidden">
-        {/* Banner image — full width, natural height */}
+      {/* ── Hero: Ark image — no overlay, let it breathe ────────────────────── */}
+      <section>
         <img
           src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
-          alt="The Ark — Camp DaddyMan Official Store"
-          className="w-full block"
+          alt="The Ark — Camp DaddyMan"
+          className="w-full block object-cover object-top"
         />
-{/* Overlaid content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6">
+      </section>
 
-          {/* Subtitle */}
-          <p className="font-black uppercase [-webkit-text-stroke:1px_#0ba691] text-white leading-[4.75rem] text-[4.17rem] text-center drop-shadow-xl">
-            Merch, music &amp; limited drops — straight from the Camp.
-            {!user && <><br /><span className="text-brand-400">Members save up to 15%.</span></>}
-            {memberRate > 0 && <><br /><span className="text-camp-400">You&apos;re saving {memberRate}% today.</span></>}
-          </p>
+      {/* ── Shop intro — below the image ────────────────────────────────────── */}
+      <section className="bg-black border-b border-surface-800 px-4 py-12 md:py-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
 
-          {/* Stats — frosted horizontal box */}
-          {!loading && products.length > 0 && (
-            <div className="flex items-center gap-10 md:gap-16 backdrop-blur-md bg-black/50 border border-white/15 rounded-2xl px-10 py-5">
-              {[
-                { value: String(products.length), label: 'Products' },
-                { value: '15%', label: 'Max Discount', gold: true },
-                { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
-              ].map(({ value, label, gold }, i, arr) => (
-                <div key={label} className="flex items-center gap-10 md:gap-16">
-                  <div className="text-center">
-                    <p className={`font-black tabular-nums uppercase [-webkit-text-stroke:1px_#0ba691] leading-[4.75rem] text-[4.17rem] ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                    <p className="text-white uppercase tracking-[0.2em] mt-1 font-black text-base [-webkit-text-stroke:1px_#0ba691]">{label}</p>
-                  </div>
-                  {i < arr.length - 1 && <div className="w-px h-16 bg-white/20 flex-shrink-0" />}
-                </div>
-              ))}
+            {/* Left: copy */}
+            <div>
+              <p className="text-brand-400 text-[11px] font-black uppercase tracking-[0.4em] mb-3">
+                Camp DaddyMan Official Store
+              </p>
+              <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight mb-3">
+                Merch, Music &amp;<br />Limited Drops
+              </h1>
+              <p className="text-gray-400 text-lg">Straight from the Camp.</p>
+              {!user && (
+                <p className="text-brand-400 font-semibold mt-1">
+                  Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
+                </p>
+              )}
+              {memberRate > 0 && (
+                <p className="text-camp-400 font-bold mt-1">You&apos;re saving {memberRate}% today.</p>
+              )}
             </div>
-          )}
 
-          {/* Buttons */}
-          <div className="flex items-center gap-4 flex-wrap justify-center">
-            <button
-              onClick={scrollToCollection}
-              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-10 py-5 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)] whitespace-nowrap"
-            >
-              Shop the Collection
-            </button>
-            <Link
-              href="/shop/cart"
-              className="bg-[#0ba691] hover:bg-[#09907d] text-white font-black px-10 py-5 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
-            >
-              <span>🛒</span> Cart
-            </Link>
+            {/* Center: stats frosted box */}
+            {!loading && products.length > 0 && (
+              <div className="flex items-center gap-0 backdrop-blur-md bg-surface-800/60 border border-surface-700 rounded-2xl overflow-hidden flex-shrink-0">
+                {[
+                  { value: String(products.length), label: 'Products' },
+                  { value: '15%', label: 'Max Discount', gold: true },
+                  { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
+                ].map(({ value, label, gold }, i, arr) => (
+                  <div key={label} className="flex items-stretch">
+                    <div className="text-center px-8 py-5">
+                      <p className={`text-4xl md:text-5xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                      <p className="text-gray-400 uppercase tracking-[0.18em] mt-1 font-bold text-xs">{label}</p>
+                    </div>
+                    {i < arr.length - 1 && <div className="w-px bg-surface-700 self-stretch" />}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Right: buttons */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 flex-shrink-0">
+              <button
+                onClick={scrollToCollection}
+                className="bg-brand-500 hover:bg-brand-400 text-black font-black px-8 py-4 rounded-2xl text-lg uppercase tracking-wider transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] whitespace-nowrap"
+              >
+                Shop the Collection
+              </button>
+              <Link
+                href="/shop/cart"
+                className="bg-[#0ba691] hover:bg-[#09907d] text-white font-black px-8 py-4 rounded-2xl text-lg uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <span>🛒</span> Cart
+              </Link>
+            </div>
+
           </div>
-
         </div>
       </section>
 
       {/* ── Collection + Featured Sidebar ──────────────────────────────────── */}
-      <div ref={collectionRef} className="border-t border-surface-800/80 pb-28">
+      <div ref={collectionRef} className="pb-28">
 
-        {/* Sticky filter / sort bar — full width */}
-        <div className="sticky top-0 z-20 bg-black/85 backdrop-blur-2xl border-b border-surface-800/80">
+        {/* Sticky filter / sort bar */}
+        <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-2xl border-b border-surface-800/80">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {(['ALL', 'PHYSICAL', 'DIGITAL'] as const).map((f) => (
@@ -258,7 +267,7 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* Two-column body: grid left, featured sidebar right */}
+        {/* Two-column: grid left, featured sidebar right */}
         <div className="max-w-7xl mx-auto px-4 pt-10">
           <div className="flex gap-8 items-start">
 
@@ -296,7 +305,7 @@ export default function ShopPage() {
               )}
             </div>
 
-            {/* Featured sidebar — sticky, right column */}
+            {/* Featured sidebar — sticky right column */}
             {!loading && featuredProducts.length > 0 && (
               <div className="hidden lg:flex flex-col gap-5 w-64 xl:w-72 flex-shrink-0 sticky top-16">
                 <div>
@@ -318,19 +327,16 @@ export default function ShopPage() {
         <section className="border-t border-surface-800/80 bg-surface-900/30 px-4 py-16 md:py-24">
           <div className="max-w-7xl mx-auto">
             <div className="relative rounded-3xl border border-brand-500/20 overflow-hidden">
-              {/* Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-surface-800 via-surface-800/95 to-surface-900" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(248,194,2,0.07),transparent_65%)]" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_100%_50%,rgba(2,65,25,0.1),transparent_65%)]" />
 
               <div className="relative px-8 md:px-14 py-12 md:py-16 flex flex-col lg:flex-row items-center justify-between gap-10">
-
-                {/* Left copy */}
                 <div className="max-w-lg text-center lg:text-left">
                   <div className="inline-flex items-center gap-2 bg-brand-500/12 border border-brand-500/25 rounded-full px-4 py-1.5 mb-6">
                     <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">Membership Perks</span>
                   </div>
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-5">
+                  <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-5">
                     Camp Members<br />
                     <span className="text-brand-400">Save Up To 15%</span><br />
                     on Every Order.
@@ -366,7 +372,6 @@ export default function ShopPage() {
                   )}
                 </div>
 
-                {/* Right: product price preview cards */}
                 {filtered.length > 0 && (
                   <div className="hidden lg:flex flex-col gap-3 w-72 flex-shrink-0">
                     <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">With your membership</p>

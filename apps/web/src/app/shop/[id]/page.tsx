@@ -264,6 +264,7 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
               ))}
+              <p className="text-xs text-gray-400 font-mono">debug: {JSON.stringify(selections)}</p>
               {optionsString && (
                 <p className="text-xs text-gray-500">Selected: {optionsString}</p>
               )}

@@ -420,10 +420,14 @@ export default function ShopPage() {
                   )}
                 </div>
 
-                {filtered.length > 0 && (
-                  <div className="hidden lg:flex flex-col gap-3 w-72 flex-shrink-0">
-                    <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">With your membership</p>
-                    {filtered.filter((p) => p.memberDiscountEnabled).slice(0, 4).map((p) => (
+                {/* Right panel — always present on large screens */}
+                <div className="hidden lg:flex flex-col gap-3 w-72 flex-shrink-0">
+                  <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">With your membership</p>
+
+                  {/* Up to 3 member-discounted products */}
+                  {filtered.filter((p) => p.memberDiscountEnabled).slice(0, 3).map((p) => {
+                    const displayRate = memberRate > 0 ? memberRate : 15;
+                    return (
                       <div key={p.id} className="flex items-center gap-3 bg-surface-800/70 border border-surface-700/60 rounded-2xl px-4 py-3">
                         <div className="w-11 h-11 bg-surface-700 rounded-xl overflow-hidden flex-shrink-0">
                           {p.imageUrl && <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />}
@@ -432,16 +436,36 @@ export default function ShopPage() {
                           <p className="text-white text-xs font-bold truncate">{p.name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-gray-500 text-xs line-through">${p.price.toFixed(2)}</span>
-                            <span className="text-brand-400 text-xs font-bold">→ ${(p.price * (1 - 15 / 100)).toFixed(2)}</span>
+                            <span className="text-brand-400 text-xs font-bold">→ ${(p.price * (1 - displayRate / 100)).toFixed(2)}</span>
                           </div>
                         </div>
                       </div>
-                    ))}
-                    {filtered.filter((p) => p.memberDiscountEnabled).length === 0 && (
-                      <p className="text-gray-600 text-xs">Member discounts apply to eligible products.</p>
-                    )}
+                    );
+                  })}
+
+                  {/* Sponsored promo — fills the gap */}
+                  <div className="relative flex-1 min-h-[160px] rounded-2xl overflow-hidden border border-surface-700/40 bg-gradient-to-br from-surface-800 via-surface-800/90 to-surface-900">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_0%_100%,rgba(248,194,2,0.06),transparent_70%)]" />
+                    <span className="absolute top-3 right-3 text-[9px] font-bold text-gray-600 uppercase tracking-widest bg-black/50 px-2 py-0.5 rounded-full">Sponsored</span>
+                    <div className="relative p-5 flex flex-col gap-2.5 h-full">
+                      <p className="text-brand-400/70 text-[10px] font-black uppercase tracking-widest">Camp DaddyMan</p>
+                      <p className="text-white font-black text-base leading-snug">
+                        Stream Music.<br />Watch Films.<br />Live the Philosophy.
+                      </p>
+                      <p className="text-gray-500 text-xs leading-relaxed">
+                        Your membership unlocks the full Camp DaddyMan experience — music, film, podcasts, spoken word, and more.
+                      </p>
+                      <Link
+                        href="/subscribe"
+                        className="self-start mt-auto text-xs font-bold text-black bg-brand-500 px-4 py-2 rounded-xl hover:bg-brand-400 transition-colors"
+                      >
+                        Explore Membership →
+                      </Link>
+                    </div>
                   </div>
-                )}
+
+                  <p className="text-gray-600 text-xs">Member discounts apply to eligible products.</p>
+                </div>
               </div>
             </div>
           </div>

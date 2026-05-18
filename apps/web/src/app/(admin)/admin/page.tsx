@@ -2313,6 +2313,7 @@ interface AdminProduct {
   comparePrice?: number; status: string; featured: boolean; tags: string[];
   imageUrl?: string; imagePreviewUrl?: string; description?: string;
   optionGroups?: OptionGroup[];
+  memberDiscountEnabled?: boolean;
   variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string,string> }[];
 }
 
@@ -2332,7 +2333,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const EMPTY_PRODUCT = {
   name: '', type: 'PHYSICAL', price: '', comparePrice: '', description: '',
-  imageUrl: '', status: 'DRAFT', featured: false, tags: '',
+  imageUrl: '', status: 'DRAFT', featured: false, memberDiscountEnabled: false, tags: '',
   optionGroups: [] as OptionGroup[],
   variants: [] as { name: string; inventory: string; price: string; options?: Record<string,string> }[],
 };
@@ -2360,6 +2361,7 @@ function ProductFormModal({
       comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',
       description: initial.description || '', imageUrl: initial.imageUrl || '',
       status: initial.status, featured: initial.featured,
+      memberDiscountEnabled: initial.memberDiscountEnabled ?? false,
       tags: initial.tags.join(', '),
       optionGroups: initial.optionGroups || [],
       variants: initial.variants.map((v) => ({
@@ -2431,6 +2433,7 @@ function ProductFormModal({
         imageUrl: form.imageUrl || null,
         status: form.status,
         featured: form.featured,
+        memberDiscountEnabled: form.memberDiscountEnabled,
         tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         optionGroups: form.optionGroups.length ? form.optionGroups : null,
         variants: form.variants.filter((v: any) => v.name.trim()).map((v: any) => ({
@@ -2561,6 +2564,13 @@ function ProductFormModal({
             <input type="checkbox" checked={form.featured} onChange={(e) => setField('featured', e.target.checked)}
               className="w-4 h-4 accent-brand-500 rounded" />
             <span className="text-sm text-gray-300">Featured product (shown with badge, sorted first)</span>
+          </label>
+
+          {/* Member discount */}
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={form.memberDiscountEnabled} onChange={(e) => setField('memberDiscountEnabled', e.target.checked)}
+              className="w-4 h-4 accent-brand-500 rounded" />
+            <span className="text-sm text-gray-300">Enable member discount <span className="text-gray-500">(PRO 10% / PREMIUM &amp; CREATOR 15%)</span></span>
           </label>
 
           {/* Option Groups */}

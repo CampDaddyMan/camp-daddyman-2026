@@ -456,8 +456,9 @@ model Product {
   status       ProductStatus @default(DRAFT)
   featured     Boolean       @default(false)
   tags         String[]
-  fileUrl      String?
-  optionGroups Json?
+  fileUrl               String?
+  optionGroups          Json?
+  memberDiscountEnabled Boolean @default(false)
 
   variants   ProductVariant[]
   orderItems OrderItem[]

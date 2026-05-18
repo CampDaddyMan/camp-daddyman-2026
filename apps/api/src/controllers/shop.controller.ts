@@ -114,15 +114,21 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
       unitPrice,
       quantity: ci.quantity,
       imageUrl: product.imageUrl,
+      memberDiscountEnabled: product.memberDiscountEnabled,
     };
   }));
 
-  // Member discount
+  // Member discount — applied per-item only when product.memberDiscountEnabled is true
   const plan = req.user?.subscription?.plan;
-  const discountRate = plan ? (MEMBER_DISCOUNTS[plan] ?? 0) : 0;
+  const memberDiscountRate = plan ? (MEMBER_DISCOUNTS[plan] ?? 0) : 0;
 
   const subtotal = resolved.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-  const discount = Math.round(subtotal * discountRate * 100) / 100;
+  const discount = Math.round(
+    resolved.reduce((sum, i) => {
+      const rate = i.memberDiscountEnabled ? memberDiscountRate : 0;
+      return sum + i.unitPrice * i.quantity * rate;
+    }, 0) * 100,
+  ) / 100;
   const total = Math.round((subtotal - discount) * 100) / 100;
 
   const hasPhysical = resolved.some((i) => i.type === 'PHYSICAL');
@@ -148,19 +154,21 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
     },
   });
 
-  // Build Stripe line items (apply discount proportionally)
-  const discountMultiplier = 1 - discountRate;
-  const lineItems = resolved.map((i) => ({
-    price_data: {
-      currency: 'usd',
-      product_data: {
-        name: i.variantName ? `${i.name} — ${i.variantName}` : i.name,
-        ...(i.imageUrl && { images: [i.imageUrl] }),
+  // Build Stripe line items — apply discount per-item only when memberDiscountEnabled
+  const lineItems = resolved.map((i) => {
+    const rate = i.memberDiscountEnabled ? memberDiscountRate : 0;
+    return {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: i.variantName ? `${i.name} — ${i.variantName}` : i.name,
+          ...(i.imageUrl && { images: [i.imageUrl] }),
+        },
+        unit_amount: Math.round(i.unitPrice * (1 - rate) * 100),
       },
-      unit_amount: Math.round(i.unitPrice * discountMultiplier * 100),
-    },
-    quantity: i.quantity,
-  }));
+      quantity: i.quantity,
+    };
+  });
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
@@ -337,7 +345,7 @@ function slugify(name: string): string {
 }
 
 export async function adminCreateProduct(req: AuthRequest, res: Response) {
-  const { name, description, type, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups } = req.body;
+  const { name, description, type, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
 
   if (!name || !type || !price) return res.status(400).json({ error: 'name, type, and price are required' });
 
@@ -360,6 +368,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
       tags: tags || [],
       fileUrl,
       optionGroups: optionGroups ?? null,
+      memberDiscountEnabled: memberDiscountEnabled ?? false,
       variants: variants?.length ? {
         create: variants.map((v: any) => ({
           name: v.name,
@@ -377,7 +386,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
 }
 
 export async function adminUpdateProduct(req: AuthRequest, res: Response) {
-  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups } = req.body;
+  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
 
   const data: any = {};
   if (name !== undefined) { data.name = name; data.slug = slugify(name); }
@@ -391,6 +400,7 @@ export async function adminUpdateProduct(req: AuthRequest, res: Response) {
   if (tags !== undefined) data.tags = tags;
   if (fileUrl !== undefined) data.fileUrl = fileUrl;
   if (optionGroups !== undefined) data.optionGroups = optionGroups ?? null;
+  if (memberDiscountEnabled !== undefined) data.memberDiscountEnabled = memberDiscountEnabled;
 
   if (variants !== undefined) {
     await prisma.productVariant.deleteMany({ where: { productId: req.params.id } });

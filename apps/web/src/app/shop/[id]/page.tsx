@@ -30,6 +30,7 @@ interface Product {
   tags: string[];
   variants: Variant[];
   optionGroups?: { name: string; values: string[]; priceModifiers?: Record<string, number> }[];
+  memberDiscountEnabled?: boolean;
 }
 
 const DISCOUNT_RATES: Record<string, number> = { PRO: 10, PREMIUM: 15, CREATOR: 15 };
@@ -107,7 +108,7 @@ export default function ProductDetailPage() {
   if (!product) return null;
 
   const plan = user?.subscription?.plan as string | undefined;
-  const discountRate = plan ? (DISCOUNT_RATES[plan] ?? 0) : 0;
+  const discountRate = (plan && product.memberDiscountEnabled) ? (DISCOUNT_RATES[plan] ?? 0) : 0;
   const effectivePrice = (activeVariant?.price ?? product.price) + priceModifier;
   const discountedPrice = discountRate > 0 ? effectivePrice * (1 - discountRate / 100) : effectivePrice;
   const hasDiscount = product.comparePrice && product.comparePrice > product.price;

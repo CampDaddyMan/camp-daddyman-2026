@@ -160,46 +160,50 @@ export default function ShopPage() {
           alt="The Ark — Camp DaddyMan Official Store"
           className="w-full block"
         />
-{/* Overlaid content — centered where THE ARK headline was */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
+{/* Overlaid content — frosted horizontal box centered on the banner */}
+        <div className="absolute inset-0 flex items-center justify-center px-6">
+          <div className="w-full max-w-6xl backdrop-blur-md bg-black/45 border border-white/10 rounded-3xl px-8 py-7 flex flex-row flex-wrap items-center gap-8">
 
-          <p className="font-black uppercase [-webkit-text-stroke:1px_#0ba691] text-white leading-[4.75rem] text-[4.17rem] drop-shadow-xl">
-            Merch, music &amp; limited drops — straight from the Camp.
-            {!user && <><br /><span className="text-brand-400">Members save up to 15%.</span></>}
-            {memberRate > 0 && <><br /><span className="text-camp-400">You&apos;re saving {memberRate}% today.</span></>}
-          </p>
+            {/* Subtitle */}
+            <p className="flex-1 min-w-[200px] font-black uppercase [-webkit-text-stroke:1px_#0ba691] text-white leading-[4.75rem] text-[4.17rem]">
+              Merch, music &amp; limited drops — straight from the Camp.
+              {!user && <><br /><span className="text-brand-400">Members save up to 15%.</span></>}
+              {memberRate > 0 && <><br /><span className="text-camp-400">You&apos;re saving {memberRate}% today.</span></>}
+            </p>
 
-          {!loading && products.length > 0 && (
-            <div className="flex items-center justify-center gap-10 md:gap-16">
-              {[
-                { value: String(products.length), label: 'Products' },
-                { value: '15%', label: 'Max Discount', gold: true },
-                { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
-              ].map(({ value, label, gold }) => (
-                <div key={label} className="text-center">
-                  <p className={`font-black tabular-nums uppercase [-webkit-text-stroke:1px_#0ba691] leading-[4.75rem] text-[4.17rem] ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                  <p className="text-white uppercase tracking-[0.2em] mt-1 font-black text-base [-webkit-text-stroke:1px_#0ba691]">{label}</p>
-                </div>
-              ))}
+            {/* Stats */}
+            {!loading && products.length > 0 && (
+              <div className="flex items-center gap-8 md:gap-12">
+                {[
+                  { value: String(products.length), label: 'Products' },
+                  { value: '15%', label: 'Max Discount', gold: true },
+                  { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
+                ].map(({ value, label, gold }) => (
+                  <div key={label} className="text-center">
+                    <p className={`font-black tabular-nums uppercase [-webkit-text-stroke:1px_#0ba691] leading-[4.75rem] text-[4.17rem] ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                    <p className="text-white uppercase tracking-[0.2em] mt-1 font-black text-base [-webkit-text-stroke:1px_#0ba691]">{label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={scrollToCollection}
+                className="bg-brand-500 hover:bg-brand-400 text-black font-black px-10 py-5 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)] whitespace-nowrap"
+              >
+                Shop the Collection
+              </button>
+              <Link
+                href="/shop/cart"
+                className="bg-[#0ba691] hover:bg-[#09907d] text-white font-black px-10 py-5 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <span>🛒</span> Cart
+              </Link>
             </div>
-          )}
 
-          <div className="flex items-center justify-center gap-4 flex-wrap pt-2">
-            <button
-              onClick={scrollToCollection}
-              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-12 py-6 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
-            >
-              Shop the Collection
-            </button>
-            <Link
-              href="/shop/cart"
-              className="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white font-black px-10 py-6 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 flex items-center gap-2"
-            >
-              <span>🛒</span> Cart
-            </Link>
           </div>
-        </div>
         </div>
       </section>
 

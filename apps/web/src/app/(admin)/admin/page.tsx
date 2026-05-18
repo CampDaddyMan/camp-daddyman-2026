@@ -3495,6 +3495,49 @@ function FieldBlock({
   );
 }
 
+const PERK_DEFAULTS = {
+  names:  ['DaddyMan Classic Tee', 'The Ark Hoodie', 'Camp Cap', 'DaddyMan Crewneck', 'Camp Joggers', 'The Philosophy Tee'],
+  prices: ['34.99', '59.99', '24.99', '49.99', '44.99', '32.99'],
+};
+
+function PerkItemBlock({ n }: { n: number }) {
+  const { settings, set, loading } = useContext(SettingsCtx);
+  const nameKey  = `perk_ph${n}_name`;
+  const priceKey = `perk_ph${n}_price`;
+  return (
+    <div className="flex gap-3 items-start pb-4 border-b border-surface-800/50 last:border-0 last:pb-0">
+      <span className="w-6 h-6 bg-surface-700 rounded-lg flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0 mt-3">{n}</span>
+      <div className="flex-1 space-y-2">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={settings[nameKey] ?? ''}
+            onChange={(e) => set(nameKey, e.target.value)}
+            placeholder={PERK_DEFAULTS.names[n - 1]}
+            disabled={loading}
+            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+          />
+          <SaveBtn k={nameKey} />
+        </div>
+        <div className="flex gap-2 items-center">
+          <span className="text-gray-500 text-sm pl-1">$</span>
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            value={settings[priceKey] ?? ''}
+            onChange={(e) => set(priceKey, e.target.value)}
+            placeholder={PERK_DEFAULTS.prices[n - 1]}
+            disabled={loading}
+            className="w-36 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+          />
+          <SaveBtn k={priceKey} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SettingsTab() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -3711,6 +3754,19 @@ function SettingsTab() {
               <SaveBtn k="shop_intro_align" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── Membership Perk Items ── */}
+      <div>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-white mb-1">Membership Perk Items</h2>
+          <p className="text-gray-500 text-sm">
+            Placeholder cards shown in the &ldquo;With your membership&rdquo; carousel. Set a name and price for each slot. Slots are replaced automatically once you enable member discounts on real products.
+          </p>
+        </div>
+        <div className="space-y-0">
+          {[1, 2, 3, 4, 5, 6].map((n) => <PerkItemBlock key={n} n={n} />)}
         </div>
       </div>
 

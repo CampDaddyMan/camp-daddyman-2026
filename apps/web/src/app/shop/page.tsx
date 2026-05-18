@@ -388,7 +388,14 @@ export default function ShopPage() {
         const real = filtered.filter((p) => p.memberDiscountEnabled);
         const perkItems: PerkItem[] = [
           ...real,
-          ...PERK_PLACEHOLDERS.slice(0, Math.max(0, 6 - real.length)),
+          ...[1, 2, 3, 4, 5, 6]
+            .slice(0, Math.max(0, 6 - real.length))
+            .map((n) => ({
+              id: `ph${n}`,
+              name:  siteSettings[`perk_ph${n}_name`]  || PERK_PLACEHOLDERS[n - 1].name,
+              price: parseFloat(siteSettings[`perk_ph${n}_price`] || '') || PERK_PLACEHOLDERS[n - 1].price,
+              isPlaceholder: true,
+            })),
         ];
         const displayRate = memberRate > 0 ? memberRate : 15;
 

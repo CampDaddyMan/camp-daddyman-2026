@@ -164,8 +164,8 @@ export default function ShopPage() {
               <p className="text-brand-400 text-[11px] font-black uppercase tracking-[0.4em] mb-3">
                 Camp DaddyMan Official Store
               </p>
-              <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight mb-3">
-                Merch, Music &amp;<br />Limited Drops
+              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight tracking-tight mb-3 whitespace-nowrap">
+                Merch, Music &amp; Limited Drops
               </h1>
               <p className="text-gray-400 text-lg">Straight from the Camp.</p>
               {!user && (

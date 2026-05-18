@@ -2334,12 +2334,16 @@ const EMPTY_PRODUCT = {
 };
 
 const VARIANT_PRESETS: Record<string, { group: string; values: string[] }> = {
-  'sizes-standard': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL'] },
-  'sizes-extended': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] },
-  'colors-basic':   { group: 'Color',   values: ['Black', 'White', 'Gray', 'Navy', 'Red'] },
-  'colors-extended':{ group: 'Color',   values: ['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'] },
-  'editions':       { group: 'Edition', values: ['Standard', 'Deluxe', 'Limited Edition'] },
-  'format':         { group: 'Format',  values: ['Digital', 'Physical'] },
+  'sizes-standard': { group: 'Size',     values: ['XS', 'S', 'M', 'L', 'XL'] },
+  'sizes-extended': { group: 'Size',     values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] },
+  'colors-basic':   { group: 'Color',    values: ['Black', 'White', 'Gray', 'Navy', 'Red'] },
+  'colors-extended':{ group: 'Color',    values: ['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'] },
+  'editions':       { group: 'Edition',  values: ['Standard', 'Deluxe', 'Limited Edition'] },
+  'format':         { group: 'Format',   values: ['Digital', 'Physical'] },
+  'qty-1-10':       { group: 'Quantity', values: Array.from({ length: 10 },  (_, i) => String(i + 1)) },
+  'qty-1-20':       { group: 'Quantity', values: Array.from({ length: 20 },  (_, i) => String(i + 1)) },
+  'qty-1-50':       { group: 'Quantity', values: Array.from({ length: 50 },  (_, i) => String(i + 1)) },
+  'qty-1-100':      { group: 'Quantity', values: Array.from({ length: 100 }, (_, i) => String(i + 1)) },
 };
 
 function ProductFormModal({
@@ -2585,6 +2589,12 @@ function ProductFormModal({
                   <optgroup label="Colors">
                     <option value="colors-basic">Colors — Black, White, Gray, Navy, Red</option>
                     <option value="colors-extended">Colors — 10 colors</option>
+                  </optgroup>
+                  <optgroup label="Quantity / Unit Count">
+                    <option value="qty-1-10">Quantity — 1 to 10</option>
+                    <option value="qty-1-20">Quantity — 1 to 20</option>
+                    <option value="qty-1-50">Quantity — 1 to 50</option>
+                    <option value="qty-1-100">Quantity — 1 to 100</option>
                   </optgroup>
                   <optgroup label="Other">
                     <option value="editions">Editions — Standard, Deluxe, Limited</option>

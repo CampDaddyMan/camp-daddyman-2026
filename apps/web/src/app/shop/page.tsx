@@ -200,9 +200,9 @@ export default function ShopPage() {
               {!loading && products.length > 0 && (
                 <div className="flex flex-col sm:flex-row mb-5 rounded-[14px] overflow-hidden border border-white/[0.08] bg-white/[0.035] w-full sm:w-auto">
                   {[
-                    { value: String(products.length), label: 'Products' },
-                    { value: '15%', label: 'Max Discount', gold: true },
-                    { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drop' },
+                    { value: String(products.length), label: siteSettings.shop_stat_products_label || 'Products' },
+                    { value: siteSettings.shop_stat_max_discount || '15%', label: siteSettings.shop_stat_discount_label || 'Max Discount', gold: true },
+                    { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: siteSettings.shop_stat_featured_label || 'Featured Drop' },
                   ].map(({ value, label, gold }, i, arr) => (
                     <div
                       key={label}
@@ -226,11 +226,14 @@ export default function ShopPage() {
               {/* Row 5: member line */}
               {!user && (
                 <p className="shop-member-line text-brand-400 font-semibold text-sm mb-7">
-                  Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
+                  {siteSettings.shop_nonmember_line || 'Members save up to 15%.'}{' '}
+                  <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
                 </p>
               )}
               {memberRate > 0 && (
-                <p className="shop-member-line text-[#00c878] font-bold text-[15px] mb-7">You&apos;re saving {memberRate}% today.</p>
+                <p className="shop-member-line text-[#00c878] font-bold text-[15px] mb-7">
+                  {(siteSettings.shop_member_saving_line || "You're saving {rate}% today.").replace('{rate}', String(memberRate))}
+                </p>
               )}
               {!user && memberRate === 0 && <div className="mb-7" />}
 

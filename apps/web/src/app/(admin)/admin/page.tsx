@@ -3333,9 +3333,11 @@ function SaveBtn({ k }: { k: string }) {
 }
 
 function FieldBlock({
-  label, textKey, placeholder, cssKey, cssClass, fontSizeKey, snippets,
+  label, textKey, placeholder, textEntries, cssKey, cssClass, fontSizeKey, snippets,
 }: {
-  label: string; textKey?: string; placeholder?: string;
+  label: string;
+  textKey?: string; placeholder?: string;
+  textEntries?: { key: string; label: string; placeholder: string }[];
   cssKey: string; cssClass: string; fontSizeKey?: string;
   snippets: { tag: string; css: string }[];
 }) {
@@ -3346,6 +3348,8 @@ function FieldBlock({
     return { num: m?.[1] ?? '', unit: (m?.[2] ?? 'px') as string };
   };
 
+  const hasTextEditor = !!(textKey || textEntries?.length);
+
   return (
     <div className="space-y-2 pb-6 border-b border-surface-800/50 last:border-0">
       <div className="flex items-center justify-between">
@@ -3353,7 +3357,7 @@ function FieldBlock({
         <code className="text-[10px] text-brand-400/70 bg-surface-800 px-2 py-0.5 rounded font-mono">.{cssClass}</code>
       </div>
 
-      {textKey ? (
+      {textKey && (
         <div className="flex gap-2">
           <input
             type="text"
@@ -3365,8 +3369,27 @@ function FieldBlock({
           />
           <SaveBtn k={textKey} />
         </div>
-      ) : (
-        <p className="text-xs text-gray-600 italic">Content is dynamic — pulled live from the database.</p>
+      )}
+
+      {textEntries?.map((entry) => (
+        <div key={entry.key}>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">{entry.label}</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={settings[entry.key] ?? ''}
+              onChange={(e) => set(entry.key, e.target.value)}
+              placeholder={entry.placeholder}
+              disabled={loading}
+              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+            />
+            <SaveBtn k={entry.key} />
+          </div>
+        </div>
+      ))}
+
+      {!hasTextEditor && (
+        <p className="text-xs text-gray-600 italic">Values are live counts from the database.</p>
       )}
 
       {fontSizeKey && (() => {
@@ -3553,7 +3576,10 @@ function SettingsTab() {
           />
 
           <FieldBlock
-            label="Stat Values (2 · 15% · 1 — dynamic)"
+            label="Stat Values (product count &amp; featured count are live; Max Discount is editable)"
+            textEntries={[
+              { key: 'shop_stat_max_discount', label: 'Max Discount value', placeholder: '15%' },
+            ]}
             cssKey="shop_stat_value_css"
             cssClass="shop-stat-value"
             fontSizeKey="shop_stat_value_font_size"
@@ -3575,7 +3601,12 @@ function SettingsTab() {
           />
 
           <FieldBlock
-            label="Stat Labels (Products · Max Discount · Featured Drop — dynamic)"
+            label="Stat Labels"
+            textEntries={[
+              { key: 'shop_stat_products_label',  label: 'Label 1',  placeholder: 'Products' },
+              { key: 'shop_stat_discount_label',  label: 'Label 2',  placeholder: 'Max Discount' },
+              { key: 'shop_stat_featured_label',  label: 'Label 3',  placeholder: 'Featured Drop' },
+            ]}
             cssKey="shop_stat_label_css"
             cssClass="shop-stat-label"
             fontSizeKey="shop_stat_label_font_size"
@@ -3593,7 +3624,11 @@ function SettingsTab() {
           />
 
           <FieldBlock
-            label='Member Line — "You&apos;re saving 15% today." / "Members save up to 15%."'
+            label="Member Line"
+            textEntries={[
+              { key: 'shop_nonmember_line',     label: 'Logged-out text',                          placeholder: 'Members save up to 15%.' },
+              { key: 'shop_member_saving_line', label: 'Member text (use {rate} for the %)',       placeholder: "You're saving {rate}% today." },
+            ]}
             cssKey="shop_member_line_css"
             cssClass="shop-member-line"
             fontSizeKey="shop_member_line_font_size"

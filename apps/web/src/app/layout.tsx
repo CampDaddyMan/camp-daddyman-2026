@@ -48,12 +48,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <head>
+      <body>
         {customCss && (
           <style dangerouslySetInnerHTML={{ __html: customCss }} />
         )}
-      </head>
-      <body>
         <AuthProvider>
           <CartProvider>
             <Navbar />

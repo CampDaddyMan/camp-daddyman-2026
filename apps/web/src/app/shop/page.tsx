@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 
 interface Product {
@@ -15,52 +16,86 @@ interface Product {
   imageUrl?: string;
   featured: boolean;
   tags: string[];
+  memberDiscountEnabled?: boolean;
   variants: { id: string; name: string; inventory: number }[];
 }
 
-function ProductCard({ product }: { product: Product }) {
-  const hasDiscount = product.comparePrice && product.comparePrice > product.price;
+const MEMBER_RATES: Record<string, number> = { PRO: 10, PREMIUM: 15, CREATOR: 15 };
+
+// ── Product Card ──────────────────────────────────────────────────────────────
+
+function ProductCard({ product, large = false }: { product: Product; large?: boolean }) {
+  const hasDiscount = !!(product.comparePrice && product.comparePrice > product.price);
   const savePct = hasDiscount ? Math.round((1 - product.price / product.comparePrice!) * 100) : 0;
+  const outOfStock = product.variants.length > 0 && product.variants.every((v) => v.inventory <= 0);
 
   return (
-    <Link
-      href={`/shop/${product.slug || product.id}`}
-      className="group bg-surface-800 border border-surface-700 hover:border-brand-500/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_24px_rgba(248,194,2,0.1)] flex flex-col"
-    >
-      <div className="relative aspect-square bg-surface-700 overflow-hidden">
+    <Link href={`/shop/${product.slug || product.id}`} className="group block">
+      {/* Image container */}
+      <div className={`relative ${large ? 'aspect-[3/4]' : 'aspect-[4/5]'} bg-surface-800 rounded-2xl overflow-hidden border border-surface-700/60 transition-all duration-500 group-hover:border-brand-500/50 group-hover:shadow-[0_8px_48px_rgba(248,194,2,0.12)]`}>
+
         {product.imageUrl ? (
           product.imageUrl.startsWith('http')
-            ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            : <Image src={product.imageUrl} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+            : <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-30">
-            {product.type === 'DIGITAL' ? '📦' : '👕'}
+          <div className="w-full h-full flex items-center justify-center bg-surface-800">
+            <span className="text-7xl opacity-15">{product.type === 'DIGITAL' ? '📦' : '👕'}</span>
           </div>
         )}
+
+        {/* Persistent bottom gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+        {/* Hover overlay CTA */}
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-4 inset-x-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+            <div className="bg-brand-500 text-black font-black text-center py-3 rounded-xl text-sm tracking-wide">
+              View Product →
+            </div>
+          </div>
+        </div>
+
+        {/* Top-left badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {product.featured && (
-            <span className="bg-brand-500 text-black text-xs font-bold px-2.5 py-1 rounded-full">Featured</span>
+            <span className="bg-brand-500 text-black text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">Drop</span>
           )}
           {product.type === 'DIGITAL' && (
-            <span className="bg-camp-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">Digital</span>
+            <span className="bg-black/70 backdrop-blur-md text-camp-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-camp-500/30">Digital</span>
           )}
           {hasDiscount && (
-            <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">−{savePct}%</span>
+            <span className="bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">−{savePct}%</span>
+          )}
+          {outOfStock && (
+            <span className="bg-black/70 backdrop-blur-md text-gray-400 text-[10px] font-medium px-2.5 py-1 rounded-full border border-surface-600">Sold Out</span>
           )}
         </div>
+
+        {/* Top-right member badge */}
+        {product.memberDiscountEnabled && (
+          <div className="absolute top-3 right-3">
+            <span className="bg-black/70 backdrop-blur-md text-brand-400 text-[10px] font-black px-2.5 py-1 rounded-full border border-brand-500/40 uppercase tracking-wide">
+              ✦ Members
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="text-white font-semibold text-base mb-1 group-hover:text-brand-400 transition-colors leading-snug">
+      {/* Text beneath */}
+      <div className="mt-3 px-0.5">
+        {product.tags.length > 0 && (
+          <p className="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-1 truncate">
+            {product.tags.slice(0, 2).join(' · ')}
+          </p>
+        )}
+        <h3 className="text-white font-bold text-sm leading-snug group-hover:text-brand-400 transition-colors line-clamp-1">
           {product.name}
         </h3>
-        {product.description && (
-          <p className="text-gray-500 text-sm line-clamp-2 mb-3 flex-1">{product.description}</p>
-        )}
-        <div className="flex items-center gap-2 mt-auto">
-          <span className="text-brand-400 font-bold text-lg">${product.price.toFixed(2)}</span>
+        <div className="flex items-baseline gap-2 mt-1">
+          <span className="text-brand-400 font-black text-lg">${product.price.toFixed(2)}</span>
           {hasDiscount && (
-            <span className="text-gray-500 text-sm line-through">${product.comparePrice!.toFixed(2)}</span>
+            <span className="text-gray-600 text-sm line-through">${product.comparePrice!.toFixed(2)}</span>
           )}
         </div>
       </div>
@@ -68,10 +103,17 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function ShopPage() {
+  const { user } = useAuth();
+  const collectionRef = useRef<HTMLDivElement>(null);
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | 'PHYSICAL' | 'DIGITAL'>('ALL');
+  const [typeFilter, setTypeFilter] = useState<'ALL' | 'PHYSICAL' | 'DIGITAL'>('ALL');
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [sort, setSort] = useState<'featured' | 'newest' | 'price_asc' | 'price_desc'>('featured');
 
   useEffect(() => {
     api.get('/shop/products')
@@ -80,86 +122,329 @@ export default function ShopPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = filter === 'ALL' ? products : products.filter((p) => p.type === filter);
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => p.tags.forEach((t) => set.add(t)));
+    return Array.from(set).sort();
+  }, [products]);
 
+  const featuredProducts = useMemo(() => products.filter((p) => p.featured), [products]);
+
+  const filtered = useMemo(() => {
+    let list = products.filter((p) => {
+      if (typeFilter !== 'ALL' && p.type !== typeFilter) return false;
+      if (tagFilter && !p.tags.includes(tagFilter)) return false;
+      return true;
+    });
+    if (sort === 'price_asc') list = [...list].sort((a, b) => a.price - b.price);
+    else if (sort === 'price_desc') list = [...list].sort((a, b) => b.price - a.price);
+    else if (sort === 'featured') list = [...list].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    return list;
+  }, [products, typeFilter, tagFilter, sort]);
+
+  const plan = user?.subscription?.plan as string | undefined;
+  const memberRate = plan ? (MEMBER_RATES[plan] ?? 0) : 0;
+
+  function scrollToCollection() {
+    collectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Hero ────────────────────────────────────────────────────────────────────
   return (
-    <div>
-      {/* ── Hero ── */}
-      <div className="relative overflow-hidden bg-surface-900 border-b border-surface-700/50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(248,194,2,0.12),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_0%_100%,rgba(2,65,25,0.2),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_100%_0%,rgba(2,65,25,0.2),transparent_60%)]" />
+    <div className="min-h-screen bg-black">
 
-        <div className="relative max-w-5xl mx-auto px-4 py-16 md:py-24 text-center">
-          <p className="text-brand-400 text-sm font-bold uppercase tracking-[0.4em] mb-4">Camp DaddyMan</p>
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-3">
-            The Ark
+      <section className="relative min-h-[92vh] flex flex-col items-center justify-center overflow-hidden">
+        {/* Layered atmospheric backgrounds */}
+        <div className="absolute inset-0 bg-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,rgba(248,194,2,0.09),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_80%_at_0%_100%,rgba(2,65,25,0.2),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_80%_at_100%_0%,rgba(2,65,25,0.2),transparent_60%)]" />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.022] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:52px_52px]" />
+
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          {/* Eyebrow pill */}
+          <div className="inline-flex items-center gap-2.5 bg-brand-500/8 border border-brand-500/25 rounded-full px-5 py-2 mb-10">
+            <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
+            <span className="text-brand-400 text-[11px] font-black uppercase tracking-[0.35em]">Camp DaddyMan Official Store</span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-[clamp(4.5rem,16vw,13rem)] font-black text-white leading-[0.82] tracking-tight mb-8 select-none">
+            THE<br /><span className="text-brand-400">ARK</span>
           </h1>
-          <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto mb-8">
-            Merch, music, and more — built for the Camp. Subscribers get up to 15% off every order.
+
+          {/* Sub */}
+          <p className="text-gray-400 text-lg md:text-xl max-w-md mx-auto mb-10 leading-relaxed">
+            Merch, music & limited drops — straight from the Camp.
+            {!user && <><br /><span className="text-brand-400 font-semibold">Members save up to 15%.</span></>}
+            {memberRate > 0 && <><br /><span className="text-camp-400 font-semibold">You're saving {memberRate}% today.</span></>}
           </p>
-          <Link href="/shop/cart" className="inline-flex items-center gap-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
-            🛒 View cart
-          </Link>
-        </div>
-      </div>
 
-      {/* ── Products ── */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Filter */}
-        <div className="flex items-center gap-3 mb-8 flex-wrap">
-          {(['ALL', 'PHYSICAL', 'DIGITAL'] as const).map((f) => (
+          {/* Stats row */}
+          {!loading && products.length > 0 && (
+            <div className="flex items-center justify-center gap-8 md:gap-14 mb-12">
+              {[
+                { value: String(products.length), label: 'Products' },
+                { value: '15%', label: 'Max Discount', gold: true },
+                { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
+              ].map(({ value, label, gold }) => (
+                <div key={label} className="text-center">
+                  <p className={`text-2xl md:text-4xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                  <p className="text-gray-600 text-[10px] uppercase tracking-[0.25em] mt-1">{label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* CTAs */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
-                filter === f
-                  ? 'bg-brand-500 text-black border-brand-500'
-                  : 'border-surface-600 text-gray-400 hover:text-white hover:border-surface-500 bg-surface-800'
-              }`}
+              onClick={scrollToCollection}
+              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
             >
-              {f === 'ALL' ? 'All Products' : f === 'PHYSICAL' ? '👕 Physical' : '📦 Digital'}
+              Shop the Collection
             </button>
-          ))}
-          <span className="ml-auto text-gray-500 text-sm">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+            <Link
+              href="/shop/cart"
+              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 backdrop-blur-sm text-white font-semibold px-6 py-4 rounded-2xl text-base transition-all duration-200 flex items-center gap-2"
+            >
+              <span>🛒</span> Cart
+            </Link>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-surface-800 rounded-2xl overflow-hidden animate-pulse">
-                <div className="aspect-square bg-surface-700" />
-                <div className="p-4 space-y-2">
-                  <div className="h-4 bg-surface-700 rounded w-3/4" />
-                  <div className="h-3 bg-surface-700 rounded w-1/2" />
+        {/* Scroll hint */}
+        <button
+          onClick={scrollToCollection}
+          className="absolute bottom-8 flex flex-col items-center gap-2 text-gray-700 hover:text-gray-500 transition-colors"
+          aria-label="Scroll to collection"
+        >
+          <span className="text-[10px] uppercase tracking-[0.3em]">Explore</span>
+          <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </section>
+
+      {/* ── Featured Drops ──────────────────────────────────────────────────── */}
+      {!loading && featuredProducts.length > 0 && (
+        <section className="border-t border-surface-800/80 py-16 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-brand-400 text-[10px] font-black uppercase tracking-[0.4em] mb-2">New Drops</p>
+                <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">Featured</h2>
+              </div>
+              <button onClick={scrollToCollection} className="text-sm text-gray-600 hover:text-brand-400 transition-colors hidden md:block font-medium">
+                View all →
+              </button>
+            </div>
+
+            {featuredProducts.length === 1 && (
+              <div className="max-w-xs">
+                <ProductCard product={featuredProducts[0]} large />
+              </div>
+            )}
+
+            {featuredProducts.length === 2 && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+                <div className="md:col-span-3"><ProductCard product={featuredProducts[0]} large /></div>
+                <div className="md:col-span-2"><ProductCard product={featuredProducts[1]} large /></div>
+              </div>
+            )}
+
+            {featuredProducts.length >= 3 && (
+              <div className="grid grid-cols-2 md:grid-cols-12 gap-4 md:gap-6">
+                <div className="col-span-2 md:col-span-7">
+                  <ProductCard product={featuredProducts[0]} large />
+                </div>
+                <div className="col-span-2 md:col-span-5 grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
+                  {featuredProducts.slice(1, 3).map((p) => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-24">
-            <p className="text-5xl mb-4">📦</p>
-            <p className="text-white font-semibold text-lg mb-2">Drops coming soon</p>
-            <p className="text-gray-500 text-sm">The Ark is being stocked. Check back shortly.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
-        )}
+        </section>
+      )}
 
-        {/* Member discount callout */}
-        <div className="mt-16 rounded-2xl border border-brand-500/30 bg-surface-800/60 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <p className="text-brand-400 text-sm font-bold uppercase tracking-wider mb-1">Member Discount</p>
-            <p className="text-white font-semibold">PRO members save 10% · PREMIUM members save 15%</p>
-            <p className="text-gray-400 text-sm mt-1">Discount applied automatically at checkout when you're signed in.</p>
+      {/* ── Collection Grid ─────────────────────────────────────────────────── */}
+      <section ref={collectionRef} className="border-t border-surface-800/80 pb-28">
+
+        {/* Sticky filter / sort bar */}
+        <div className="sticky top-0 z-20 bg-black/85 backdrop-blur-2xl border-b border-surface-800/80">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
+              {/* Type pills */}
+              {(['ALL', 'PHYSICAL', 'DIGITAL'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setTypeFilter(f)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-all duration-200 ${
+                    typeFilter === f
+                      ? 'bg-brand-500 text-black border-brand-500 shadow-[0_0_16px_rgba(248,194,2,0.2)]'
+                      : 'border-surface-700 text-gray-500 hover:text-white hover:border-surface-500 bg-surface-900/60'
+                  }`}
+                >
+                  {f === 'ALL' ? 'All' : f === 'PHYSICAL' ? '👕 Physical' : '📦 Digital'}
+                </button>
+              ))}
+
+              {/* Divider */}
+              {allTags.length > 0 && <div className="flex-shrink-0 w-px h-5 bg-surface-700 mx-1" />}
+
+              {/* Tag pills */}
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+                  className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border transition-all duration-200 capitalize ${
+                    tagFilter === tag
+                      ? 'bg-camp-600 text-white border-camp-600'
+                      : 'border-surface-700 text-gray-500 hover:text-gray-300 hover:border-surface-600 bg-surface-900/60'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+
+              {/* Push sort to right */}
+              <div className="flex-1 min-w-[16px]" />
+
+              <span className="flex-shrink-0 text-gray-700 text-xs tabular-nums">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as typeof sort)}
+                className="flex-shrink-0 bg-surface-900/60 border border-surface-700 text-gray-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 cursor-pointer"
+              >
+                <option value="featured">Featured First</option>
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+              </select>
+            </div>
           </div>
-          <Link href="/subscribe" className="flex-shrink-0 bg-brand-500 hover:bg-brand-600 text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors whitespace-nowrap">
-            Get a membership →
-          </Link>
         </div>
-      </div>
+
+        <div className="max-w-7xl mx-auto px-4 pt-10">
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-[4/5] bg-surface-800 rounded-2xl mb-3" />
+                  <div className="h-3 bg-surface-800 rounded w-1/3 mb-2" />
+                  <div className="h-4 bg-surface-800 rounded w-2/3 mb-2" />
+                  <div className="h-5 bg-surface-800 rounded w-1/4" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-32">
+              <p className="text-6xl mb-6">📦</p>
+              <p className="text-white font-black text-2xl mb-3">Drops Coming Soon</p>
+              <p className="text-gray-500 text-sm mb-6">The Ark is being stocked. Check back shortly.</p>
+              {(typeFilter !== 'ALL' || tagFilter) && (
+                <button
+                  onClick={() => { setTypeFilter('ALL'); setTagFilter(null); }}
+                  className="text-brand-400 hover:text-brand-300 text-sm font-bold border border-brand-500/30 px-5 py-2.5 rounded-xl transition-colors"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-10">
+              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Member Banner ───────────────────────────────────────────────────── */}
+      {!loading && (
+        <section className="border-t border-surface-800/80 bg-surface-900/30 px-4 py-16 md:py-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="relative rounded-3xl border border-brand-500/20 overflow-hidden">
+              {/* Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-800 via-surface-800/95 to-surface-900" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(248,194,2,0.07),transparent_65%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_100%_50%,rgba(2,65,25,0.1),transparent_65%)]" />
+
+              <div className="relative px-8 md:px-14 py-12 md:py-16 flex flex-col lg:flex-row items-center justify-between gap-10">
+
+                {/* Left copy */}
+                <div className="max-w-lg text-center lg:text-left">
+                  <div className="inline-flex items-center gap-2 bg-brand-500/12 border border-brand-500/25 rounded-full px-4 py-1.5 mb-6">
+                    <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">Membership Perks</span>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-5">
+                    Camp Members<br />
+                    <span className="text-brand-400">Save Up To 15%</span><br />
+                    on Every Order.
+                  </h2>
+                  <div className="space-y-3 mb-8">
+                    {[
+                      { plan: 'PRO', pct: 10, desc: 'Unlock discounts + exclusive content' },
+                      { plan: 'PREMIUM', pct: 15, desc: 'Maximum savings, all access' },
+                      { plan: 'CREATOR', pct: 15, desc: 'Creator tier — full benefits' },
+                    ].map(({ plan, pct, desc }) => (
+                      <div key={plan} className="flex items-center gap-3">
+                        <span className="w-9 h-9 bg-brand-500/12 border border-brand-500/25 rounded-xl flex items-center justify-center text-brand-400 text-xs font-black flex-shrink-0">
+                          {pct}%
+                        </span>
+                        <div className="text-left">
+                          <span className="text-white text-sm font-black">{plan}</span>
+                          <span className="text-gray-500 text-xs ml-2">{desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {memberRate > 0 ? (
+                    <div className="inline-flex items-center gap-2 bg-camp-500/10 border border-camp-500/30 rounded-2xl px-5 py-3 text-camp-400 font-bold text-sm">
+                      <span>✓</span> You&apos;re saving {memberRate}% on eligible items
+                    </div>
+                  ) : (
+                    <Link
+                      href="/subscribe"
+                      className="inline-block bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_32px_rgba(248,194,2,0.22)]"
+                    >
+                      Join the Camp →
+                    </Link>
+                  )}
+                </div>
+
+                {/* Right: product price preview cards */}
+                {filtered.length > 0 && (
+                  <div className="hidden lg:flex flex-col gap-3 w-72 flex-shrink-0">
+                    <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">With your membership</p>
+                    {filtered.filter((p) => p.memberDiscountEnabled).slice(0, 4).map((p) => (
+                      <div key={p.id} className="flex items-center gap-3 bg-surface-800/70 border border-surface-700/60 rounded-2xl px-4 py-3">
+                        <div className="w-11 h-11 bg-surface-700 rounded-xl overflow-hidden flex-shrink-0">
+                          {p.imageUrl && <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-xs font-bold truncate">{p.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-gray-500 text-xs line-through">${p.price.toFixed(2)}</span>
+                            <span className="text-brand-400 text-xs font-bold">→ ${(p.price * (1 - 15 / 100)).toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {filtered.filter((p) => p.memberDiscountEnabled).length === 0 && (
+                      <p className="text-gray-600 text-xs">Member discounts apply to eligible products.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -3305,84 +3305,124 @@ function ShopTab() {
 // ── Settings Tab ──────────────────────────────────────────────────────────────
 
 function SettingsTab() {
-  const [css, setCss] = useState('');
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/admin/settings')
-      .then((r) => setCss(r.data.settings?.custom_css ?? ''))
+      .then((r) => setSettings(r.data.settings ?? {}))
       .catch(() => setError('Failed to load settings.'))
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleSave() {
-    setSaving(true);
+  function set(key: string, value: string) {
+    setSettings((s) => ({ ...s, [key]: value }));
+    setSaved(null);
+  }
+
+  async function save(key: string) {
+    setSaving(key);
     setError('');
     try {
-      await api.put('/admin/settings', { key: 'custom_css', value: css });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      await api.put('/admin/settings', { key, value: settings[key] ?? '' });
+      setSaved(key);
+      setTimeout(() => setSaved(null), 2500);
     } catch {
       setError('Failed to save. Try again.');
     } finally {
-      setSaving(false);
+      setSaving(null);
     }
   }
 
+  function SaveBtn({ k }: { k: string }) {
+    return (
+      <button
+        onClick={() => save(k)}
+        disabled={saving === k || loading}
+        className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors whitespace-nowrap ${
+          saved === k ? 'bg-camp-500 text-white' : 'bg-brand-500 hover:bg-brand-600 text-black disabled:opacity-50'
+        }`}
+      >
+        {saving === k ? 'Saving…' : saved === k ? '✓ Saved' : 'Save'}
+      </button>
+    );
+  }
+
   return (
-    <div className="max-w-4xl space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-white mb-1">Custom CSS</h2>
-        <p className="text-gray-400 text-sm">
-          CSS written here is injected into every page of the site (inside{' '}
-          <code className="bg-surface-700 px-1.5 py-0.5 rounded text-xs text-brand-400">&lt;head&gt;</code>
-          ). Changes go live within 60 seconds after saving.
-        </p>
-      </div>
+    <div className="max-w-4xl space-y-10">
 
       {error && (
         <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
       )}
 
-      <div className="relative">
-        <textarea
-          value={loading ? '' : css}
-          onChange={(e) => { setCss(e.target.value); setSaved(false); }}
-          placeholder={loading ? 'Loading…' : '/* Add custom CSS here */\n\n.ark-poster-img {\n  width: 100%;\n  height: auto;\n  display: block;\n}'}
-          disabled={loading}
-          spellCheck={false}
-          rows={28}
-          className="w-full bg-surface-900 border border-surface-600 text-gray-200 font-mono text-sm rounded-2xl px-5 py-4 focus:outline-none focus:border-brand-400 resize-y transition-colors leading-relaxed placeholder:text-gray-700 disabled:opacity-50"
-        />
-        <div className="absolute bottom-3 right-3 text-[10px] text-gray-700 font-mono">
-          {css.length} chars
+      {/* ── Shop Page Content ── */}
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-xl font-bold text-white mb-1">Shop Page Content</h2>
+          <p className="text-gray-500 text-sm">Edit the text shown in The Ark shop intro section.</p>
+        </div>
+
+        {[
+          { key: 'shop_eyebrow',    label: 'Eyebrow label',  placeholder: 'Camp DaddyMan Official Store' },
+          { key: 'shop_heading',    label: 'Main heading',   placeholder: 'Merch, Music & Limited Drops' },
+          { key: 'shop_subheading', label: 'Subheading',     placeholder: 'Straight from the Camp.' },
+        ].map(({ key, label, placeholder }) => (
+          <div key={key}>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">{label}</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={settings[key] ?? ''}
+                onChange={(e) => set(key, e.target.value)}
+                placeholder={placeholder}
+                disabled={loading}
+                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <SaveBtn k={key} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Custom CSS ── */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-bold text-white mb-1">Custom CSS</h2>
+          <p className="text-gray-500 text-sm">
+            Injected into every page. Changes go live within ~60 seconds.
+          </p>
+        </div>
+
+        <div className="relative">
+          <textarea
+            value={loading ? '' : (settings['custom_css'] ?? '')}
+            onChange={(e) => set('custom_css', e.target.value)}
+            placeholder={loading ? 'Loading…' : '/* Add custom CSS here */'}
+            disabled={loading}
+            spellCheck={false}
+            rows={24}
+            className="w-full bg-surface-900 border border-surface-600 text-gray-200 font-mono text-sm rounded-2xl px-5 py-4 focus:outline-none focus:border-brand-400 resize-y transition-colors leading-relaxed placeholder:text-gray-700 disabled:opacity-50"
+          />
+          <div className="absolute bottom-3 right-3 text-[10px] text-gray-700 font-mono">
+            {(settings['custom_css'] ?? '').length} chars
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <SaveBtn k="custom_css" />
+          <button
+            onClick={() => set('custom_css', '')}
+            disabled={loading}
+            className="px-4 py-2 rounded-xl text-sm text-gray-500 hover:text-red-400 border border-surface-700 transition-colors disabled:opacity-40"
+          >
+            Clear
+          </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handleSave}
-          disabled={saving || loading}
-          className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-colors ${
-            saved
-              ? 'bg-camp-500 text-white'
-              : 'bg-brand-500 hover:bg-brand-600 text-black disabled:opacity-50'
-          }`}
-        >
-          {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save CSS'}
-        </button>
-        <button
-          onClick={() => { setCss(''); setSaved(false); }}
-          disabled={saving || loading}
-          className="px-4 py-2.5 rounded-xl text-sm text-gray-500 hover:text-red-400 border border-surface-700 transition-colors disabled:opacity-40"
-        >
-          Clear
-        </button>
-        <span className="text-xs text-gray-600 ml-2">Refreshes across the site within ~60 seconds</span>
-      </div>
     </div>
   );
 }

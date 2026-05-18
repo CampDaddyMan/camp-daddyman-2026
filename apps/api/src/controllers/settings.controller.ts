@@ -22,3 +22,9 @@ export const getPublicCss = async (_req: Request, res: Response) => {
   const row = await prisma.siteSetting.findUnique({ where: { key: 'custom_css' } });
   res.json({ css: row?.value ?? '' });
 };
+
+export const getPublicSettings = async (_req: Request, res: Response) => {
+  const rows = await prisma.siteSetting.findMany();
+  const settings = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  res.json({ settings });
+};

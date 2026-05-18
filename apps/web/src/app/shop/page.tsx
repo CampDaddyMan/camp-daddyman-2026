@@ -107,12 +107,16 @@ export default function ShopPage() {
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'PHYSICAL' | 'DIGITAL'>('ALL');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<'featured' | 'newest' | 'price_asc' | 'price_desc'>('featured');
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
   useEffect(() => {
     api.get('/shop/products')
       .then((r) => setProducts(r.data.products))
       .catch(() => {})
       .finally(() => setLoading(false));
+    api.get('/site-settings/public')
+      .then((r) => setSiteSettings(r.data.settings ?? {}))
+      .catch(() => {});
   }, []);
 
   const allTags = useMemo(() => {
@@ -162,12 +166,12 @@ export default function ShopPage() {
             {/* Left: copy */}
             <div>
               <p className="text-brand-400 text-[11px] font-black uppercase tracking-[0.4em] mb-3">
-                Camp DaddyMan Official Store
+                {siteSettings.shop_eyebrow || 'Camp DaddyMan Official Store'}
               </p>
               <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight tracking-tight mb-3 whitespace-nowrap">
-                Merch, Music &amp; Limited Drops
+                {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
               </h1>
-              <p className="text-gray-400 text-lg">Straight from the Camp.</p>
+              <p className="text-gray-400 text-lg">{siteSettings.shop_subheading || 'Straight from the Camp.'}</p>
               {!user && (
                 <p className="text-brand-400 font-semibold mt-1">
                   Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>

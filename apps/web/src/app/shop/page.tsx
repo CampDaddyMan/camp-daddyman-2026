@@ -206,58 +206,13 @@ export default function ShopPage() {
         </div>
       </section>
 
-      {/* ── Featured Drops ──────────────────────────────────────────────────── */}
-      {!loading && featuredProducts.length > 0 && (
-        <section className="border-t border-surface-800/80 py-16 px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <p className="text-brand-400 text-[10px] font-black uppercase tracking-[0.4em] mb-2">New Drops</p>
-                <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">Featured</h2>
-              </div>
-              <button onClick={scrollToCollection} className="text-sm text-gray-600 hover:text-brand-400 transition-colors hidden md:block font-medium">
-                View all →
-              </button>
-            </div>
+      {/* ── Collection + Featured Sidebar ──────────────────────────────────── */}
+      <div ref={collectionRef} className="border-t border-surface-800/80 pb-28">
 
-            {featuredProducts.length === 1 && (
-              <div className="max-w-xs">
-                <ProductCard product={featuredProducts[0]} large />
-              </div>
-            )}
-
-            {featuredProducts.length === 2 && (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-                <div className="md:col-span-3"><ProductCard product={featuredProducts[0]} large /></div>
-                <div className="md:col-span-2"><ProductCard product={featuredProducts[1]} large /></div>
-              </div>
-            )}
-
-            {featuredProducts.length >= 3 && (
-              <div className="grid grid-cols-2 md:grid-cols-12 gap-4 md:gap-6">
-                <div className="col-span-2 md:col-span-7">
-                  <ProductCard product={featuredProducts[0]} large />
-                </div>
-                <div className="col-span-2 md:col-span-5 grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
-                  {featuredProducts.slice(1, 3).map((p) => (
-                    <ProductCard key={p.id} product={p} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ── Collection Grid ─────────────────────────────────────────────────── */}
-      <section ref={collectionRef} className="border-t border-surface-800/80 pb-28">
-
-        {/* Sticky filter / sort bar */}
+        {/* Sticky filter / sort bar — full width */}
         <div className="sticky top-0 z-20 bg-black/85 backdrop-blur-2xl border-b border-surface-800/80">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-
-              {/* Type pills */}
               {(['ALL', 'PHYSICAL', 'DIGITAL'] as const).map((f) => (
                 <button
                   key={f}
@@ -271,11 +226,7 @@ export default function ShopPage() {
                   {f === 'ALL' ? 'All' : f === 'PHYSICAL' ? '👕 Physical' : '📦 Digital'}
                 </button>
               ))}
-
-              {/* Divider */}
               {allTags.length > 0 && <div className="flex-shrink-0 w-px h-5 bg-surface-700 mx-1" />}
-
-              {/* Tag pills */}
               {allTags.map((tag) => (
                 <button
                   key={tag}
@@ -289,12 +240,8 @@ export default function ShopPage() {
                   {tag}
                 </button>
               ))}
-
-              {/* Push sort to right */}
               <div className="flex-1 min-w-[16px]" />
-
               <span className="flex-shrink-0 text-gray-700 text-xs tabular-nums">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
-
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as typeof sort)}
@@ -309,39 +256,60 @@ export default function ShopPage() {
           </div>
         </div>
 
+        {/* Two-column body: grid left, featured sidebar right */}
         <div className="max-w-7xl mx-auto px-4 pt-10">
-          {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="aspect-[4/5] bg-surface-800 rounded-2xl mb-3" />
-                  <div className="h-3 bg-surface-800 rounded w-1/3 mb-2" />
-                  <div className="h-4 bg-surface-800 rounded w-2/3 mb-2" />
-                  <div className="h-5 bg-surface-800 rounded w-1/4" />
+          <div className="flex gap-8 items-start">
+
+            {/* Main grid */}
+            <div className="flex-1 min-w-0">
+              {loading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="aspect-[4/5] bg-surface-800 rounded-2xl mb-3" />
+                      <div className="h-3 bg-surface-800 rounded w-1/3 mb-2" />
+                      <div className="h-4 bg-surface-800 rounded w-2/3 mb-2" />
+                      <div className="h-5 bg-surface-800 rounded w-1/4" />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-32">
-              <p className="text-6xl mb-6">📦</p>
-              <p className="text-white font-black text-2xl mb-3">Drops Coming Soon</p>
-              <p className="text-gray-500 text-sm mb-6">The Ark is being stocked. Check back shortly.</p>
-              {(typeFilter !== 'ALL' || tagFilter) && (
-                <button
-                  onClick={() => { setTypeFilter('ALL'); setTagFilter(null); }}
-                  className="text-brand-400 hover:text-brand-300 text-sm font-bold border border-brand-500/30 px-5 py-2.5 rounded-xl transition-colors"
-                >
-                  Clear filters
-                </button>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-32">
+                  <p className="text-6xl mb-6">📦</p>
+                  <p className="text-white font-black text-2xl mb-3">Drops Coming Soon</p>
+                  <p className="text-gray-500 text-sm mb-6">The Ark is being stocked. Check back shortly.</p>
+                  {(typeFilter !== 'ALL' || tagFilter) && (
+                    <button
+                      onClick={() => { setTypeFilter('ALL'); setTagFilter(null); }}
+                      className="text-brand-400 hover:text-brand-300 text-sm font-bold border border-brand-500/30 px-5 py-2.5 rounded-xl transition-colors"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-10">
+                  {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+                </div>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-10">
-              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
-          )}
+
+            {/* Featured sidebar — sticky, right column */}
+            {!loading && featuredProducts.length > 0 && (
+              <div className="hidden lg:flex flex-col gap-5 w-64 xl:w-72 flex-shrink-0 sticky top-16">
+                <div>
+                  <p className="text-brand-400 text-[10px] font-black uppercase tracking-[0.4em] mb-1">New Drops</p>
+                  <h2 className="text-xl font-black text-white tracking-tight">Featured</h2>
+                </div>
+                {featuredProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            )}
+
+          </div>
         </div>
-      </section>
+      </div>
 
       {/* ── Member Banner ───────────────────────────────────────────────────── */}
       {!loading && (

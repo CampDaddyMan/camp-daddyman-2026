@@ -2306,7 +2306,7 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
 
 // ── Shop Tab ──────────────────────────────────────────────────────────────────
 
-interface OptionGroup { name: string; values: string[] }
+interface OptionGroup { name: string; values: string[]; priceModifiers?: Record<string, number> }
 
 interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
@@ -2337,8 +2337,8 @@ const EMPTY_PRODUCT = {
   variants: [] as { name: string; inventory: string; price: string; options?: Record<string,string> }[],
 };
 
-const VARIANT_PRESETS: Record<string, { group: string; values: string[] }> = {
-  'sizes-standard': { group: 'Size',     values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] },
+const VARIANT_PRESETS: Record<string, { group: string; values: string[]; priceModifiers?: Record<string, number> }> = {
+  'sizes-standard': { group: 'Size', values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'], priceModifiers: { '2XL': 10, '3XL': 20, '4XL': 30, '5XL': 40 } },
   'colors-basic':   { group: 'Color',    values: ['Black', 'White', 'Gray', 'Navy', 'Red'] },
   'colors-extended':{ group: 'Color',    values: ['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'] },
   'editions':       { group: 'Edition',  values: ['Standard', 'Deluxe', 'Limited Edition'] },
@@ -2410,7 +2410,9 @@ function ProductFormModal({
     setForm((f: any) => {
       const already = f.optionGroups.some((g: OptionGroup) => g.name === preset.group);
       if (already) return f;
-      return { ...f, optionGroups: [...f.optionGroups, { name: preset.group, values: preset.values }] };
+      const group: OptionGroup = { name: preset.group, values: preset.values };
+      if (preset.priceModifiers) group.priceModifiers = preset.priceModifiers;
+      return { ...f, optionGroups: [...f.optionGroups, group] };
     });
   }
   function removeOptionGroup(name: string) {
@@ -2593,6 +2595,11 @@ function ProductFormModal({
                 <div key={g.name} className="flex items-center gap-1.5 bg-surface-700 border border-surface-600 rounded-lg px-3 py-1.5">
                   <span className="text-xs text-brand-400 font-semibold">{g.name}</span>
                   <span className="text-xs text-gray-400">{g.values.join(', ')}</span>
+                  {g.priceModifiers && (
+                    <span className="text-xs text-yellow-500 ml-1">
+                      {Object.entries(g.priceModifiers).map(([k, v]) => `${k}+$${v}`).join(' ')}
+                    </span>
+                  )}
                   <button onClick={() => removeOptionGroup(g.name)} className="text-gray-600 hover:text-red-400 text-xs ml-1 leading-none">✕</button>
                 </div>
               ))}

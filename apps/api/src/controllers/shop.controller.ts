@@ -92,6 +92,18 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
       }
     }
 
+    // Apply option group price modifiers (e.g. 2XL +$10) from stored product data
+    if (!ci.variantId && ci.options && product.optionGroups) {
+      const groups = product.optionGroups as Array<{ name: string; values: string[]; priceModifiers?: Record<string, number> }>;
+      const selectedValues = ci.options.split(' / ');
+      groups.forEach((group, idx) => {
+        const val = selectedValues[idx]?.trim();
+        if (val && group.priceModifiers?.[val]) {
+          unitPrice += group.priceModifiers[val];
+        }
+      });
+    }
+
     return {
       productId: product.id,
       variantId: ci.variantId,

@@ -29,7 +29,7 @@ interface Product {
   featured: boolean;
   tags: string[];
   variants: Variant[];
-  optionGroups?: { name: string; values: string[] }[];
+  optionGroups?: { name: string; values: string[]; priceModifiers?: Record<string, number> }[];
 }
 
 const DISCOUNT_RATES: Record<string, number> = { PRO: 10, PREMIUM: 15, CREATOR: 15 };
@@ -79,6 +79,13 @@ export default function ProductDetailPage() {
     return vals.length === optionGroups.length ? vals.join(' / ') : undefined;
   }, [isMultiOption, optionGroups, selections]);
 
+  const priceModifier = useMemo(() =>
+    optionGroups.reduce((sum, g) => {
+      const sel = selections[g.name];
+      return sum + (sel ? (g.priceModifiers?.[sel] ?? 0) : 0);
+    }, 0),
+  [optionGroups, selections]);
+
   const activeVariant = isMultiOption ? null : flatVariant;
 
   if (loading) {
@@ -101,7 +108,7 @@ export default function ProductDetailPage() {
 
   const plan = user?.subscription?.plan as string | undefined;
   const discountRate = plan ? (DISCOUNT_RATES[plan] ?? 0) : 0;
-  const effectivePrice = activeVariant?.price ?? product.price;
+  const effectivePrice = (activeVariant?.price ?? product.price) + priceModifier;
   const discountedPrice = discountRate > 0 ? effectivePrice * (1 - discountRate / 100) : effectivePrice;
   const hasDiscount = product.comparePrice && product.comparePrice > product.price;
   const savePct = hasDiscount ? Math.round((1 - product.price / product.comparePrice!) * 100) : 0;
@@ -258,6 +265,9 @@ export default function ProductDetailPage() {
                           }`}
                         >
                           {val}
+                          {group.priceModifiers?.[val] != null && (
+                            <span className="ml-1 text-xs opacity-60">+${group.priceModifiers[val]}</span>
+                          )}
                         </button>
                       );
                     })}

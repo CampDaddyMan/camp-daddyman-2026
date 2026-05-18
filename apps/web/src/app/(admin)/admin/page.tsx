@@ -2408,11 +2408,10 @@ function ProductFormModal({
     const preset = VARIANT_PRESETS[presetKey];
     if (!preset) return;
     setForm((f: any) => {
-      const already = f.optionGroups.some((g: OptionGroup) => g.name === preset.group);
-      if (already) return f;
       const group: OptionGroup = { name: preset.group, values: preset.values };
       if (preset.priceModifiers) group.priceModifiers = preset.priceModifiers;
-      return { ...f, optionGroups: [...f.optionGroups, group] };
+      const filtered = f.optionGroups.filter((g: OptionGroup) => g.name !== preset.group);
+      return { ...f, optionGroups: [...filtered, group] };
     });
   }
   function removeOptionGroup(name: string) {

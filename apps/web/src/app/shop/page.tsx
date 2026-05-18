@@ -154,13 +154,17 @@ export default function ShopPage() {
     <div className="min-h-screen bg-black">
 
       <section className="relative min-h-[92vh] flex flex-col items-center justify-center overflow-hidden">
-        {/* Layered atmospheric backgrounds */}
-        <div className="absolute inset-0 bg-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,rgba(248,194,2,0.09),transparent_65%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_80%_at_0%_100%,rgba(2,65,25,0.2),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_80%_at_100%_0%,rgba(2,65,25,0.2),transparent_60%)]" />
-        {/* Subtle grid */}
-        <div className="absolute inset-0 opacity-[0.022] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:52px_52px]" />
+        {/* Banner image */}
+        <img
+          src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        {/* Dark overlay so text stays readable */}
+        <div className="absolute inset-0 bg-black/55" />
+        {/* Atmospheric color wash */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,rgba(248,194,2,0.07),transparent_65%)]" />
+        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-black to-transparent" />
 
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           {/* Eyebrow pill */}

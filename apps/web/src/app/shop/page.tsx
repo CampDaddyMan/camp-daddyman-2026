@@ -394,7 +394,7 @@ export default function ShopPage() {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(248,194,2,0.07),transparent_65%)]" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_100%_50%,rgba(2,65,25,0.1),transparent_65%)]" />
 
-              <div className="relative px-8 md:px-14 py-12 md:py-16 flex flex-col lg:flex-row items-center justify-between gap-10">
+              <div className="relative px-8 md:px-14 py-12 md:py-16 flex flex-col lg:flex-row items-start justify-between gap-10">
                 <div className="max-w-lg text-center lg:text-left">
                   <div className="inline-flex items-center gap-2 bg-brand-500/12 border border-brand-500/25 rounded-full px-4 py-1.5 mb-6">
                     <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">Membership Perks</span>
@@ -435,62 +435,66 @@ export default function ShopPage() {
                   )}
                 </div>
 
-                {/* Right panel — always present on large screens */}
-                <div className="hidden lg:flex flex-col gap-3 w-72 flex-shrink-0">
-                  <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">With your membership</p>
+                {/* Right panel — fills remaining width */}
+                <div className="hidden lg:flex flex-col gap-4 flex-1 min-w-0">
+                  <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">With your membership</p>
 
-                  {/* Up to 3 member-discounted products, padded with placeholders */}
+                  {/* 3 product cards in a row */}
                   {(() => {
                     const real = filtered.filter((p) => p.memberDiscountEnabled).slice(0, 3);
                     const perkItems: PerkItem[] = real.length >= 3
                       ? real
                       : [...real, ...PERK_PLACEHOLDERS.slice(0, 3 - real.length)];
                     const displayRate = memberRate > 0 ? memberRate : 15;
-                    return perkItems.map((item) => (
-                      <div key={item.id} className={`flex items-center gap-3 rounded-2xl px-4 py-3 border transition-colors ${item.isPlaceholder ? 'bg-surface-800/40 border-surface-700/30' : 'bg-surface-800/70 border-surface-700/60'}`}>
-                        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center bg-surface-700">
-                          {item.imageUrl
-                            ? <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-                            : (
-                              <div className="w-full h-full bg-gradient-to-br from-brand-500/20 to-surface-600 flex items-center justify-center">
-                                <span className="text-brand-400/60 text-lg font-black">✦</span>
-                              </div>
-                            )
-                          }
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className={`text-xs font-bold truncate ${item.isPlaceholder ? 'text-gray-400' : 'text-white'}`}>{item.name}</p>
-                            {item.isPlaceholder && (
-                              <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider flex-shrink-0">Soon</span>
-                            )}
+                    return (
+                      <div className="grid grid-cols-3 gap-3">
+                        {perkItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`flex flex-col rounded-2xl overflow-hidden border transition-colors ${item.isPlaceholder ? 'bg-surface-800/40 border-surface-700/30' : 'bg-surface-800/70 border-surface-700/60'}`}
+                          >
+                            {/* Image */}
+                            <div className="aspect-square w-full bg-surface-700 relative overflow-hidden">
+                              {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-brand-500/20 via-surface-700 to-surface-600 flex items-center justify-center">
+                                  <span className="text-brand-400/50 text-3xl font-black">✦</span>
+                                </div>
+                              )}
+                              {item.isPlaceholder && (
+                                <span className="absolute top-2 left-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider bg-black/60 px-1.5 py-0.5 rounded-full">Soon</span>
+                              )}
+                            </div>
+                            {/* Info */}
+                            <div className="p-3">
+                              <p className={`text-xs font-bold truncate leading-snug mb-1.5 ${item.isPlaceholder ? 'text-gray-400' : 'text-white'}`}>{item.name}</p>
+                              <p className="text-gray-500 text-[10px] line-through">${item.price.toFixed(2)}</p>
+                              <p className="text-brand-400 text-xs font-black">${(item.price * (1 - displayRate / 100)).toFixed(2)}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-gray-500 text-xs line-through">${item.price.toFixed(2)}</span>
-                            <span className="text-brand-400 text-xs font-bold">→ ${(item.price * (1 - displayRate / 100)).toFixed(2)}</span>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    ));
+                    );
                   })()}
 
-                  {/* Sponsored promo — fills the gap */}
-                  <div className="relative flex-1 min-h-[160px] rounded-2xl overflow-hidden border border-surface-700/40 bg-gradient-to-br from-surface-800 via-surface-800/90 to-surface-900">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_0%_100%,rgba(248,194,2,0.06),transparent_70%)]" />
+                  {/* Sponsored promo — full width below the grid */}
+                  <div className="relative rounded-2xl overflow-hidden border border-surface-700/40 bg-gradient-to-br from-surface-800 via-surface-800/90 to-surface-900">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_80%_at_0%_50%,rgba(248,194,2,0.06),transparent_60%)]" />
                     <span className="absolute top-3 right-3 text-[9px] font-bold text-gray-600 uppercase tracking-widest bg-black/50 px-2 py-0.5 rounded-full">Sponsored</span>
-                    <div className="relative p-5 flex flex-col gap-2.5 h-full">
-                      <p className="text-brand-400/70 text-[10px] font-black uppercase tracking-widest">Camp DaddyMan</p>
-                      <p className="text-white font-black text-base leading-snug">
-                        Stream Music.<br />Watch Films.<br />Live the Philosophy.
-                      </p>
-                      <p className="text-gray-500 text-xs leading-relaxed">
-                        Your membership unlocks the full Camp DaddyMan experience — music, film, podcasts, spoken word, and more.
-                      </p>
+                    <div className="relative px-6 py-5 flex items-center gap-8">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-brand-400/70 text-[10px] font-black uppercase tracking-widest mb-1.5">Camp DaddyMan</p>
+                        <p className="text-white font-black text-base leading-snug">Stream Music. Watch Films. Live the Philosophy.</p>
+                        <p className="text-gray-500 text-xs leading-relaxed mt-1.5">
+                          Your membership unlocks the full Camp DaddyMan experience — music, film, podcasts, spoken word, and more.
+                        </p>
+                      </div>
                       <Link
                         href="/subscribe"
-                        className="self-start mt-auto text-xs font-bold text-black bg-brand-500 px-4 py-2 rounded-xl hover:bg-brand-400 transition-colors"
+                        className="flex-shrink-0 text-xs font-bold text-black bg-brand-500 px-5 py-2.5 rounded-xl hover:bg-brand-400 transition-colors"
                       >
-                        Explore Membership →
+                        Explore →
                       </Link>
                     </div>
                   </div>

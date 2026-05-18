@@ -22,6 +22,21 @@ interface Product {
 
 const MEMBER_RATES: Record<string, number> = { PRO: 10, PREMIUM: 15, CREATOR: 15 };
 
+interface PerkItem {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  slug?: string;
+  isPlaceholder?: boolean;
+}
+
+const PERK_PLACEHOLDERS: PerkItem[] = [
+  { id: 'ph1', name: 'DaddyMan Classic Tee', price: 34.99, isPlaceholder: true },
+  { id: 'ph2', name: 'The Ark Hoodie', price: 59.99, isPlaceholder: true },
+  { id: 'ph3', name: 'Camp Cap', price: 24.99, isPlaceholder: true },
+];
+
 // ── Product Card ──────────────────────────────────────────────────────────────
 
 function ProductCard({ product }: { product: Product }) {
@@ -424,24 +439,40 @@ export default function ShopPage() {
                 <div className="hidden lg:flex flex-col gap-3 w-72 flex-shrink-0">
                   <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold mb-1">With your membership</p>
 
-                  {/* Up to 3 member-discounted products */}
-                  {filtered.filter((p) => p.memberDiscountEnabled).slice(0, 3).map((p) => {
+                  {/* Up to 3 member-discounted products, padded with placeholders */}
+                  {(() => {
+                    const real = filtered.filter((p) => p.memberDiscountEnabled).slice(0, 3);
+                    const perkItems: PerkItem[] = real.length >= 3
+                      ? real
+                      : [...real, ...PERK_PLACEHOLDERS.slice(0, 3 - real.length)];
                     const displayRate = memberRate > 0 ? memberRate : 15;
-                    return (
-                      <div key={p.id} className="flex items-center gap-3 bg-surface-800/70 border border-surface-700/60 rounded-2xl px-4 py-3">
-                        <div className="w-11 h-11 bg-surface-700 rounded-xl overflow-hidden flex-shrink-0">
-                          {p.imageUrl && <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />}
+                    return perkItems.map((item) => (
+                      <div key={item.id} className={`flex items-center gap-3 rounded-2xl px-4 py-3 border transition-colors ${item.isPlaceholder ? 'bg-surface-800/40 border-surface-700/30' : 'bg-surface-800/70 border-surface-700/60'}`}>
+                        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center bg-surface-700">
+                          {item.imageUrl
+                            ? <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                            : (
+                              <div className="w-full h-full bg-gradient-to-br from-brand-500/20 to-surface-600 flex items-center justify-center">
+                                <span className="text-brand-400/60 text-lg font-black">✦</span>
+                              </div>
+                            )
+                          }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-xs font-bold truncate">{p.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className={`text-xs font-bold truncate ${item.isPlaceholder ? 'text-gray-400' : 'text-white'}`}>{item.name}</p>
+                            {item.isPlaceholder && (
+                              <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider flex-shrink-0">Soon</span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-gray-500 text-xs line-through">${p.price.toFixed(2)}</span>
-                            <span className="text-brand-400 text-xs font-bold">→ ${(p.price * (1 - displayRate / 100)).toFixed(2)}</span>
+                            <span className="text-gray-500 text-xs line-through">${item.price.toFixed(2)}</span>
+                            <span className="text-brand-400 text-xs font-bold">→ ${(item.price * (1 - displayRate / 100)).toFixed(2)}</span>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    ));
+                  })()}
 
                   {/* Sponsored promo — fills the gap */}
                   <div className="relative flex-1 min-h-[160px] rounded-2xl overflow-hidden border border-surface-700/40 bg-gradient-to-br from-surface-800 via-surface-800/90 to-surface-900">

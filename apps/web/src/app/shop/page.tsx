@@ -149,6 +149,18 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen bg-black">
 
+      {/* Per-element typography CSS injected from admin settings */}
+      {(() => {
+        const rules = [
+          siteSettings.shop_eyebrow_css    && `.shop-eyebrow{${siteSettings.shop_eyebrow_css}}`,
+          siteSettings.shop_heading_css    && `.shop-title{${siteSettings.shop_heading_css}}`,
+          siteSettings.shop_stat_value_css && `.shop-stat-value{${siteSettings.shop_stat_value_css}}`,
+          siteSettings.shop_stat_label_css && `.shop-stat-label{${siteSettings.shop_stat_label_css}}`,
+          siteSettings.shop_subheading_css && `.shop-subheading{${siteSettings.shop_subheading_css}}`,
+        ].filter(Boolean).join('');
+        return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
+      })()}
+
       {/* ── Hero: Ark poster — full width, natural height, no cropping ──────── */}
       <section className="w-full bg-black">
         <img
@@ -167,7 +179,7 @@ export default function ShopPage() {
             <div className={`w-full max-w-[90%] mx-auto flex flex-col ${isCenter ? 'items-center text-center' : 'items-start text-left'}`}>
 
               {/* Row 1: eyebrow */}
-              <p className="text-brand-400 text-[11px] font-bold uppercase tracking-[0.28em] mb-4">
+              <p className="shop-eyebrow text-brand-400 text-[11px] font-bold uppercase tracking-[0.28em] mb-4">
                 {siteSettings.shop_eyebrow || 'Camp DaddyMan Official Store'}
               </p>
 
@@ -192,14 +204,14 @@ export default function ShopPage() {
                       <strong className={`shop-stat-value block text-3xl sm:text-[34px] leading-none mb-2 [font-family:Georgia,serif] ${gold ? 'text-[#ffd21a]' : 'text-[#f5f1e8]'}`}>
                         {value}
                       </strong>
-                      <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>
+                      <span className="shop-stat-label block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>
                     </div>
                   ))}
                 </div>
               )}
 
               {/* Row 4: subheading */}
-              <p className="text-[#cfc7b7] text-base mb-2">
+              <p className="shop-subheading text-[#cfc7b7] text-base mb-2">
                 {siteSettings.shop_subheading || 'Straight from the Camp.'}
               </p>
 

@@ -3351,6 +3351,64 @@ function SettingsTab() {
     );
   }
 
+  function FieldBlock({
+    label, textKey, placeholder, cssKey, cssClass, snippets,
+  }: {
+    label: string; textKey?: string; placeholder?: string;
+    cssKey: string; cssClass: string;
+    snippets: { tag: string; css: string }[];
+  }) {
+    return (
+      <div className="space-y-2 pb-6 border-b border-surface-800/50 last:border-0">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold text-white">{label}</span>
+          <code className="text-[10px] text-brand-400/70 bg-surface-800 px-2 py-0.5 rounded font-mono">.{cssClass}</code>
+        </div>
+        {textKey ? (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={settings[textKey] ?? ''}
+              onChange={(e) => set(textKey, e.target.value)}
+              placeholder={placeholder}
+              disabled={loading}
+              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+            />
+            <SaveBtn k={textKey} />
+          </div>
+        ) : (
+          <p className="text-xs text-gray-600 italic">Content is dynamic — pulled live from the database.</p>
+        )}
+        <div className="flex gap-2">
+          <textarea
+            value={settings[cssKey] ?? ''}
+            onChange={(e) => set(cssKey, e.target.value)}
+            placeholder={`/* styles for .${cssClass} */\ncolor: #ffffff;\nfont-size: 2rem;`}
+            disabled={loading}
+            rows={3}
+            spellCheck={false}
+            className="flex-1 bg-surface-900 border border-surface-600 text-gray-200 font-mono text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-brand-400 resize-y transition-colors placeholder:text-gray-700 disabled:opacity-50 leading-relaxed"
+          />
+          <SaveBtn k={cssKey} />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {snippets.map(({ tag, css }) => (
+            <button
+              key={tag}
+              onClick={() => {
+                const cur = (settings[cssKey] ?? '').trim();
+                set(cssKey, cur ? `${cur}\n${css}` : css);
+              }}
+              className="px-2.5 py-1 rounded-lg text-[10px] font-semibold text-gray-500 hover:text-brand-400 border border-surface-800 hover:border-brand-500/40 bg-surface-900/40 transition-colors"
+            >
+              + {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl space-y-10">
 
@@ -3359,52 +3417,138 @@ function SettingsTab() {
       )}
 
       {/* ── Shop Page Content ── */}
-      <div className="space-y-5">
-        <div>
+      <div>
+        <div className="mb-6">
           <h2 className="text-xl font-bold text-white mb-1">Shop Page Content</h2>
-          <p className="text-gray-500 text-sm">Edit the text shown in The Ark shop intro section.</p>
+          <p className="text-gray-500 text-sm">Edit text and style every element in The Ark shop intro. Click + buttons to insert decorations.</p>
         </div>
 
-        {[
-          { key: 'shop_eyebrow',    label: 'Eyebrow label',  placeholder: 'Camp DaddyMan Official Store' },
-          { key: 'shop_heading',    label: 'Main heading',   placeholder: 'Merch, Music & Limited Drops' },
-          { key: 'shop_subheading', label: 'Subheading',     placeholder: 'Straight from the Camp.' },
-        ].map(({ key, label, placeholder }) => (
-          <div key={key}>
-            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">{label}</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={settings[key] ?? ''}
-                onChange={(e) => set(key, e.target.value)}
-                placeholder={placeholder}
-                disabled={loading}
-                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-              />
-              <SaveBtn k={key} />
-            </div>
-          </div>
-        ))}
+        <div className="space-y-0">
+          <FieldBlock
+            label="Eyebrow Label"
+            textKey="shop_eyebrow"
+            placeholder="Camp DaddyMan Official Store"
+            cssKey="shop_eyebrow_css"
+            cssClass="shop-eyebrow"
+            snippets={[
+              { tag: 'Gold',       css: 'color: #f8c202;' },
+              { tag: 'Teal',       css: 'color: #0ba691;' },
+              { tag: 'White',      css: 'color: #ffffff;' },
+              { tag: 'Glow Gold',  css: 'text-shadow: 0 0 16px rgba(248,194,2,0.9);' },
+              { tag: 'Glow Teal',  css: 'text-shadow: 0 0 16px rgba(11,166,145,0.9);' },
+              { tag: 'Uppercase',  css: 'text-transform: uppercase;' },
+              { tag: 'Spaced',     css: 'letter-spacing: 0.35em;' },
+              { tag: 'Bold',       css: 'font-weight: 900;' },
+              { tag: 'Italic',     css: 'font-style: italic;' },
+              { tag: 'Small',      css: 'font-size: 0.65rem;' },
+              { tag: 'Large',      css: 'font-size: 1rem;' },
+            ]}
+          />
 
-        {/* Text alignment */}
-        <div>
-          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Text Alignment</label>
-          <div className="flex gap-2 items-center">
-            {(['left', 'center'] as const).map((val) => (
-              <button
-                key={val}
-                disabled={loading}
-                onClick={() => set('shop_intro_align', val)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors capitalize disabled:opacity-50 ${
-                  (settings['shop_intro_align'] || 'center') === val
-                    ? 'bg-brand-500 text-black border-brand-500'
-                    : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
-                }`}
-              >
-                {val === 'left' ? '⬅ Left' : '↔ Center'}
-              </button>
-            ))}
-            <SaveBtn k="shop_intro_align" />
+          <FieldBlock
+            label="Main Heading"
+            textKey="shop_heading"
+            placeholder="Merch, Music & Limited Drops"
+            cssKey="shop_heading_css"
+            cssClass="shop-title"
+            snippets={[
+              { tag: 'Glow Gold',    css: 'text-shadow: 0 0 40px rgba(248,194,2,0.7), 0 0 80px rgba(248,194,2,0.3);' },
+              { tag: 'Glow Teal',    css: 'text-shadow: 0 0 40px rgba(11,166,145,0.8), 0 0 80px rgba(11,166,145,0.3);' },
+              { tag: 'Glow White',   css: 'text-shadow: 0 0 30px rgba(255,255,255,0.6);' },
+              { tag: 'Shadow',       css: 'text-shadow: 3px 4px 10px rgba(0,0,0,0.95);' },
+              { tag: 'Outline Teal', css: '-webkit-text-stroke: 1px #0ba691; color: transparent;' },
+              { tag: 'Outline Gold', css: '-webkit-text-stroke: 2px #f8c202; color: transparent;' },
+              { tag: 'Gold',         css: 'color: #f8c202;' },
+              { tag: 'Teal',         css: 'color: #0ba691;' },
+              { tag: 'White',        css: 'color: #ffffff;' },
+              { tag: 'Serif',        css: "font-family: Georgia, 'Times New Roman', serif;" },
+              { tag: 'Sans',         css: 'font-family: system-ui, -apple-system, sans-serif;' },
+              { tag: 'Italic',       css: 'font-style: italic;' },
+              { tag: 'Uppercase',    css: 'text-transform: uppercase; letter-spacing: 0.05em;' },
+              { tag: 'Spaced',       css: 'letter-spacing: 0.12em;' },
+            ]}
+          />
+
+          <FieldBlock
+            label="Subheading"
+            textKey="shop_subheading"
+            placeholder="Straight from the Camp."
+            cssKey="shop_subheading_css"
+            cssClass="shop-subheading"
+            snippets={[
+              { tag: 'White',     css: 'color: #ffffff;' },
+              { tag: 'Gold',      css: 'color: #f8c202;' },
+              { tag: 'Teal',      css: 'color: #0ba691;' },
+              { tag: 'Glow',      css: 'text-shadow: 0 0 20px currentColor;' },
+              { tag: 'Shadow',    css: 'text-shadow: 1px 2px 6px rgba(0,0,0,0.9);' },
+              { tag: 'Serif',     css: "font-family: Georgia, serif; font-style: italic;" },
+              { tag: 'Large',     css: 'font-size: 1.5rem;' },
+              { tag: 'XLarge',    css: 'font-size: 2rem;' },
+              { tag: 'Small',     css: 'font-size: 0.8rem;' },
+              { tag: 'Bold',      css: 'font-weight: 700;' },
+              { tag: 'Spaced',    css: 'letter-spacing: 0.2em;' },
+              { tag: 'Uppercase', css: 'text-transform: uppercase;' },
+            ]}
+          />
+
+          <FieldBlock
+            label="Stat Values (2 · 15% · 1 — dynamic)"
+            cssKey="shop_stat_value_css"
+            cssClass="shop-stat-value"
+            snippets={[
+              { tag: 'Glow Gold',    css: 'text-shadow: 0 0 24px rgba(248,194,2,1), 0 0 56px rgba(248,194,2,0.5);' },
+              { tag: 'Glow Green',   css: 'text-shadow: 0 0 24px rgba(11,166,145,1), 0 0 56px rgba(11,166,145,0.5);' },
+              { tag: 'Glow White',   css: 'text-shadow: 0 0 20px rgba(255,255,255,0.8);' },
+              { tag: 'Outline Gold', css: '-webkit-text-stroke: 2px #f8c202; color: transparent;' },
+              { tag: 'Outline Teal', css: '-webkit-text-stroke: 1px #0ba691; color: transparent;' },
+              { tag: 'Gold',         css: 'color: #f8c202;' },
+              { tag: 'Teal',         css: 'color: #0ba691;' },
+              { tag: 'White',        css: 'color: #ffffff;' },
+              { tag: 'Serif',        css: "font-family: Georgia, serif;" },
+              { tag: 'Sans',         css: 'font-family: system-ui, sans-serif;' },
+              { tag: 'Larger',       css: 'font-size: 3.5rem;' },
+              { tag: 'Italic',       css: 'font-style: italic;' },
+              { tag: 'Bold',         css: 'font-weight: 900;' },
+            ]}
+          />
+
+          <FieldBlock
+            label="Stat Labels (Products · Max Discount · Featured Drop — dynamic)"
+            cssKey="shop_stat_label_css"
+            cssClass="shop-stat-label"
+            snippets={[
+              { tag: 'Gold',      css: 'color: #f8c202;' },
+              { tag: 'Teal',      css: 'color: #0ba691;' },
+              { tag: 'White',     css: 'color: #ffffff;' },
+              { tag: 'Glow',      css: 'text-shadow: 0 0 12px currentColor;' },
+              { tag: 'Uppercase', css: 'text-transform: uppercase;' },
+              { tag: 'Spaced',    css: 'letter-spacing: 0.35em;' },
+              { tag: 'Small',     css: 'font-size: 0.6rem;' },
+              { tag: 'Bold',      css: 'font-weight: 900;' },
+              { tag: 'Serif',     css: "font-family: Georgia, serif; font-style: italic;" },
+            ]}
+          />
+
+          {/* Text alignment */}
+          <div className="pt-5">
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Text Alignment</label>
+            <div className="flex gap-2 items-center">
+              {(['left', 'center'] as const).map((val) => (
+                <button
+                  key={val}
+                  disabled={loading}
+                  onClick={() => set('shop_intro_align', val)}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors capitalize disabled:opacity-50 ${
+                    (settings['shop_intro_align'] || 'center') === val
+                      ? 'bg-brand-500 text-black border-brand-500'
+                      : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
+                  }`}
+                >
+                  {val === 'left' ? '⬅ Left' : '↔ Center'}
+                </button>
+              ))}
+              <SaveBtn k="shop_intro_align" />
+            </div>
           </div>
         </div>
       </div>

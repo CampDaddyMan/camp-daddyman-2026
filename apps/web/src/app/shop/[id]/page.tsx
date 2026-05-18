@@ -29,7 +29,7 @@ interface Product {
   featured: boolean;
   tags: string[];
   variants: Variant[];
-  optionGroups?: { name: string; values: string[]; priceModifiers?: Record<string, number> }[];
+  optionGroups?: { name: string; values: string[]; priceModifiers?: Record<string, number>; images?: Record<string, string> }[];
   memberDiscountEnabled?: boolean;
 }
 
@@ -86,6 +86,15 @@ export default function ProductDetailPage() {
       return sum + (sel ? (g.priceModifiers?.[sel] ?? 0) : 0);
     }, 0),
   [optionGroups, selections]);
+
+  // If the selected variant value has its own image, override the displayed image
+  const variantDisplayImg = useMemo(() => {
+    for (const g of optionGroups) {
+      const sel = selections[g.name];
+      if (sel && g.images?.[sel]) return g.images[sel];
+    }
+    return null;
+  }, [optionGroups, selections]);
 
   const activeVariant = isMultiOption ? null : flatVariant;
 
@@ -157,7 +166,7 @@ export default function ProductDetailPage() {
             onMouseMove={handleImageMouseMove}
             onMouseLeave={() => setZoomPos(null)}
           >
-            {allImages[activeImg] ? (
+            {(variantDisplayImg || allImages[activeImg]) ? (
               <div
                 className="w-full h-full"
                 style={zoomPos ? {
@@ -165,9 +174,9 @@ export default function ProductDetailPage() {
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                 } : undefined}
               >
-                {allImages[activeImg].startsWith('http')
-                  ? <img src={allImages[activeImg]} alt={product.name} className="w-full h-full object-cover" />
-                  : <Image src={allImages[activeImg]} alt={product.name} fill className="object-cover" />
+                {(variantDisplayImg || allImages[activeImg]).startsWith('http')
+                  ? <img src={variantDisplayImg || allImages[activeImg]} alt={product.name} className="w-full h-full object-cover" />
+                  : <Image src={variantDisplayImg || allImages[activeImg]} alt={product.name} fill className="object-cover" />
                 }
               </div>
             ) : (

@@ -2306,7 +2306,7 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
 
 // ── Shop Tab ──────────────────────────────────────────────────────────────────
 
-interface OptionGroup { name: string; values: string[]; priceModifiers?: Record<string, number> }
+interface OptionGroup { name: string; values: string[]; priceModifiers?: Record<string, number>; images?: Record<string, string> }
 
 interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
@@ -2350,7 +2350,7 @@ const VARIANT_PRESETS: Record<string, { group: string; values: string[]; priceMo
   'sizes-standard': { group: 'Size', values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'], priceModifiers: { '2XL': 10, '3XL': 20, '4XL': 30, '5XL': 40 } },
   'colors-basic':   { group: 'Color',    values: ['Black', 'White', 'Gray', 'Navy', 'Red'] },
   'colors-extended':{ group: 'Color',    values: ['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'] },
-  'editions':       { group: 'Edition',  values: ['Standard', 'Deluxe', 'Limited Edition'] },
+  'editions':       { group: 'Edition',  values: ['Standard', 'Deluxe', 'Premium'], priceModifiers: { 'Deluxe': 10, 'Premium': 20 } },
   'format':         { group: 'Format',   values: ['Digital', 'Physical'] },
 };
 
@@ -2426,6 +2426,49 @@ function ProductFormModal({
   }
   function removeOptionGroup(name: string) {
     setForm((f: any) => ({ ...f, optionGroups: f.optionGroups.filter((g: OptionGroup) => g.name !== name) }));
+  }
+
+  function setGroupModifier(groupName: string, val: string, price: string) {
+    setForm((f: any) => ({
+      ...f,
+      optionGroups: f.optionGroups.map((g: OptionGroup) => {
+        if (g.name !== groupName) return g;
+        const mods = { ...(g.priceModifiers || {}) };
+        if (price === '') { delete mods[val]; } else { mods[val] = Number(price); }
+        return { ...g, priceModifiers: Object.keys(mods).length ? mods : undefined };
+      }),
+    }));
+  }
+
+  async function handleGroupImageUpload(groupName: string, val: string, file: File) {
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const { data } = await api.post('/admin/products/upload-image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setForm((f: any) => ({
+        ...f,
+        optionGroups: f.optionGroups.map((g: OptionGroup) => {
+          if (g.name !== groupName) return g;
+          return { ...g, images: { ...(g.images || {}), [val]: data.url } };
+        }),
+      }));
+    } catch {
+      setErr('Image upload failed.');
+    }
+  }
+
+  function removeGroupImage(groupName: string, val: string) {
+    setForm((f: any) => ({
+      ...f,
+      optionGroups: f.optionGroups.map((g: OptionGroup) => {
+        if (g.name !== groupName) return g;
+        const images = { ...(g.images || {}) };
+        delete images[val];
+        return { ...g, images: Object.keys(images).length ? images : undefined };
+      }),
+    }));
   }
 
   async function handleSave() {
@@ -2607,17 +2650,51 @@ function ProductFormModal({
             {form.optionGroups.length === 0 && (
               <p className="text-xs text-gray-600">No option groups. Add Size, Color, Edition etc. above — customers pick one from each on the product page.</p>
             )}
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="space-y-3 mt-2">
               {form.optionGroups.map((g: OptionGroup) => (
-                <div key={g.name} className="flex items-center gap-1.5 bg-surface-700 border border-surface-600 rounded-lg px-3 py-1.5">
-                  <span className="text-xs text-brand-400 font-semibold">{g.name}</span>
-                  <span className="text-xs text-gray-400">{g.values.join(', ')}</span>
-                  {g.priceModifiers && (
-                    <span className="text-xs text-yellow-500 ml-1">
-                      {Object.entries(g.priceModifiers).map(([k, v]) => `${k}+$${v}`).join(' ')}
-                    </span>
-                  )}
-                  <button onClick={() => removeOptionGroup(g.name)} className="text-gray-600 hover:text-red-400 text-xs ml-1 leading-none">✕</button>
+                <div key={g.name} className="border border-surface-600 rounded-xl overflow-hidden">
+                  {/* Group header */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-surface-700 border-b border-surface-600">
+                    <span className="text-brand-400 font-semibold text-sm">{g.name}</span>
+                    <button onClick={() => removeOptionGroup(g.name)} className="text-xs text-gray-500 hover:text-red-400 transition-colors">Remove</button>
+                  </div>
+                  {/* Per-value rows */}
+                  <div className="divide-y divide-surface-700">
+                    {g.values.map((val) => (
+                      <div key={val} className="flex items-center gap-3 px-3 py-2.5 bg-surface-800/40">
+                        <span className="text-sm text-white font-medium w-20 flex-shrink-0 truncate">{val}</span>
+                        {/* Price modifier dropdown */}
+                        <select
+                          value={g.priceModifiers?.[val] != null ? String(g.priceModifiers[val]) : ''}
+                          onChange={(e) => setGroupModifier(g.name, val, e.target.value)}
+                          className="bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-brand-400"
+                        >
+                          <option value="">No add-on</option>
+                          {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
+                            <option key={n} value={String(n)}>+${n}.00</option>
+                          ))}
+                        </select>
+                        {/* Edition image */}
+                        <div className="flex items-center gap-2 flex-1 justify-end">
+                          {g.images?.[val] ? (
+                            <>
+                              <img src={g.images[val]} alt={val} className="w-10 h-10 rounded-lg object-cover border border-surface-600 flex-shrink-0" />
+                              <button onClick={() => removeGroupImage(g.name, val)} className="text-gray-500 hover:text-red-400 text-xs transition-colors">✕</button>
+                            </>
+                          ) : (
+                            <label className="cursor-pointer text-xs text-gray-500 hover:text-brand-400 border border-dashed border-surface-600 hover:border-brand-400 px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                              + Image
+                              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleGroupImageUpload(g.name, val, file);
+                                e.target.value = '';
+                              }} />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

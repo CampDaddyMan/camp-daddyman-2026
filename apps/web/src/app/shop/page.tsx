@@ -145,15 +145,12 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen bg-black">
 
-      {/* ── Hero: Ark image — full poster, fully visible below the nav ──────── */}
-      <section
-        className="w-full bg-black flex items-center justify-center overflow-hidden"
-        style={{ maxHeight: 'calc(100vh - 4rem)' }}
-      >
+      {/* ── Hero: Ark poster — full width, natural height, no cropping ──────── */}
+      <section className="w-full bg-black">
         <img
           src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
           alt="The Ark — Camp DaddyMan"
-          className="w-full h-full object-contain object-top"
+          className="w-full h-auto block"
         />
       </section>
 

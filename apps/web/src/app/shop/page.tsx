@@ -168,8 +168,7 @@ export default function ShopPage() {
           </p>
 
           {/* Row 2: main heading */}
-          <h1 className="font-black text-[#f5f1e8] leading-[0.95] tracking-tight mb-7"
-            style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(38px, 5vw, 72px)', maxWidth: '760px' }}>
+          <h1 className="shop-title font-black text-[#f5f1e8] leading-[0.95] tracking-tight mb-7 [font-family:Georgia,serif] text-[clamp(38px,5vw,72px)] w-full">
             {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
           </h1>
 
@@ -185,10 +184,7 @@ export default function ShopPage() {
                   key={label}
                   className={`min-w-[150px] px-6 py-[18px] text-center ${i < arr.length - 1 ? 'border-r border-white/[0.08]' : ''}`}
                 >
-                  <strong
-                    className="block text-[34px] leading-none mb-2"
-                    style={{ fontFamily: 'Georgia, serif', color: gold ? '#ffd21a' : '#f5f1e8' }}
-                  >
+                  <strong className={`shop-stat-value block text-[34px] leading-none mb-2 [font-family:Georgia,serif] ${gold ? 'text-[#ffd21a]' : 'text-[#f5f1e8]'}`}>
                     {value}
                   </strong>
                   <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>

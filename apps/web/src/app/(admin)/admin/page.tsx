@@ -3333,12 +3333,12 @@ function SaveBtn({ k }: { k: string }) {
 }
 
 function FieldBlock({
-  label, textKey, placeholder, textEntries, cssKey, cssClass, fontSizeKey, snippets,
+  label, textKey, placeholder, textEntries, cssKey, cssClass, fontSizeKey, lineHeightKey, snippets,
 }: {
   label: string;
   textKey?: string; placeholder?: string;
   textEntries?: { key: string; label: string; placeholder: string }[];
-  cssKey: string; cssClass: string; fontSizeKey?: string;
+  cssKey: string; cssClass: string; fontSizeKey?: string; lineHeightKey?: string;
   snippets: { tag: string; css: string }[];
 }) {
   const { settings, set, loading } = useContext(SettingsCtx);
@@ -3346,6 +3346,11 @@ function FieldBlock({
   const parseFontSize = (raw: string) => {
     const m = (raw ?? '').trim().match(/^([\d.]+)(px|rem|em|vw|vh|%)$/);
     return { num: m?.[1] ?? '', unit: (m?.[2] ?? 'px') as string };
+  };
+
+  const parseLineHeight = (raw: string) => {
+    const m = (raw ?? '').trim().match(/^([\d.]+)(px|rem|em|%)?$/);
+    return { num: m?.[1] ?? '', unit: m?.[2] ?? '' }; // '' = unitless
   };
 
   const hasTextEditor = !!(textKey || textEntries?.length);
@@ -3421,6 +3426,40 @@ function FieldBlock({
                 <option value="%">%</option>
               </select>
               <SaveBtn k={fontSizeKey} />
+            </div>
+          </div>
+        );
+      })()}
+
+      {lineHeightKey && (() => {
+        const { num, unit } = parseLineHeight(settings[lineHeightKey] ?? '');
+        return (
+          <div>
+            <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Line Height</label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                min={0}
+                step={0.1}
+                value={num}
+                onChange={(e) => set(lineHeightKey, e.target.value ? `${e.target.value}${unit}` : '')}
+                placeholder="1.5"
+                disabled={loading}
+                className="w-24 bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <select
+                value={unit}
+                onChange={(e) => set(lineHeightKey, num ? `${num}${e.target.value}` : '')}
+                disabled={loading}
+                className="bg-surface-900 border border-surface-600 text-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <option value="">unitless</option>
+                <option value="px">px</option>
+                <option value="rem">rem</option>
+                <option value="em">em</option>
+                <option value="%">%</option>
+              </select>
+              <SaveBtn k={lineHeightKey} />
             </div>
           </div>
         );
@@ -3512,6 +3551,7 @@ function SettingsTab() {
             cssKey="shop_eyebrow_css"
             cssClass="shop-eyebrow"
             fontSizeKey="shop_eyebrow_font_size"
+            lineHeightKey="shop_eyebrow_line_height"
             snippets={[
               { tag: 'Gold',       css: 'color: #f8c202;' },
               { tag: 'Teal',       css: 'color: #0ba691;' },
@@ -3534,6 +3574,7 @@ function SettingsTab() {
             cssKey="shop_heading_css"
             cssClass="shop-title"
             fontSizeKey="shop_heading_font_size"
+            lineHeightKey="shop_heading_line_height"
             snippets={[
               { tag: 'Glow Gold',    css: 'text-shadow: 0 0 40px rgba(248,194,2,0.7), 0 0 80px rgba(248,194,2,0.3);' },
               { tag: 'Glow Teal',    css: 'text-shadow: 0 0 40px rgba(11,166,145,0.8), 0 0 80px rgba(11,166,145,0.3);' },
@@ -3559,6 +3600,7 @@ function SettingsTab() {
             cssKey="shop_subheading_css"
             cssClass="shop-subheading"
             fontSizeKey="shop_subheading_font_size"
+            lineHeightKey="shop_subheading_line_height"
             snippets={[
               { tag: 'White',     css: 'color: #ffffff;' },
               { tag: 'Gold',      css: 'color: #f8c202;' },
@@ -3583,6 +3625,7 @@ function SettingsTab() {
             cssKey="shop_stat_value_css"
             cssClass="shop-stat-value"
             fontSizeKey="shop_stat_value_font_size"
+            lineHeightKey="shop_stat_value_line_height"
             snippets={[
               { tag: 'Glow Gold',    css: 'text-shadow: 0 0 24px rgba(248,194,2,1), 0 0 56px rgba(248,194,2,0.5);' },
               { tag: 'Glow Green',   css: 'text-shadow: 0 0 24px rgba(11,166,145,1), 0 0 56px rgba(11,166,145,0.5);' },
@@ -3610,6 +3653,7 @@ function SettingsTab() {
             cssKey="shop_stat_label_css"
             cssClass="shop-stat-label"
             fontSizeKey="shop_stat_label_font_size"
+            lineHeightKey="shop_stat_label_line_height"
             snippets={[
               { tag: 'Gold',      css: 'color: #f8c202;' },
               { tag: 'Teal',      css: 'color: #0ba691;' },
@@ -3632,6 +3676,7 @@ function SettingsTab() {
             cssKey="shop_member_line_css"
             cssClass="shop-member-line"
             fontSizeKey="shop_member_line_font_size"
+            lineHeightKey="shop_member_line_line_height"
             snippets={[
               { tag: 'Green',     css: 'color: #00c878;' },
               { tag: 'Gold',      css: 'color: #f8c202;' },

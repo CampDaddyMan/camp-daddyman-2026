@@ -165,6 +165,13 @@ export default function ShopPage() {
           siteSettings.shop_stat_label_font_size && `.shop-intro .shop-stat-label{font-size:${siteSettings.shop_stat_label_font_size}}`,
           siteSettings.shop_subheading_font_size  && `.shop-intro .shop-subheading{font-size:${siteSettings.shop_subheading_font_size}}`,
           siteSettings.shop_member_line_font_size && `.shop-intro .shop-member-line{font-size:${siteSettings.shop_member_line_font_size}}`,
+          // Line-height inputs
+          siteSettings.shop_eyebrow_line_height    && `.shop-intro .shop-eyebrow{line-height:${siteSettings.shop_eyebrow_line_height}}`,
+          siteSettings.shop_heading_line_height    && `.shop-intro .shop-title{line-height:${siteSettings.shop_heading_line_height}}`,
+          siteSettings.shop_stat_value_line_height && `.shop-intro .shop-stat-value{line-height:${siteSettings.shop_stat_value_line_height}}`,
+          siteSettings.shop_stat_label_line_height && `.shop-intro .shop-stat-label{line-height:${siteSettings.shop_stat_label_line_height}}`,
+          siteSettings.shop_subheading_line_height && `.shop-intro .shop-subheading{line-height:${siteSettings.shop_subheading_line_height}}`,
+          siteSettings.shop_member_line_line_height && `.shop-intro .shop-member-line{line-height:${siteSettings.shop_member_line_line_height}}`,
         ].filter(Boolean).join('');
         return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
       })()}

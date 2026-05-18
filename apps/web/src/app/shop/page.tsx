@@ -159,8 +159,8 @@ export default function ShopPage() {
       </section>
 
       {/* ── Shop intro — stacked editorial block ────────────────────────────── */}
-      <section className="bg-[#050505] border-b border-brand-500/10 px-6 pt-16 pb-12">
-        <div className="max-w-[1180px] mx-auto">
+      <section className="bg-[#050505] border-b border-brand-500/10 px-[5%] pt-16 pb-12">
+        <div className="w-full max-w-[90%] mx-auto">
 
           {/* Row 1: eyebrow */}
           <p className="text-brand-400 text-[11px] font-bold uppercase tracking-[0.28em] mb-4">
@@ -172,9 +172,9 @@ export default function ShopPage() {
             {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
           </h1>
 
-          {/* Row 3: stats pill */}
+          {/* Row 3: stats — full width on mobile, auto on desktop */}
           {!loading && products.length > 0 && (
-            <div className="flex w-fit mb-5 rounded-[14px] overflow-hidden border border-white/[0.08] bg-white/[0.035]">
+            <div className="w-full sm:w-auto sm:inline-flex flex flex-col sm:flex-row mb-5 rounded-[14px] overflow-hidden border border-white/[0.08] bg-white/[0.035]">
               {[
                 { value: String(products.length), label: 'Products' },
                 { value: '15%', label: 'Max Discount', gold: true },
@@ -182,9 +182,10 @@ export default function ShopPage() {
               ].map(({ value, label, gold }, i, arr) => (
                 <div
                   key={label}
-                  className={`min-w-[150px] px-6 py-[18px] text-center ${i < arr.length - 1 ? 'border-r border-white/[0.08]' : ''}`}
+                  className={`flex-1 sm:flex-none px-6 py-4 text-center
+                    ${i < arr.length - 1 ? 'border-b sm:border-b-0 sm:border-r border-white/[0.08]' : ''}`}
                 >
-                  <strong className={`shop-stat-value block text-[34px] leading-none mb-2 [font-family:Georgia,serif] ${gold ? 'text-[#ffd21a]' : 'text-[#f5f1e8]'}`}>
+                  <strong className={`shop-stat-value block text-3xl sm:text-[34px] leading-none mb-2 [font-family:Georgia,serif] ${gold ? 'text-[#ffd21a]' : 'text-[#f5f1e8]'}`}>
                     {value}
                   </strong>
                   <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>
@@ -209,17 +210,17 @@ export default function ShopPage() {
           )}
           {!user && memberRate === 0 && <div className="mb-7" />}
 
-          {/* Buttons */}
+          {/* Buttons — full width on mobile, auto on desktop */}
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={scrollToCollection}
-              className="min-w-[240px] px-7 py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm uppercase tracking-[0.06em] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] text-center"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm uppercase tracking-[0.06em] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] text-center"
             >
               Shop the Collection
             </button>
             <Link
               href="/shop/cart"
-              className="min-w-[240px] px-7 py-4 rounded-xl bg-[#0ba691] hover:bg-[#09907d] text-white font-black text-sm uppercase tracking-[0.06em] transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0ba691] hover:bg-[#09907d] text-white font-black text-sm uppercase tracking-[0.06em] transition-all flex items-center justify-center gap-2"
             >
               <span>🛒</span> Cart
             </Link>

@@ -57,6 +57,7 @@ export async function getProduct(req: Request, res: Response) {
 interface CartItemInput {
   productId: string;
   variantId?: string;
+  options?: string; // e.g. "M / Black / Standard" for option-group products
   quantity: number;
 }
 
@@ -94,8 +95,9 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
     return {
       productId: product.id,
       variantId: ci.variantId,
+      options: ci.options,
       name: product.name,
-      variantName,
+      variantName: ci.options ?? variantName,
       type: product.type,
       unitPrice,
       quantity: ci.quantity,
@@ -317,7 +319,7 @@ function slugify(name: string): string {
 }
 
 export async function adminCreateProduct(req: AuthRequest, res: Response) {
-  const { name, description, type, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants } = req.body;
+  const { name, description, type, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups } = req.body;
 
   if (!name || !type || !price) return res.status(400).json({ error: 'name, type, and price are required' });
 
@@ -339,6 +341,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
       featured: featured ?? false,
       tags: tags || [],
       fileUrl,
+      optionGroups: optionGroups ?? null,
       variants: variants?.length ? {
         create: variants.map((v: any) => ({
           name: v.name,
@@ -356,7 +359,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
 }
 
 export async function adminUpdateProduct(req: AuthRequest, res: Response) {
-  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants } = req.body;
+  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups } = req.body;
 
   const data: any = {};
   if (name !== undefined) { data.name = name; data.slug = slugify(name); }
@@ -369,6 +372,7 @@ export async function adminUpdateProduct(req: AuthRequest, res: Response) {
   if (featured !== undefined) data.featured = featured;
   if (tags !== undefined) data.tags = tags;
   if (fileUrl !== undefined) data.fileUrl = fileUrl;
+  if (optionGroups !== undefined) data.optionGroups = optionGroups ?? null;
 
   if (variants !== undefined) {
     await prisma.productVariant.deleteMany({ where: { productId: req.params.id } });

@@ -38,6 +38,7 @@ export default function CartPage() {
         items: items.map((i) => ({
           productId: i.productId,
           variantId: i.variantId,
+          options: i.options,
           quantity: i.quantity,
         })),
       };

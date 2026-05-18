@@ -2306,10 +2306,13 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
 
 // ── Shop Tab ──────────────────────────────────────────────────────────────────
 
+interface OptionGroup { name: string; values: string[] }
+
 interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
   comparePrice?: number; status: string; featured: boolean; tags: string[];
   imageUrl?: string; description?: string;
+  optionGroups?: OptionGroup[];
   variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string,string> }[];
 }
 
@@ -2330,6 +2333,7 @@ const STATUS_COLORS: Record<string, string> = {
 const EMPTY_PRODUCT = {
   name: '', type: 'PHYSICAL', price: '', comparePrice: '', description: '',
   imageUrl: '', status: 'DRAFT', featured: false, tags: '',
+  optionGroups: [] as OptionGroup[],
   variants: [] as { name: string; inventory: string; price: string; options?: Record<string,string> }[],
 };
 
@@ -2357,6 +2361,7 @@ function ProductFormModal({
       description: initial.description || '', imageUrl: initial.imageUrl || '',
       status: initial.status, featured: initial.featured,
       tags: initial.tags.join(', '),
+      optionGroups: initial.optionGroups || [],
       variants: initial.variants.map((v) => ({
         name: v.name, inventory: String(v.inventory),
         price: v.price != null ? String(v.price) : '',
@@ -2400,26 +2405,13 @@ function ProductFormModal({
     const preset = VARIANT_PRESETS[presetKey];
     if (!preset) return;
     setForm((f: any) => {
-      const existing = f.variants.filter((v: any) => v.name.trim());
-      if (existing.length === 0) {
-        return {
-          ...f,
-          variants: preset.values.map((val) => ({ name: val, inventory: '0', price: '', options: { [preset.group]: val } })),
-        };
-      }
-      // Cross-multiply existing variants with the new group
-      return {
-        ...f,
-        variants: existing.flatMap((e: any) =>
-          preset.values.map((val) => ({
-            name: `${e.name} / ${val}`,
-            inventory: '0',
-            price: '',
-            options: { ...(e.options || {}), [preset.group]: val },
-          }))
-        ),
-      };
+      const already = f.optionGroups.some((g: OptionGroup) => g.name === preset.group);
+      if (already) return f;
+      return { ...f, optionGroups: [...f.optionGroups, { name: preset.group, values: preset.values }] };
     });
+  }
+  function removeOptionGroup(name: string) {
+    setForm((f: any) => ({ ...f, optionGroups: f.optionGroups.filter((g: OptionGroup) => g.name !== name) }));
   }
 
   async function handleSave() {
@@ -2436,6 +2428,7 @@ function ProductFormModal({
         status: form.status,
         featured: form.featured,
         tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+        optionGroups: form.optionGroups.length ? form.optionGroups : null,
         variants: form.variants.filter((v: any) => v.name.trim()).map((v: any) => ({
           name: v.name.trim(),
           inventory: Number(v.inventory || 0),
@@ -2566,53 +2559,66 @@ function ProductFormModal({
             <span className="text-sm text-gray-300">Featured product (shown with badge, sorted first)</span>
           </label>
 
-          {/* Variants */}
+          {/* Option Groups */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-400 font-medium">Variants</label>
-              <div className="flex items-center gap-2">
-                <select
-                  defaultValue=""
-                  onChange={(e) => { if (e.target.value) { quickAdd(e.target.value); e.target.value = ''; } }}
-                  className="text-xs bg-surface-700 border border-surface-600 text-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-400"
-                >
-                  <option value="" disabled>Quick add…</option>
-                  <optgroup label="Sizes">
-                    <option value="sizes-standard">Sizes — XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL</option>
-                  </optgroup>
-                  <optgroup label="Colors">
-                    <option value="colors-basic">Colors — Black, White, Gray, Navy, Red</option>
-                    <option value="colors-extended">Colors — 10 colors</option>
-                  </optgroup>
-                  <optgroup label="Other">
-                    <option value="editions">Editions — Standard, Deluxe, Limited</option>
-                    <option value="format">Format — Digital, Physical</option>
-                  </optgroup>
-                </select>
-                <button onClick={addVariant} className="text-xs text-brand-400 hover:text-brand-300 whitespace-nowrap">+ Custom</button>
-              </div>
+              <label className="text-xs text-gray-400 font-medium">Option Groups <span className="text-gray-600 font-normal">(Size, Color, Edition…)</span></label>
+              <select
+                defaultValue=""
+                onChange={(e) => { if (e.target.value) { quickAdd(e.target.value); e.target.value = ''; } }}
+                className="text-xs bg-surface-700 border border-surface-600 text-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-400"
+              >
+                <option value="" disabled>+ Add group…</option>
+                <optgroup label="Sizes">
+                  <option value="sizes-standard">Sizes — XS to 5XL</option>
+                </optgroup>
+                <optgroup label="Colors">
+                  <option value="colors-basic">Colors — Black, White, Gray, Navy, Red</option>
+                  <option value="colors-extended">Colors — 10 colors</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="editions">Editions — Standard, Deluxe, Limited</option>
+                  <option value="format">Format — Digital, Physical</option>
+                </optgroup>
+              </select>
             </div>
-            {form.variants.length === 0 && (
-              <p className="text-xs text-gray-600 mb-2">No variants yet. Use Quick add or + Custom.</p>
+            {form.optionGroups.length === 0 && (
+              <p className="text-xs text-gray-600">No option groups. Add Size, Color, Edition etc. above — customers pick one from each on the product page.</p>
             )}
-            <div className="space-y-1.5">
-              {form.variants.map((v: any, i: number) => (
-                <div key={i} className="grid grid-cols-7 gap-2 items-center">
-                  <input value={v.name} onChange={(e) => setVariant(i, 'name', e.target.value)}
-                    placeholder="Name"
-                    className="col-span-3 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                  <input type="number" value={v.inventory} onChange={(e) => setVariant(i, 'inventory', e.target.value)}
-                    placeholder="Qty"
-                    className="col-span-2 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                  <input type="number" step="0.01" value={v.price} onChange={(e) => setVariant(i, 'price', e.target.value)}
-                    placeholder="$"
-                    className="col-span-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                  <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">✕</button>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {form.optionGroups.map((g: OptionGroup) => (
+                <div key={g.name} className="flex items-center gap-1.5 bg-surface-700 border border-surface-600 rounded-lg px-3 py-1.5">
+                  <span className="text-xs text-brand-400 font-semibold">{g.name}</span>
+                  <span className="text-xs text-gray-400">{g.values.join(', ')}</span>
+                  <button onClick={() => removeOptionGroup(g.name)} className="text-gray-600 hover:text-red-400 text-xs ml-1 leading-none">✕</button>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Inventory variants (optional, for per-SKU stock tracking) */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-gray-400 font-medium">Inventory Variants <span className="text-gray-600 font-normal">(optional — leave empty if using option groups above)</span></label>
+              <button onClick={addVariant} className="text-xs text-brand-400 hover:text-brand-300">+ Add</button>
+            </div>
             {form.variants.length > 0 && (
-              <p className="text-xs text-gray-600 mt-1.5">$ overrides base price for that variant. Leave blank to use base price.</p>
+              <div className="space-y-1.5">
+                {form.variants.map((v: any, i: number) => (
+                  <div key={i} className="grid grid-cols-7 gap-2 items-center">
+                    <input value={v.name} onChange={(e) => setVariant(i, 'name', e.target.value)}
+                      placeholder="Name"
+                      className="col-span-3 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                    <input type="number" value={v.inventory} onChange={(e) => setVariant(i, 'inventory', e.target.value)}
+                      placeholder="Qty"
+                      className="col-span-2 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                    <input type="number" step="0.01" value={v.price} onChange={(e) => setVariant(i, 'price', e.target.value)}
+                      placeholder="$"
+                      className="col-span-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                    <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">✕</button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

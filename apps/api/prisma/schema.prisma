@@ -457,6 +457,7 @@ model Product {
   featured     Boolean       @default(false)
   tags         String[]
   fileUrl      String?
+  optionGroups Json?
 
   variants   ProductVariant[]
   orderItems OrderItem[]

@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 export interface CartItem {
   productId: string;
   variantId?: string;
+  options?: string; // e.g. "M / Black / Standard"
   name: string;
   variantName?: string;
   price: number;

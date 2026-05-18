@@ -2580,7 +2580,7 @@ function ProductFormModal({
                   <option value="" disabled>Quick add…</option>
                   <optgroup label="Sizes">
                     <option value="sizes-standard">Sizes — XS, S, M, L, XL</option>
-                    <option value="sizes-extended">Sizes — XS, S, M, L, XL, 2XL, 3XL</option>
+                    <option value="sizes-extended">Sizes — XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL</option>
                   </optgroup>
                   <optgroup label="Colors">
                     <option value="colors-basic">Colors — Black, White, Gray, Navy, Red</option>

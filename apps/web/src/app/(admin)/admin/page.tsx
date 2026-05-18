@@ -2335,7 +2335,7 @@ const EMPTY_PRODUCT = {
 
 const VARIANT_PRESETS: Record<string, { group: string; values: string[] }> = {
   'sizes-standard': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL'] },
-  'sizes-extended': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] },
+  'sizes-extended': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] },
   'colors-basic':   { group: 'Color',   values: ['Black', 'White', 'Gray', 'Navy', 'Red'] },
   'colors-extended':{ group: 'Color',   values: ['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'] },
   'editions':       { group: 'Edition', values: ['Standard', 'Deluxe', 'Limited Edition'] },

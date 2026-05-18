@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -3304,6 +3304,93 @@ function ShopTab() {
 
 // ── Settings Tab ──────────────────────────────────────────────────────────────
 
+interface SettingsCtxType {
+  settings: Record<string, string>;
+  set: (key: string, value: string) => void;
+  loading: boolean;
+  saving: string | null;
+  saved: string | null;
+  save: (key: string) => Promise<void>;
+}
+
+const SettingsCtx = createContext<SettingsCtxType>({
+  settings: {}, set: () => {}, loading: false, saving: null, saved: null, save: async () => {},
+});
+
+function SaveBtn({ k }: { k: string }) {
+  const { saving, saved, save, loading } = useContext(SettingsCtx);
+  return (
+    <button
+      onClick={() => save(k)}
+      disabled={saving === k || loading}
+      className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors whitespace-nowrap ${
+        saved === k ? 'bg-camp-500 text-white' : 'bg-brand-500 hover:bg-brand-600 text-black disabled:opacity-50'
+      }`}
+    >
+      {saving === k ? 'Saving…' : saved === k ? '✓ Saved' : 'Save'}
+    </button>
+  );
+}
+
+function FieldBlock({
+  label, textKey, placeholder, cssKey, cssClass, snippets,
+}: {
+  label: string; textKey?: string; placeholder?: string;
+  cssKey: string; cssClass: string;
+  snippets: { tag: string; css: string }[];
+}) {
+  const { settings, set, loading } = useContext(SettingsCtx);
+  return (
+    <div className="space-y-2 pb-6 border-b border-surface-800/50 last:border-0">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-bold text-white">{label}</span>
+        <code className="text-[10px] text-brand-400/70 bg-surface-800 px-2 py-0.5 rounded font-mono">.{cssClass}</code>
+      </div>
+      {textKey ? (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={settings[textKey] ?? ''}
+            onChange={(e) => set(textKey, e.target.value)}
+            placeholder={placeholder}
+            disabled={loading}
+            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+          />
+          <SaveBtn k={textKey} />
+        </div>
+      ) : (
+        <p className="text-xs text-gray-600 italic">Content is dynamic — pulled live from the database.</p>
+      )}
+      <div className="flex gap-2">
+        <textarea
+          value={settings[cssKey] ?? ''}
+          onChange={(e) => set(cssKey, e.target.value)}
+          placeholder={`/* styles for .${cssClass} */\ncolor: #ffffff;\nfont-size: 2rem;`}
+          disabled={loading}
+          rows={3}
+          spellCheck={false}
+          className="flex-1 bg-surface-900 border border-surface-600 text-gray-200 font-mono text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-brand-400 resize-y transition-colors placeholder:text-gray-700 disabled:opacity-50 leading-relaxed"
+        />
+        <SaveBtn k={cssKey} />
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {snippets.map(({ tag, css }) => (
+          <button
+            key={tag}
+            onClick={() => {
+              const cur = (settings[cssKey] ?? '').trim();
+              set(cssKey, cur ? `${cur}\n${css}` : css);
+            }}
+            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold text-gray-500 hover:text-brand-400 border border-surface-800 hover:border-brand-500/40 bg-surface-900/40 transition-colors"
+          >
+            + {tag}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SettingsTab() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -3337,79 +3424,8 @@ function SettingsTab() {
     }
   }
 
-  function SaveBtn({ k }: { k: string }) {
-    return (
-      <button
-        onClick={() => save(k)}
-        disabled={saving === k || loading}
-        className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors whitespace-nowrap ${
-          saved === k ? 'bg-camp-500 text-white' : 'bg-brand-500 hover:bg-brand-600 text-black disabled:opacity-50'
-        }`}
-      >
-        {saving === k ? 'Saving…' : saved === k ? '✓ Saved' : 'Save'}
-      </button>
-    );
-  }
-
-  function FieldBlock({
-    label, textKey, placeholder, cssKey, cssClass, snippets,
-  }: {
-    label: string; textKey?: string; placeholder?: string;
-    cssKey: string; cssClass: string;
-    snippets: { tag: string; css: string }[];
-  }) {
-    return (
-      <div className="space-y-2 pb-6 border-b border-surface-800/50 last:border-0">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-white">{label}</span>
-          <code className="text-[10px] text-brand-400/70 bg-surface-800 px-2 py-0.5 rounded font-mono">.{cssClass}</code>
-        </div>
-        {textKey ? (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={settings[textKey] ?? ''}
-              onChange={(e) => set(textKey, e.target.value)}
-              placeholder={placeholder}
-              disabled={loading}
-              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-            />
-            <SaveBtn k={textKey} />
-          </div>
-        ) : (
-          <p className="text-xs text-gray-600 italic">Content is dynamic — pulled live from the database.</p>
-        )}
-        <div className="flex gap-2">
-          <textarea
-            value={settings[cssKey] ?? ''}
-            onChange={(e) => set(cssKey, e.target.value)}
-            placeholder={`/* styles for .${cssClass} */\ncolor: #ffffff;\nfont-size: 2rem;`}
-            disabled={loading}
-            rows={3}
-            spellCheck={false}
-            className="flex-1 bg-surface-900 border border-surface-600 text-gray-200 font-mono text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-brand-400 resize-y transition-colors placeholder:text-gray-700 disabled:opacity-50 leading-relaxed"
-          />
-          <SaveBtn k={cssKey} />
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {snippets.map(({ tag, css }) => (
-            <button
-              key={tag}
-              onClick={() => {
-                const cur = (settings[cssKey] ?? '').trim();
-                set(cssKey, cur ? `${cur}\n${css}` : css);
-              }}
-              className="px-2.5 py-1 rounded-lg text-[10px] font-semibold text-gray-500 hover:text-brand-400 border border-surface-800 hover:border-brand-500/40 bg-surface-900/40 transition-colors"
-            >
-              + {tag}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
+    <SettingsCtx.Provider value={{ settings, set, loading, saving, saved, save }}>
     <div className="max-w-4xl space-y-10">
 
       {error && (
@@ -3590,6 +3606,7 @@ function SettingsTab() {
       </div>
 
     </div>
+    </SettingsCtx.Provider>
   );
 }
 

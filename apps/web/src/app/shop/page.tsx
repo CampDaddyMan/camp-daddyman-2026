@@ -145,12 +145,15 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen bg-black">
 
-      {/* ── Hero: Ark image — no overlay, let it breathe ────────────────────── */}
-      <section>
+      {/* ── Hero: Ark image — full poster, fully visible below the nav ──────── */}
+      <section
+        className="w-full bg-black flex items-center justify-center overflow-hidden"
+        style={{ maxHeight: 'calc(100vh - 4rem)' }}
+      >
         <img
           src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
           alt="The Ark — Camp DaddyMan"
-          className="w-full block object-cover object-top"
+          className="w-full h-full object-contain object-top"
         />
       </section>
 

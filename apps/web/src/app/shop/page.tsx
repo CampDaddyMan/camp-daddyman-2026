@@ -35,6 +35,9 @@ const PERK_PLACEHOLDERS: PerkItem[] = [
   { id: 'ph1', name: 'DaddyMan Classic Tee', price: 34.99, isPlaceholder: true },
   { id: 'ph2', name: 'The Ark Hoodie', price: 59.99, isPlaceholder: true },
   { id: 'ph3', name: 'Camp Cap', price: 24.99, isPlaceholder: true },
+  { id: 'ph4', name: 'DaddyMan Crewneck', price: 49.99, isPlaceholder: true },
+  { id: 'ph5', name: 'Camp Joggers', price: 44.99, isPlaceholder: true },
+  { id: 'ph6', name: 'The Philosophy Tee', price: 32.99, isPlaceholder: true },
 ];
 
 // ── Product Card ──────────────────────────────────────────────────────────────
@@ -123,6 +126,9 @@ export default function ShopPage() {
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<'featured' | 'newest' | 'price_asc' | 'price_desc'>('featured');
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cardIndexRef = useRef(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
 
   useEffect(() => {
     api.get('/shop/products')
@@ -133,6 +139,18 @@ export default function ShopPage() {
       .then((r) => setSiteSettings(r.data.settings ?? {}))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (loading || carouselPaused) return;
+    const interval = setInterval(() => {
+      const track = carouselRef.current;
+      if (!track || !track.children.length) return;
+      const w = (track.children[0] as HTMLElement).offsetWidth + 16;
+      cardIndexRef.current = (cardIndexRef.current + 1) % track.children.length;
+      track.scrollTo({ left: cardIndexRef.current * w, behavior: 'smooth' });
+    }, 3200);
+    return () => clearInterval(interval);
+  }, [loading, carouselPaused]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -385,127 +403,169 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* ── Member Banner ───────────────────────────────────────────────────── */}
-      {!loading && (
-        <section className="border-t border-surface-800/80 bg-surface-900/30 px-4 py-16 md:py-24">
-          <div className="max-w-7xl mx-auto">
-            <div className="relative rounded-3xl border border-brand-500/20 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-surface-800 via-surface-800/95 to-surface-900" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(248,194,2,0.07),transparent_65%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_100%_50%,rgba(2,65,25,0.1),transparent_65%)]" />
+      {/* ── Membership Perks — full-width carousel ──────────────────────────── */}
+      {!loading && (() => {
+        const real = filtered.filter((p) => p.memberDiscountEnabled);
+        const perkItems: PerkItem[] = [
+          ...real,
+          ...PERK_PLACEHOLDERS.slice(0, Math.max(0, 6 - real.length)),
+        ];
+        const displayRate = memberRate > 0 ? memberRate : 15;
 
-              <div className="relative px-8 md:px-14 py-12 md:py-16 flex flex-col lg:flex-row items-start justify-between gap-10">
-                <div className="max-w-lg text-center lg:text-left">
-                  <div className="inline-flex items-center gap-2 bg-brand-500/12 border border-brand-500/25 rounded-full px-4 py-1.5 mb-6">
-                    <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">Membership Perks</span>
-                  </div>
-                  <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-5">
-                    Camp Members<br />
-                    <span className="text-brand-400">Save Up To 15%</span><br />
-                    on Every Order.
-                  </h2>
-                  <div className="space-y-3 mb-8">
-                    {[
-                      { plan: 'PRO', pct: 10, desc: 'Unlock discounts + exclusive content' },
-                      { plan: 'PREMIUM', pct: 15, desc: 'Maximum savings, all access' },
-                      { plan: 'CREATOR', pct: 15, desc: 'Creator tier — full benefits' },
-                    ].map(({ plan, pct, desc }) => (
-                      <div key={plan} className="flex items-center gap-3">
-                        <span className="w-9 h-9 bg-brand-500/12 border border-brand-500/25 rounded-xl flex items-center justify-center text-brand-400 text-xs font-black flex-shrink-0">
-                          {pct}%
-                        </span>
-                        <div className="text-left">
-                          <span className="text-white text-sm font-black">{plan}</span>
-                          <span className="text-gray-500 text-xs ml-2">{desc}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {memberRate > 0 ? (
-                    <div className="inline-flex items-center gap-2 bg-camp-500/10 border border-camp-500/30 rounded-2xl px-5 py-3 text-camp-400 font-bold text-sm">
-                      <span>✓</span> You&apos;re saving {memberRate}% on eligible items
-                    </div>
-                  ) : (
-                    <Link
-                      href="/subscribe"
-                      className="inline-block bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_32px_rgba(248,194,2,0.22)]"
-                    >
-                      Join the Camp →
-                    </Link>
-                  )}
+        function carouselPrev() {
+          const track = carouselRef.current;
+          if (!track || !track.children.length) return;
+          const w = (track.children[0] as HTMLElement).offsetWidth + 16;
+          cardIndexRef.current = cardIndexRef.current > 0 ? cardIndexRef.current - 1 : track.children.length - 1;
+          track.scrollTo({ left: cardIndexRef.current * w, behavior: 'smooth' });
+        }
+        function carouselNext() {
+          const track = carouselRef.current;
+          if (!track || !track.children.length) return;
+          const w = (track.children[0] as HTMLElement).offsetWidth + 16;
+          cardIndexRef.current = (cardIndexRef.current + 1) % track.children.length;
+          track.scrollTo({ left: cardIndexRef.current * w, behavior: 'smooth' });
+        }
+
+        return (
+          <section className="border-t border-surface-800/80 bg-surface-900/30 pt-16 md:pt-20 pb-12 relative overflow-hidden">
+            {/* Full-width bg accents */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_35%_90%_at_0%_50%,rgba(248,194,2,0.07),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_35%_90%_at_100%_50%,rgba(2,65,25,0.09),transparent_55%)]" />
+
+            {/* Header row */}
+            <div className="relative flex flex-col lg:flex-row items-start justify-between gap-8 px-8 md:px-14 mb-10">
+              {/* Left: copy */}
+              <div>
+                <div className="inline-flex items-center gap-2 bg-brand-500/12 border border-brand-500/25 rounded-full px-4 py-1.5 mb-6">
+                  <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">Membership Perks</span>
                 </div>
-
-                {/* Right panel — fills remaining width */}
-                <div className="hidden lg:flex flex-col gap-4 flex-1 min-w-0">
-                  <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">With your membership</p>
-
-                  {/* 3 product cards in a row */}
-                  {(() => {
-                    const real = filtered.filter((p) => p.memberDiscountEnabled).slice(0, 3);
-                    const perkItems: PerkItem[] = real.length >= 3
-                      ? real
-                      : [...real, ...PERK_PLACEHOLDERS.slice(0, 3 - real.length)];
-                    const displayRate = memberRate > 0 ? memberRate : 15;
-                    return (
-                      <div className="grid grid-cols-3 gap-3">
-                        {perkItems.map((item) => (
-                          <div
-                            key={item.id}
-                            className={`flex flex-col rounded-2xl overflow-hidden border transition-colors ${item.isPlaceholder ? 'bg-surface-800/40 border-surface-700/30' : 'bg-surface-800/70 border-surface-700/60'}`}
-                          >
-                            {/* Image */}
-                            <div className="aspect-square w-full bg-surface-700 relative overflow-hidden">
-                              {item.imageUrl ? (
-                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-brand-500/20 via-surface-700 to-surface-600 flex items-center justify-center">
-                                  <span className="text-brand-400/50 text-3xl font-black">✦</span>
-                                </div>
-                              )}
-                              {item.isPlaceholder && (
-                                <span className="absolute top-2 left-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider bg-black/60 px-1.5 py-0.5 rounded-full">Soon</span>
-                              )}
-                            </div>
-                            {/* Info */}
-                            <div className="p-3">
-                              <p className={`text-xs font-bold truncate leading-snug mb-1.5 ${item.isPlaceholder ? 'text-gray-400' : 'text-white'}`}>{item.name}</p>
-                              <p className="text-gray-500 text-[10px] line-through">${item.price.toFixed(2)}</p>
-                              <p className="text-brand-400 text-xs font-black">${(item.price * (1 - displayRate / 100)).toFixed(2)}</p>
-                            </div>
-                          </div>
-                        ))}
+                <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-6">
+                  Camp Members<br />
+                  <span className="text-brand-400">Save Up To 15%</span><br />
+                  on Every Order.
+                </h2>
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {([
+                    { plan: 'PRO', pct: 10, desc: 'Unlock discounts + exclusive content' },
+                    { plan: 'PREMIUM', pct: 15, desc: 'Maximum savings, all access' },
+                    { plan: 'CREATOR', pct: 15, desc: 'Creator tier — full benefits' },
+                  ] as const).map(({ plan, pct, desc }) => (
+                    <div key={plan} className="flex items-center gap-2.5 bg-surface-800/60 border border-surface-700/50 rounded-xl px-3.5 py-2.5">
+                      <span className="w-8 h-8 bg-brand-500/12 border border-brand-500/25 rounded-lg flex items-center justify-center text-brand-400 text-[11px] font-black flex-shrink-0">
+                        {pct}%
+                      </span>
+                      <div>
+                        <span className="text-white text-xs font-black">{plan}</span>
+                        <span className="text-gray-500 text-[10px] ml-2">{desc}</span>
                       </div>
-                    );
-                  })()}
-
-                  {/* Sponsored promo — full width below the grid */}
-                  <div className="relative rounded-2xl overflow-hidden border border-surface-700/40 bg-gradient-to-br from-surface-800 via-surface-800/90 to-surface-900">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_80%_at_0%_50%,rgba(248,194,2,0.06),transparent_60%)]" />
-                    <span className="absolute top-3 right-3 text-[9px] font-bold text-gray-600 uppercase tracking-widest bg-black/50 px-2 py-0.5 rounded-full">Sponsored</span>
-                    <div className="relative px-6 py-5 flex items-center gap-8">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-brand-400/70 text-[10px] font-black uppercase tracking-widest mb-1.5">Camp DaddyMan</p>
-                        <p className="text-white font-black text-base leading-snug">Stream Music. Watch Films. Live the Philosophy.</p>
-                        <p className="text-gray-500 text-xs leading-relaxed mt-1.5">
-                          Your membership unlocks the full Camp DaddyMan experience — music, film, podcasts, spoken word, and more.
-                        </p>
-                      </div>
-                      <Link
-                        href="/subscribe"
-                        className="flex-shrink-0 text-xs font-bold text-black bg-brand-500 px-5 py-2.5 rounded-xl hover:bg-brand-400 transition-colors"
-                      >
-                        Explore →
-                      </Link>
                     </div>
+                  ))}
+                </div>
+                {memberRate > 0 ? (
+                  <div className="inline-flex items-center gap-2 bg-camp-500/10 border border-camp-500/30 rounded-2xl px-5 py-3 text-camp-400 font-bold text-sm">
+                    <span>✓</span> You&apos;re saving {memberRate}% on eligible items
                   </div>
+                ) : (
+                  <Link
+                    href="/subscribe"
+                    className="inline-block bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_32px_rgba(248,194,2,0.22)]"
+                  >
+                    Join the Camp →
+                  </Link>
+                )}
+              </div>
 
-                  <p className="text-gray-600 text-xs">Member discounts apply to eligible products.</p>
+              {/* Right: label + arrows */}
+              <div className="flex flex-col items-start lg:items-end gap-3 lg:pt-2 flex-shrink-0">
+                <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">With your membership</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={carouselPrev}
+                    className="w-10 h-10 rounded-xl bg-surface-700 hover:bg-surface-600 border border-surface-600 hover:border-surface-500 text-gray-300 hover:text-white flex items-center justify-center transition-all text-lg leading-none"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={carouselNext}
+                    className="w-10 h-10 rounded-xl bg-surface-700 hover:bg-surface-600 border border-surface-600 hover:border-surface-500 text-gray-300 hover:text-white flex items-center justify-center transition-all text-lg leading-none"
+                  >
+                    →
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+
+            {/* Carousel track — full width, flush */}
+            <div
+              ref={carouselRef}
+              className="relative flex gap-4 overflow-x-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-8 md:px-14 pb-2"
+              onMouseEnter={() => setCarouselPaused(true)}
+              onMouseLeave={() => setCarouselPaused(false)}
+            >
+              {perkItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex-shrink-0 w-[200px] md:w-[220px] flex flex-col rounded-2xl overflow-hidden border transition-colors ${
+                    item.isPlaceholder
+                      ? 'bg-surface-800/40 border-surface-700/30'
+                      : 'bg-surface-800/70 border-surface-700/60 hover:border-brand-500/40'
+                  }`}
+                >
+                  <div className="aspect-[3/4] w-full bg-surface-700 relative overflow-hidden">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-brand-500/15 via-surface-700 to-surface-600 flex items-center justify-center">
+                        <span className="text-brand-400/40 text-4xl font-black">✦</span>
+                      </div>
+                    )}
+                    {item.isPlaceholder ? (
+                      <span className="absolute top-2 left-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider bg-black/70 px-1.5 py-0.5 rounded-full">
+                        Coming Soon
+                      </span>
+                    ) : (
+                      <span className="absolute top-2 right-2 text-[9px] font-bold text-brand-400 uppercase tracking-wider bg-black/70 px-1.5 py-0.5 rounded-full border border-brand-500/30">
+                        ✦ Members
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3.5">
+                    <p className={`text-xs font-bold truncate leading-snug mb-2 ${item.isPlaceholder ? 'text-gray-400' : 'text-white'}`}>
+                      {item.name}
+                    </p>
+                    <p className="text-gray-500 text-[10px] line-through">${item.price.toFixed(2)}</p>
+                    <p className="text-brand-400 text-sm font-black">${(item.price * (1 - displayRate / 100)).toFixed(2)}</p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Sponsored card — last in carousel */}
+              <div className="flex-shrink-0 w-[260px] flex flex-col rounded-2xl overflow-hidden border border-surface-700/40 bg-gradient-to-br from-surface-800 via-surface-800/90 to-surface-900 relative">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(248,194,2,0.06),transparent_70%)]" />
+                <span className="absolute top-3 right-3 text-[9px] font-bold text-gray-600 uppercase tracking-widest bg-black/50 px-2 py-0.5 rounded-full z-10">Sponsored</span>
+                <div className="relative flex flex-col justify-between flex-1 p-5 gap-4">
+                  <div>
+                    <p className="text-brand-400/70 text-[10px] font-black uppercase tracking-widest mb-2">Camp DaddyMan</p>
+                    <p className="text-white font-black text-lg leading-snug">Stream Music.<br />Watch Films.<br />Live the Philosophy.</p>
+                    <p className="text-gray-500 text-xs leading-relaxed mt-3">
+                      Unlock the full Camp experience — music, film, podcasts &amp; member merch discounts.
+                    </p>
+                  </div>
+                  <Link
+                    href="/subscribe"
+                    className="block text-center text-xs font-bold text-black bg-brand-500 px-4 py-2.5 rounded-xl hover:bg-brand-400 transition-colors"
+                  >
+                    Explore Membership →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <p className="relative text-gray-700 text-xs px-8 md:px-14 mt-5">Member discounts apply to eligible products.</p>
+          </section>
+        );
+      })()}
     </div>
   );
 }

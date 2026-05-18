@@ -2339,7 +2339,7 @@ function extractOptionGroups(variants: { options?: Record<string, string> }[]) {
   if (!first?.options || !Object.keys(first.options).length) return [];
   return Object.keys(first.options).map((key) => ({
     name: key,
-    values: [...new Set(variants.map((v) => v.options?.[key]).filter(Boolean))].join(', '),
+    values: Array.from(new Set(variants.map((v) => v.options?.[key]).filter(Boolean))).join(', '),
   }));
 }
 

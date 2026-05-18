@@ -78,7 +78,7 @@ export default function ProductDetailPage() {
     if (!first.options || !Object.keys(first.options).length) return [];
     return Object.keys(first.options).map((key) => ({
       name: key,
-      values: [...new Set(product.variants.map((v) => v.options?.[key]).filter((v): v is string => !!v))],
+      values: Array.from(new Set(product.variants.map((v) => v.options?.[key]).filter((v): v is string => !!v))),
     }));
   }, [product]);
 

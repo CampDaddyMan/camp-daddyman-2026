@@ -2310,7 +2310,7 @@ interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
   comparePrice?: number; status: string; featured: boolean; tags: string[];
   imageUrl?: string; description?: string;
-  variants: { id: string; name: string; inventory: number; price?: number }[];
+  variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string, string> }[];
 }
 
 interface AdminOrder {
@@ -2330,8 +2330,30 @@ const STATUS_COLORS: Record<string, string> = {
 const EMPTY_PRODUCT = {
   name: '', type: 'PHYSICAL', price: '', comparePrice: '', description: '',
   imageUrl: '', status: 'DRAFT', featured: false, tags: '',
-  variants: [{ name: '', inventory: '0', price: '' }],
+  optionGroups: [] as { name: string; values: string }[],
+  variants: [] as { name: string; inventory: string; price: string; options: Record<string, string> }[],
 };
+
+function extractOptionGroups(variants: { options?: Record<string, string> }[]) {
+  const first = variants[0];
+  if (!first?.options || !Object.keys(first.options).length) return [];
+  return Object.keys(first.options).map((key) => ({
+    name: key,
+    values: [...new Set(variants.map((v) => v.options?.[key]).filter(Boolean))].join(', '),
+  }));
+}
+
+function cartesianVariants(groups: { name: string; values: string }[]) {
+  const parsed = groups
+    .filter((g) => g.name.trim() && g.values.trim())
+    .map((g) => ({ name: g.name.trim(), vals: g.values.split(',').map((v) => v.trim()).filter(Boolean) }));
+  if (!parsed.length) return [];
+  let combos: Record<string, string>[] = [{}];
+  for (const g of parsed) {
+    combos = combos.flatMap((c) => g.vals.map((val) => ({ ...c, [g.name]: val })));
+  }
+  return combos.map((opts) => ({ name: Object.values(opts).join(' / '), inventory: '0', price: '', options: opts }));
+}
 
 function ProductFormModal({
   initial, onSave, onClose,
@@ -2341,16 +2363,23 @@ function ProductFormModal({
   onClose: () => void;
 }) {
   const editing = !!initial;
-  const [form, setForm] = useState<any>(initial ? {
-    name: initial.name, type: initial.type, price: String(initial.price),
-    comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',
-    description: initial.description || '', imageUrl: initial.imageUrl || '',
-    status: initial.status, featured: initial.featured,
-    tags: initial.tags.join(', '),
-    variants: initial.variants.length
-      ? initial.variants.map((v) => ({ name: v.name, inventory: String(v.inventory), price: v.price != null ? String(v.price) : '' }))
-      : [{ name: '', inventory: '0', price: '' }],
-  } : { ...EMPTY_PRODUCT, variants: [{ name: '', inventory: '0', price: '' }] });
+  const [form, setForm] = useState<any>(() => {
+    if (!initial) return { ...EMPTY_PRODUCT };
+    const mappedVariants = initial.variants.map((v) => ({
+      name: v.name, inventory: String(v.inventory),
+      price: v.price != null ? String(v.price) : '',
+      options: v.options || {},
+    }));
+    return {
+      name: initial.name, type: initial.type, price: String(initial.price),
+      comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',
+      description: initial.description || '', imageUrl: initial.imageUrl || '',
+      status: initial.status, featured: initial.featured,
+      tags: initial.tags.join(', '),
+      optionGroups: extractOptionGroups(mappedVariants),
+      variants: mappedVariants,
+    };
+  });
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -2381,8 +2410,20 @@ function ProductFormModal({
       return { ...f, variants: vars };
     });
   }
-  function addVariant() { setForm((f: any) => ({ ...f, variants: [...f.variants, { name: '', inventory: '0', price: '' }] })); }
+  function addVariant() { setForm((f: any) => ({ ...f, variants: [...f.variants, { name: '', inventory: '0', price: '', options: {} }] })); }
   function removeVariant(i: number) { setForm((f: any) => ({ ...f, variants: f.variants.filter((_: any, j: number) => j !== i) })); }
+  function addOptionGroup() { setForm((f: any) => ({ ...f, optionGroups: [...f.optionGroups, { name: '', values: '' }] })); }
+  function removeOptionGroup(i: number) { setForm((f: any) => ({ ...f, optionGroups: f.optionGroups.filter((_: any, j: number) => j !== i) })); }
+  function setOptionGroup(i: number, k: string, v: string) {
+    setForm((f: any) => {
+      const groups = [...f.optionGroups];
+      groups[i] = { ...groups[i], [k]: v };
+      return { ...f, optionGroups: groups };
+    });
+  }
+  function generateCombinations() {
+    setForm((f: any) => ({ ...f, variants: cartesianVariants(f.optionGroups) }));
+  }
 
   async function handleSave() {
     if (!form.name.trim() || !form.price) { setErr('Name and price are required.'); return; }
@@ -2402,6 +2443,7 @@ function ProductFormModal({
           name: v.name.trim(),
           inventory: Number(v.inventory || 0),
           price: v.price ? Number(v.price) : null,
+          options: v.options && Object.keys(v.options).length ? v.options : undefined,
         })),
       };
       const { data } = editing
@@ -2528,28 +2570,75 @@ function ProductFormModal({
           </label>
 
           {/* Variants */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-400">Variants (sizes, editions, etc.)</label>
-              <button onClick={addVariant} className="text-xs text-brand-400 hover:text-brand-300">+ Add variant</button>
+          <div className="space-y-4">
+            {/* Option Groups */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-gray-400 font-medium">Option Groups</label>
+                <button onClick={addOptionGroup} className="text-xs text-brand-400 hover:text-brand-300">+ Add group</button>
+              </div>
+              {form.optionGroups.length === 0 && (
+                <p className="text-xs text-gray-600">No option groups — add one (e.g. Size, Color) to auto-generate combinations.</p>
+              )}
+              <div className="space-y-2">
+                {form.optionGroups.map((g: any, i: number) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={g.name}
+                      onChange={(e) => setOptionGroup(i, 'name', e.target.value)}
+                      placeholder="Group name (e.g. Size)"
+                      className="w-28 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400 flex-shrink-0"
+                    />
+                    <input
+                      value={g.values}
+                      onChange={(e) => setOptionGroup(i, 'values', e.target.value)}
+                      placeholder="Values, comma-separated (e.g. S, M, L, XL)"
+                      className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400"
+                    />
+                    <button onClick={() => removeOptionGroup(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none flex-shrink-0">✕</button>
+                  </div>
+                ))}
+              </div>
+              {form.optionGroups.length > 0 && (
+                <button
+                  onClick={generateCombinations}
+                  className="mt-2 text-xs bg-surface-700 hover:bg-surface-600 border border-surface-500 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Generate combinations ↓
+                </button>
+              )}
             </div>
-            <div className="space-y-2">
-              {form.variants.map((v: any, i: number) => (
-                <div key={i} className="grid grid-cols-7 gap-2 items-center">
-                  <input value={v.name} onChange={(e) => setVariant(i, 'name', e.target.value)}
-                    placeholder="e.g. Large"
-                    className="col-span-3 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                  <input type="number" value={v.inventory} onChange={(e) => setVariant(i, 'inventory', e.target.value)}
-                    placeholder="Qty"
-                    className="col-span-2 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                  <input type="number" step="0.01" value={v.price} onChange={(e) => setVariant(i, 'price', e.target.value)}
-                    placeholder="$"
-                    className="col-span-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                  <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">✕</button>
-                </div>
-              ))}
+
+            {/* Combinations / flat variants */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-gray-400 font-medium">
+                  {form.optionGroups.length > 0 ? 'Combinations' : 'Variants'}&nbsp;
+                  <span className="text-gray-600">— set qty and optional price per row</span>
+                </label>
+                <button onClick={addVariant} className="text-xs text-brand-400 hover:text-brand-300">+ Add row</button>
+              </div>
+              {form.variants.length === 0 && (
+                <p className="text-xs text-gray-600">No variants yet — add option groups above and click Generate, or add rows manually.</p>
+              )}
+              <div className="space-y-1.5">
+                {form.variants.map((v: any, i: number) => (
+                  <div key={i} className="grid grid-cols-7 gap-2 items-center">
+                    <input value={v.name} onChange={(e) => setVariant(i, 'name', e.target.value)}
+                      placeholder="e.g. M / Black"
+                      className="col-span-3 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                    <input type="number" value={v.inventory} onChange={(e) => setVariant(i, 'inventory', e.target.value)}
+                      placeholder="Qty"
+                      className="col-span-2 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                    <input type="number" step="0.01" value={v.price} onChange={(e) => setVariant(i, 'price', e.target.value)}
+                      placeholder="$"
+                      className="col-span-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
+                    <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">✕</button>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-1.5">Price field overrides base price for that combination. Leave blank to use base price.</p>
             </div>
-            <p className="text-xs text-gray-600 mt-1.5">Leave variant name blank to skip. Price overrides base price if set.</p>
           </div>
 
           {err && <p className="text-red-400 text-sm">{err}</p>}

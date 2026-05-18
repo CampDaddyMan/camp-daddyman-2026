@@ -152,11 +152,11 @@ export default function ShopPage() {
       {/* Per-element typography CSS injected from admin settings */}
       {(() => {
         const rules = [
-          siteSettings.shop_eyebrow_css    && `.shop-eyebrow{${siteSettings.shop_eyebrow_css}}`,
-          siteSettings.shop_heading_css    && `.shop-title{${siteSettings.shop_heading_css}}`,
-          siteSettings.shop_stat_value_css && `.shop-stat-value{${siteSettings.shop_stat_value_css}}`,
-          siteSettings.shop_stat_label_css && `.shop-stat-label{${siteSettings.shop_stat_label_css}}`,
-          siteSettings.shop_subheading_css && `.shop-subheading{${siteSettings.shop_subheading_css}}`,
+          siteSettings.shop_eyebrow_css    && `.shop-intro .shop-eyebrow{${siteSettings.shop_eyebrow_css}}`,
+          siteSettings.shop_heading_css    && `.shop-intro .shop-title{${siteSettings.shop_heading_css}}`,
+          siteSettings.shop_stat_value_css && `.shop-intro .shop-stat-value{${siteSettings.shop_stat_value_css}}`,
+          siteSettings.shop_stat_label_css && `.shop-intro .shop-stat-label{${siteSettings.shop_stat_label_css}}`,
+          siteSettings.shop_subheading_css && `.shop-intro .shop-subheading{${siteSettings.shop_subheading_css}}`,
         ].filter(Boolean).join('');
         return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
       })()}

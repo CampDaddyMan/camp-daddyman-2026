@@ -160,10 +160,7 @@ export default function ShopPage() {
           alt="The Ark — Camp DaddyMan Official Store"
           className="w-full block"
         />
-        {/* Bottom fade into the page */}
-        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-black to-transparent" />
-
-        {/* Overlaid content — centered where THE ARK headline was */}
+{/* Overlaid content — centered where THE ARK headline was */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-3xl mx-auto space-y-4">
 

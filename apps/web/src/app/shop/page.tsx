@@ -157,12 +157,14 @@ export default function ShopPage() {
           siteSettings.shop_stat_value_css && `.shop-intro .shop-stat-value{${siteSettings.shop_stat_value_css}}`,
           siteSettings.shop_stat_label_css && `.shop-intro .shop-stat-label{${siteSettings.shop_stat_label_css}}`,
           siteSettings.shop_subheading_css && `.shop-intro .shop-subheading{${siteSettings.shop_subheading_css}}`,
+          siteSettings.shop_member_line_css && `.shop-intro .shop-member-line{${siteSettings.shop_member_line_css}}`,
           // Font-size inputs — after CSS textarea so they take precedence
           siteSettings.shop_eyebrow_font_size    && `.shop-intro .shop-eyebrow{font-size:${siteSettings.shop_eyebrow_font_size}}`,
           siteSettings.shop_heading_font_size    && `.shop-intro .shop-title{font-size:${siteSettings.shop_heading_font_size}}`,
           siteSettings.shop_stat_value_font_size && `.shop-intro .shop-stat-value{font-size:${siteSettings.shop_stat_value_font_size}}`,
           siteSettings.shop_stat_label_font_size && `.shop-intro .shop-stat-label{font-size:${siteSettings.shop_stat_label_font_size}}`,
-          siteSettings.shop_subheading_font_size && `.shop-intro .shop-subheading{font-size:${siteSettings.shop_subheading_font_size}}`,
+          siteSettings.shop_subheading_font_size  && `.shop-intro .shop-subheading{font-size:${siteSettings.shop_subheading_font_size}}`,
+          siteSettings.shop_member_line_font_size && `.shop-intro .shop-member-line{font-size:${siteSettings.shop_member_line_font_size}}`,
         ].filter(Boolean).join('');
         return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
       })()}
@@ -223,12 +225,12 @@ export default function ShopPage() {
 
               {/* Row 5: member line */}
               {!user && (
-                <p className="text-brand-400 font-semibold text-sm mb-7">
+                <p className="shop-member-line text-brand-400 font-semibold text-sm mb-7">
                   Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
                 </p>
               )}
               {memberRate > 0 && (
-                <p className="text-[#00c878] font-bold text-[15px] mb-7">You&apos;re saving {memberRate}% today.</p>
+                <p className="shop-member-line text-[#00c878] font-bold text-[15px] mb-7">You&apos;re saving {memberRate}% today.</p>
               )}
               {!user && memberRate === 0 && <div className="mb-7" />}
 

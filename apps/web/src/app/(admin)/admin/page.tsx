@@ -3530,7 +3530,7 @@ function SettingsTab() {
           />
 
           <FieldBlock
-            label="Subheading"
+            label='Subheading — "Straight from the Camp."'
             textKey="shop_subheading"
             placeholder="Straight from the Camp."
             cssKey="shop_subheading_css"
@@ -3589,6 +3589,24 @@ function SettingsTab() {
               { tag: 'Small',     css: 'font-size: 0.6rem;' },
               { tag: 'Bold',      css: 'font-weight: 900;' },
               { tag: 'Serif',     css: "font-family: Georgia, serif; font-style: italic;" },
+            ]}
+          />
+
+          <FieldBlock
+            label='Member Line — "You&apos;re saving 15% today." / "Members save up to 15%."'
+            cssKey="shop_member_line_css"
+            cssClass="shop-member-line"
+            fontSizeKey="shop_member_line_font_size"
+            snippets={[
+              { tag: 'Green',     css: 'color: #00c878;' },
+              { tag: 'Gold',      css: 'color: #f8c202;' },
+              { tag: 'Teal',      css: 'color: #0ba691;' },
+              { tag: 'White',     css: 'color: #ffffff;' },
+              { tag: 'Glow',      css: 'text-shadow: 0 0 16px currentColor;' },
+              { tag: 'Bold',      css: 'font-weight: 900;' },
+              { tag: 'Italic',    css: 'font-style: italic;' },
+              { tag: 'Uppercase', css: 'text-transform: uppercase;' },
+              { tag: 'Spaced',    css: 'letter-spacing: 0.15em;' },
             ]}
           />
 

@@ -164,7 +164,7 @@ export default function ShopPage() {
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-3xl mx-auto space-y-4">
 
-          <p className="font-black uppercase [-webkit-text-stroke:2px_black] [text-stroke:2px_black] text-white leading-[4.75rem] text-[4.17rem] drop-shadow-xl">
+          <p className="font-black uppercase [-webkit-text-stroke:1px_#0ba691] text-white leading-[4.75rem] text-[4.17rem] drop-shadow-xl">
             Merch, music &amp; limited drops — straight from the Camp.
             {!user && <><br /><span className="text-brand-400">Members save up to 15%.</span></>}
             {memberRate > 0 && <><br /><span className="text-camp-400">You&apos;re saving {memberRate}% today.</span></>}
@@ -178,8 +178,8 @@ export default function ShopPage() {
                 { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
               ].map(({ value, label, gold }) => (
                 <div key={label} className="text-center">
-                  <p className={`font-black tabular-nums uppercase [-webkit-text-stroke:2px_black] [text-stroke:2px_black] leading-[4.75rem] text-[4.17rem] ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                  <p className="text-white uppercase tracking-[0.2em] mt-1 font-black text-base [-webkit-text-stroke:1px_black] [text-stroke:1px_black]">{label}</p>
+                  <p className={`font-black tabular-nums uppercase [-webkit-text-stroke:1px_#0ba691] leading-[4.75rem] text-[4.17rem] ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                  <p className="text-white uppercase tracking-[0.2em] mt-1 font-black text-base [-webkit-text-stroke:1px_#0ba691]">{label}</p>
                 </div>
               ))}
             </div>
@@ -188,13 +188,13 @@ export default function ShopPage() {
           <div className="flex items-center justify-center gap-4 flex-wrap pt-2">
             <button
               onClick={scrollToCollection}
-              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-10 py-5 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
+              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-12 py-6 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
             >
               Shop the Collection
             </button>
             <Link
               href="/shop/cart"
-              className="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white font-bold px-8 py-5 rounded-2xl text-lg transition-all duration-200 flex items-center gap-2"
+              className="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white font-black px-10 py-6 rounded-2xl text-2xl uppercase tracking-wider transition-all duration-200 flex items-center gap-2"
             >
               <span>🛒</span> Cart
             </Link>

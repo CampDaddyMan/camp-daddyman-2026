@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../config/database';
 
 export const adminGetSettings = async (_req: Request, res: Response) => {
   const rows = await prisma.siteSetting.findMany();

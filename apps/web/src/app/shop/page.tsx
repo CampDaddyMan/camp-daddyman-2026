@@ -164,7 +164,7 @@ export default function ShopPage() {
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-3xl mx-auto space-y-4">
 
-          <p className="text-white font-bold text-2xl md:text-4xl leading-snug drop-shadow-xl">
+          <p className="font-black uppercase [-webkit-text-stroke:2px_black] [text-stroke:2px_black] text-white leading-[4.75rem] text-[4.17rem] drop-shadow-xl">
             Merch, music &amp; limited drops — straight from the Camp.
             {!user && <><br /><span className="text-brand-400">Members save up to 15%.</span></>}
             {memberRate > 0 && <><br /><span className="text-camp-400">You&apos;re saving {memberRate}% today.</span></>}
@@ -177,9 +177,9 @@ export default function ShopPage() {
                 { value: '15%', label: 'Max Discount', gold: true },
                 { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
               ].map(({ value, label, gold }) => (
-                <div key={label} className="text-center drop-shadow-xl">
-                  <p className={`text-5xl md:text-7xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                  <p className="text-white/70 text-sm md:text-base uppercase tracking-[0.15em] mt-1 font-semibold">{label}</p>
+                <div key={label} className="text-center">
+                  <p className={`font-black tabular-nums uppercase [-webkit-text-stroke:2px_black] [text-stroke:2px_black] leading-[4.75rem] text-[4.17rem] ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                  <p className="text-white uppercase tracking-[0.2em] mt-1 font-black text-base [-webkit-text-stroke:1px_black] [text-stroke:1px_black]">{label}</p>
                 </div>
               ))}
             </div>

@@ -2310,7 +2310,7 @@ interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
   comparePrice?: number; status: string; featured: boolean; tags: string[];
   imageUrl?: string; description?: string;
-  variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string, string> }[];
+  variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string,string> }[];
 }
 
 interface AdminOrder {
@@ -2330,16 +2330,16 @@ const STATUS_COLORS: Record<string, string> = {
 const EMPTY_PRODUCT = {
   name: '', type: 'PHYSICAL', price: '', comparePrice: '', description: '',
   imageUrl: '', status: 'DRAFT', featured: false, tags: '',
-  variants: [] as { name: string; inventory: string; price: string }[],
+  variants: [] as { name: string; inventory: string; price: string; options?: Record<string,string> }[],
 };
 
-const VARIANT_PRESETS: Record<string, string[]> = {
-  'sizes-standard': ['XS', 'S', 'M', 'L', 'XL'],
-  'sizes-extended': ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
-  'colors-basic':   ['Black', 'White', 'Gray', 'Navy', 'Red'],
-  'colors-extended':['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'],
-  'editions':       ['Standard', 'Deluxe', 'Limited Edition'],
-  'format':         ['Digital', 'Physical'],
+const VARIANT_PRESETS: Record<string, { group: string; values: string[] }> = {
+  'sizes-standard': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL'] },
+  'sizes-extended': { group: 'Size',    values: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] },
+  'colors-basic':   { group: 'Color',   values: ['Black', 'White', 'Gray', 'Navy', 'Red'] },
+  'colors-extended':{ group: 'Color',   values: ['Black', 'White', 'Gray', 'Navy', 'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Pink'] },
+  'editions':       { group: 'Edition', values: ['Standard', 'Deluxe', 'Limited Edition'] },
+  'format':         { group: 'Format',  values: ['Digital', 'Physical'] },
 };
 
 function ProductFormModal({
@@ -2361,6 +2361,7 @@ function ProductFormModal({
       variants: initial.variants.map((v) => ({
         name: v.name, inventory: String(v.inventory),
         price: v.price != null ? String(v.price) : '',
+        options: v.options || {},
       })),
     };
   });
@@ -2394,15 +2395,32 @@ function ProductFormModal({
       return { ...f, variants: vars };
     });
   }
-  function addVariant() { setForm((f: any) => ({ ...f, variants: [...f.variants, { name: '', inventory: '0', price: '' }] })); }
+  function addVariant() { setForm((f: any) => ({ ...f, variants: [...f.variants, { name: '', inventory: '0', price: '', options: {} }] })); }
   function removeVariant(i: number) { setForm((f: any) => ({ ...f, variants: f.variants.filter((_: any, j: number) => j !== i) })); }
-  function quickAdd(preset: string) {
-    const names = VARIANT_PRESETS[preset];
-    if (!names) return;
-    setForm((f: any) => ({
-      ...f,
-      variants: [...f.variants, ...names.map((n) => ({ name: n, inventory: '0', price: '' }))],
-    }));
+  function quickAdd(presetKey: string) {
+    const preset = VARIANT_PRESETS[presetKey];
+    if (!preset) return;
+    setForm((f: any) => {
+      const existing = f.variants.filter((v: any) => v.name.trim());
+      if (existing.length === 0) {
+        return {
+          ...f,
+          variants: preset.values.map((val) => ({ name: val, inventory: '0', price: '', options: { [preset.group]: val } })),
+        };
+      }
+      // Cross-multiply existing variants with the new group
+      return {
+        ...f,
+        variants: existing.flatMap((e: any) =>
+          preset.values.map((val) => ({
+            name: `${e.name} / ${val}`,
+            inventory: '0',
+            price: '',
+            options: { ...(e.options || {}), [preset.group]: val },
+          }))
+        ),
+      };
+    });
   }
 
   async function handleSave() {
@@ -2423,6 +2441,7 @@ function ProductFormModal({
           name: v.name.trim(),
           inventory: Number(v.inventory || 0),
           price: v.price ? Number(v.price) : null,
+          options: v.options && Object.keys(v.options).length ? v.options : undefined,
         })),
       };
       const { data } = editing

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useState, useMemo, type MouseEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,6 +13,7 @@ interface Variant {
   sku?: string;
   price?: number;
   inventory: number;
+  options?: Record<string, string>;
 }
 
 interface Product {
@@ -40,7 +41,8 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [flatVariant, setFlatVariant] = useState<Variant | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
@@ -59,11 +61,33 @@ export default function ProductDetailPage() {
       .then((r) => {
         const p: Product = r.data.product;
         setProduct(p);
-        if (p.variants.length === 1) setSelectedVariant(p.variants[0]);
+        if (p.variants.length === 1) setFlatVariant(p.variants[0]);
       })
       .catch(() => router.push('/shop'))
       .finally(() => setLoading(false));
   }, [id, router]);
+
+  // Products with options JSON use multi-group selectors; others use flat buttons
+  const optionGroups = useMemo(() => {
+    if (!product?.variants.length) return [];
+    const first = product.variants[0];
+    if (!first.options || !Object.keys(first.options).length) return [];
+    return Object.keys(first.options).map((key) => ({
+      name: key,
+      values: Array.from(new Set(product.variants.map((v) => v.options?.[key]).filter((v): v is string => !!v))),
+    }));
+  }, [product]);
+
+  const isMultiOption = optionGroups.length > 0;
+
+  const resolvedVariant = useMemo(() => {
+    if (!product || !isMultiOption) return null;
+    return product.variants.find((v) =>
+      optionGroups.every((g) => v.options?.[g.name] === selections[g.name])
+    ) ?? null;
+  }, [product, isMultiOption, optionGroups, selections]);
+
+  const activeVariant = isMultiOption ? resolvedVariant : flatVariant;
 
   if (loading) {
     return (
@@ -85,22 +109,26 @@ export default function ProductDetailPage() {
 
   const plan = user?.subscription?.plan as string | undefined;
   const discountRate = plan ? (DISCOUNT_RATES[plan] ?? 0) : 0;
-  const effectivePrice = selectedVariant?.price ?? product.price;
+  const effectivePrice = activeVariant?.price ?? product.price;
   const discountedPrice = discountRate > 0 ? effectivePrice * (1 - discountRate / 100) : effectivePrice;
   const hasDiscount = product.comparePrice && product.comparePrice > product.price;
   const savePct = hasDiscount ? Math.round((1 - product.price / product.comparePrice!) * 100) : 0;
 
   const allImages = [product.imageUrl, ...product.images].filter(Boolean) as string[];
-  const needsVariant = product.variants.length > 1 && !selectedVariant;
-  const outOfStock = selectedVariant ? selectedVariant.inventory <= 0 : product.variants.length > 0 && product.variants.every((v) => v.inventory <= 0);
+
+  const allChosen = isMultiOption ? optionGroups.every((g) => selections[g.name]) : true;
+  const needsVariant = isMultiOption ? !allChosen : product.variants.length > 1 && !flatVariant;
+  const outOfStock = activeVariant
+    ? activeVariant.inventory <= 0
+    : product.variants.length > 0 && product.variants.every((v) => v.inventory <= 0);
 
   function handleAddToCart() {
     if (!product) return;
     addItem({
       productId: product.id,
-      variantId: selectedVariant?.id,
+      variantId: activeVariant?.id,
       name: product.name,
-      variantName: selectedVariant?.name,
+      variantName: activeVariant?.name,
       price: discountedPrice,
       imageUrl: product.imageUrl,
       type: product.type,
@@ -215,33 +243,67 @@ export default function ProductDetailPage() {
           )}
 
           {/* Variant selector */}
-          {product.variants.length > 1 && (
-            <div>
-              <p className="text-sm text-gray-400 font-medium mb-2">
-                {selectedVariant ? `Selected: ${selectedVariant.name}` : 'Select an option'}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map((v) => (
-                  <button
-                    key={v.id}
-                    disabled={v.inventory <= 0}
-                    onClick={() => setSelectedVariant(v)}
-                    className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                      v.inventory <= 0
-                        ? 'border-surface-600 text-gray-600 cursor-not-allowed line-through'
-                        : selectedVariant?.id === v.id
-                        ? 'border-brand-500 bg-brand-500/10 text-brand-400'
-                        : 'border-surface-600 text-gray-300 hover:border-surface-400 bg-surface-800'
-                    }`}
-                  >
-                    {v.name}
-                    {v.price != null && v.price !== product.price && (
-                      <span className="ml-1 text-xs opacity-60">(+${(v.price - product.price).toFixed(0)})</span>
-                    )}
-                  </button>
+          {product.variants.length > 0 && (
+            isMultiOption ? (
+              <div className="space-y-4">
+                {optionGroups.map((group) => (
+                  <div key={group.name}>
+                    <p className="text-sm text-gray-400 font-medium mb-2">
+                      {group.name}{selections[group.name] && <span className="text-white ml-2">{selections[group.name]}</span>}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {group.values.map((val) => {
+                        const inStock = product.variants.some((v) => v.options?.[group.name] === val && v.inventory > 0);
+                        const selected = selections[group.name] === val;
+                        return (
+                          <button
+                            key={val}
+                            disabled={!inStock}
+                            onClick={() => setSelections((s) => ({ ...s, [group.name]: val }))}
+                            className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                              !inStock
+                                ? 'border-surface-600 text-gray-600 cursor-not-allowed line-through'
+                                : selected
+                                ? 'border-brand-500 bg-brand-500/10 text-brand-400'
+                                : 'border-surface-600 text-gray-300 hover:border-surface-400 bg-surface-800'
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
               </div>
-            </div>
+            ) : product.variants.length > 1 ? (
+              <div>
+                <p className="text-sm text-gray-400 font-medium mb-2">
+                  {flatVariant ? `Selected: ${flatVariant.name}` : 'Select an option'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      disabled={v.inventory <= 0}
+                      onClick={() => setFlatVariant(v)}
+                      className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                        v.inventory <= 0
+                          ? 'border-surface-600 text-gray-600 cursor-not-allowed line-through'
+                          : flatVariant?.id === v.id
+                          ? 'border-brand-500 bg-brand-500/10 text-brand-400'
+                          : 'border-surface-600 text-gray-300 hover:border-surface-400 bg-surface-800'
+                      }`}
+                    >
+                      {v.name}
+                      {v.price != null && v.price !== product.price && (
+                        <span className="ml-1 text-xs opacity-60">(+${(v.price - product.price).toFixed(0)})</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null
           )}
 
           {/* Quantity */}

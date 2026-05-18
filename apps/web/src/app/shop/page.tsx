@@ -158,66 +158,77 @@ export default function ShopPage() {
         />
       </section>
 
-      {/* ── Shop intro — below the image ────────────────────────────────────── */}
-      <section className="bg-black border-b border-surface-800 px-4 py-12 md:py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
+      {/* ── Shop intro — stacked editorial block ────────────────────────────── */}
+      <section className="bg-[#050505] border-b border-brand-500/10 px-6 pt-16 pb-12">
+        <div className="max-w-[1180px] mx-auto">
 
-            {/* Left: copy */}
-            <div>
-              <p className="text-brand-400 text-[11px] font-black uppercase tracking-[0.4em] mb-3">
-                {siteSettings.shop_eyebrow || 'Camp DaddyMan Official Store'}
-              </p>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight tracking-tight mb-3 whitespace-nowrap">
-                {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
-              </h1>
-              <p className="text-gray-400 text-lg">{siteSettings.shop_subheading || 'Straight from the Camp.'}</p>
-              {!user && (
-                <p className="text-brand-400 font-semibold mt-1">
-                  Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
-                </p>
-              )}
-              {memberRate > 0 && (
-                <p className="text-camp-400 font-bold mt-1">You&apos;re saving {memberRate}% today.</p>
-              )}
+          {/* Row 1: eyebrow */}
+          <p className="text-brand-400 text-[11px] font-bold uppercase tracking-[0.28em] mb-4">
+            {siteSettings.shop_eyebrow || 'Camp DaddyMan Official Store'}
+          </p>
+
+          {/* Row 2: main heading */}
+          <h1 className="font-black text-[#f5f1e8] leading-[0.95] tracking-tight mb-7"
+            style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(38px, 5vw, 72px)', maxWidth: '760px' }}>
+            {siteSettings.shop_heading || 'Merch, Music & Limited Drops'}
+          </h1>
+
+          {/* Row 3: stats pill */}
+          {!loading && products.length > 0 && (
+            <div className="flex w-fit mb-5 rounded-[14px] overflow-hidden border border-white/[0.08] bg-white/[0.035]">
+              {[
+                { value: String(products.length), label: 'Products' },
+                { value: '15%', label: 'Max Discount', gold: true },
+                { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drop' },
+              ].map(({ value, label, gold }, i, arr) => (
+                <div
+                  key={label}
+                  className={`min-w-[150px] px-6 py-[18px] text-center ${i < arr.length - 1 ? 'border-r border-white/[0.08]' : ''}`}
+                >
+                  <strong
+                    className="block text-[34px] leading-none mb-2"
+                    style={{ fontFamily: 'Georgia, serif', color: gold ? '#ffd21a' : '#f5f1e8' }}
+                  >
+                    {value}
+                  </strong>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#c9b889]">{label}</span>
+                </div>
+              ))}
             </div>
+          )}
 
-            {/* Center: stats frosted box */}
-            {!loading && products.length > 0 && (
-              <div className="flex items-center gap-0 backdrop-blur-md bg-surface-800/60 border border-surface-700 rounded-2xl overflow-hidden flex-shrink-0">
-                {[
-                  { value: String(products.length), label: 'Products' },
-                  { value: '15%', label: 'Max Discount', gold: true },
-                  { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
-                ].map(({ value, label, gold }, i, arr) => (
-                  <div key={label} className="flex items-stretch">
-                    <div className="text-center px-8 py-5">
-                      <p className={`text-4xl md:text-5xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                      <p className="text-gray-400 uppercase tracking-[0.18em] mt-1 font-bold text-xs">{label}</p>
-                    </div>
-                    {i < arr.length - 1 && <div className="w-px bg-surface-700 self-stretch" />}
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Row 4: subheading */}
+          <p className="text-[#cfc7b7] text-base mb-2">
+            {siteSettings.shop_subheading || 'Straight from the Camp.'}
+          </p>
 
-            {/* Right: buttons */}
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 flex-shrink-0">
-              <button
-                onClick={scrollToCollection}
-                className="bg-brand-500 hover:bg-brand-400 text-black font-black px-8 py-4 rounded-2xl text-lg uppercase tracking-wider transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] whitespace-nowrap"
-              >
-                Shop the Collection
-              </button>
-              <Link
-                href="/shop/cart"
-                className="bg-[#0ba691] hover:bg-[#09907d] text-white font-black px-8 py-4 rounded-2xl text-lg uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                <span>🛒</span> Cart
-              </Link>
-            </div>
+          {/* Row 5: member line */}
+          {!user && (
+            <p className="text-brand-400 font-semibold text-sm mb-7">
+              Members save up to 15%. <Link href="/subscribe" className="underline hover:text-brand-300">Join →</Link>
+            </p>
+          )}
+          {memberRate > 0 && (
+            <p className="text-[#00c878] font-bold text-[15px] mb-7">You&apos;re saving {memberRate}% today.</p>
+          )}
+          {!user && memberRate === 0 && <div className="mb-7" />}
 
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={scrollToCollection}
+              className="min-w-[240px] px-7 py-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm uppercase tracking-[0.06em] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_32px_rgba(248,194,2,0.22)] text-center"
+            >
+              Shop the Collection
+            </button>
+            <Link
+              href="/shop/cart"
+              className="min-w-[240px] px-7 py-4 rounded-xl bg-[#0ba691] hover:bg-[#09907d] text-white font-black text-sm uppercase tracking-[0.06em] transition-all flex items-center justify-center gap-2"
+            >
+              <span>🛒</span> Cart
+            </Link>
           </div>
+
         </div>
       </section>
 

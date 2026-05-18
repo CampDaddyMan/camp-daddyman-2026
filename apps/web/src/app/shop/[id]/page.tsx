@@ -309,17 +309,15 @@ export default function ProductDetailPage() {
           {/* Quantity */}
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-400 w-20">Quantity</span>
-            <div className="flex items-center gap-2 bg-surface-800 border border-surface-600 rounded-xl px-1 py-1">
-              <button
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-surface-700"
-              >−</button>
-              <span className="w-8 text-center text-white font-medium">{qty}</span>
-              <button
-                onClick={() => setQty(qty + 1)}
-                className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-surface-700"
-              >+</button>
-            </div>
+            <select
+              value={qty}
+              onChange={(e) => setQty(Number(e.target.value))}
+              className="bg-surface-800 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+            >
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
           </div>
 
           {/* CTA */}

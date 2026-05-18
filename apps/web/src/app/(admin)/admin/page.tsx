@@ -2313,6 +2313,7 @@ interface AdminProduct {
   comparePrice?: number; status: string; featured: boolean; tags: string[];
   imageUrl?: string; imagePreviewUrl?: string; description?: string;
   optionGroups?: OptionGroup[];
+  optionGroupsPreview?: OptionGroup[];
   memberDiscountEnabled?: boolean;
   variants: { id: string; name: string; inventory: number; price?: number; options?: Record<string,string> }[];
 }
@@ -2386,6 +2387,17 @@ function ProductFormModal({
   const [previewUrl, setPreviewUrl] = useState<string>(initial?.imagePreviewUrl || '');
   const imgInputRef = useRef<HTMLInputElement>(null);
 
+  // Keyed by "${groupName}:${value}" — blob or signed URLs for display only
+  const [groupImagePreviews, setGroupImagePreviews] = useState<Record<string, string>>(() => {
+    const previews: Record<string, string> = {};
+    for (const g of (initial?.optionGroupsPreview || [])) {
+      for (const [val, url] of Object.entries(g.images || {})) {
+        if (url) previews[`${g.name}:${val}`] = url as string;
+      }
+    }
+    return previews;
+  });
+
   async function handleImageUpload(file: File) {
     setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
@@ -2441,12 +2453,16 @@ function ProductFormModal({
   }
 
   async function handleGroupImageUpload(groupName: string, val: string, file: File) {
+    const key = `${groupName}:${val}`;
+    // Show blob URL immediately for instant feedback
+    setGroupImagePreviews((p) => ({ ...p, [key]: URL.createObjectURL(file) }));
     try {
       const fd = new FormData();
       fd.append('image', file);
       const { data } = await api.post('/admin/products/upload-image', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      // Store raw R2 URL in form data (for saving to DB)
       setForm((f: any) => ({
         ...f,
         optionGroups: f.optionGroups.map((g: OptionGroup) => {
@@ -2455,11 +2471,15 @@ function ProductFormModal({
         }),
       }));
     } catch {
+      // Remove preview on failure
+      setGroupImagePreviews((p) => { const n = { ...p }; delete n[key]; return n; });
       setErr('Image upload failed.');
     }
   }
 
   function removeGroupImage(groupName: string, val: string) {
+    const key = `${groupName}:${val}`;
+    setGroupImagePreviews((p) => { const n = { ...p }; delete n[key]; return n; });
     setForm((f: any) => ({
       ...f,
       optionGroups: f.optionGroups.map((g: OptionGroup) => {
@@ -2670,15 +2690,15 @@ function ProductFormModal({
                           className="bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-brand-400"
                         >
                           <option value="">No add-on</option>
-                          {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
-                            <option key={n} value={String(n)}>+${n}.00</option>
+                          {Array.from({ length: 51 }, (_, i) => i).map((n) => (
+                            <option key={n} value={String(n)}>+${n}</option>
                           ))}
                         </select>
                         {/* Edition image */}
                         <div className="flex items-center gap-2 flex-1 justify-end">
-                          {g.images?.[val] ? (
+                          {groupImagePreviews[`${g.name}:${val}`] ? (
                             <>
-                              <img src={g.images[val]} alt={val} className="w-10 h-10 rounded-lg object-cover border border-surface-600 flex-shrink-0" />
+                              <img src={groupImagePreviews[`${g.name}:${val}`]} alt={val} className="w-10 h-10 rounded-lg object-cover border border-surface-600 flex-shrink-0" />
                               <button onClick={() => removeGroupImage(g.name, val)} className="text-gray-500 hover:text-red-400 text-xs transition-colors">✕</button>
                             </>
                           ) : (

@@ -409,6 +409,18 @@ export async function adminUploadProductImage(req: AuthRequest, res: Response) {
   res.json({ url });
 }
 
+async function signOptionGroupImages(optionGroups: any): Promise<any> {
+  if (!Array.isArray(optionGroups)) return null;
+  return Promise.all(optionGroups.map(async (g: any) => {
+    if (!g.images || typeof g.images !== 'object') return g;
+    const images: Record<string, string> = {};
+    for (const [k, v] of Object.entries(g.images as Record<string, string>)) {
+      images[k] = (await signR2Url(v)) ?? v;
+    }
+    return { ...g, images };
+  }));
+}
+
 export async function adminListProducts(req: AuthRequest, res: Response) {
   const { status, type } = req.query;
   const where: any = {};
@@ -424,6 +436,7 @@ export async function adminListProducts(req: AuthRequest, res: Response) {
   const signed = await Promise.all(products.map(async (p) => ({
     ...p,
     imagePreviewUrl: await signR2Url(p.imageUrl),
+    optionGroupsPreview: await signOptionGroupImages(p.optionGroups),
   })));
 
   res.json({ products: signed });

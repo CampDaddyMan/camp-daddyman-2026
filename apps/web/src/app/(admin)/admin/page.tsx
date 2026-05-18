@@ -3557,6 +3557,22 @@ function SettingsTab() {
     setSaved(null);
   }
 
+  async function changePerkCount(delta: number) {
+    const current = parseInt(settings['perk_ph_count'] || '6', 10);
+    const next = Math.max(1, current + delta);
+    setSettings((s) => ({ ...s, perk_ph_count: String(next) }));
+    setSaving('perk_ph_count');
+    try {
+      await api.put('/admin/settings', { key: 'perk_ph_count', value: String(next) });
+      setSaved('perk_ph_count');
+      setTimeout(() => setSaved(null), 2000);
+    } catch {
+      setError('Failed to update item count.');
+    } finally {
+      setSaving(null);
+    }
+  }
+
   async function save(key: string) {
     setSaving(key);
     setError('');
@@ -3758,17 +3774,44 @@ function SettingsTab() {
       </div>
 
       {/* ── Membership Perk Items ── */}
-      <div>
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-white mb-1">Membership Perk Items</h2>
-          <p className="text-gray-500 text-sm">
-            Placeholder cards shown in the &ldquo;With your membership&rdquo; carousel. Set a name and price for each slot. Slots are replaced automatically once you enable member discounts on real products.
-          </p>
-        </div>
-        <div className="space-y-0">
-          {[1, 2, 3, 4, 5, 6].map((n) => <PerkItemBlock key={n} n={n} />)}
-        </div>
-      </div>
+      {(() => {
+        const perkCount = parseInt(settings['perk_ph_count'] || '6', 10);
+        return (
+          <div>
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-1">Membership Perk Items</h2>
+                <p className="text-gray-500 text-sm">
+                  Placeholder cards shown in the &ldquo;With your membership&rdquo; carousel. Slots are replaced automatically once you enable member discounts on real products.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+                <span className="text-xs text-gray-500 tabular-nums">{perkCount} item{perkCount !== 1 ? 's' : ''}</span>
+                <button
+                  onClick={() => changePerkCount(-1)}
+                  disabled={loading || saving === 'perk_ph_count' || perkCount <= 1}
+                  className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white flex items-center justify-center text-lg leading-none disabled:opacity-40 transition-colors"
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => changePerkCount(1)}
+                  disabled={loading || saving === 'perk_ph_count'}
+                  className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white flex items-center justify-center text-lg leading-none disabled:opacity-40 transition-colors"
+                >
+                  +
+                </button>
+                {saved === 'perk_ph_count' && <span className="text-xs text-camp-400 font-bold">✓</span>}
+              </div>
+            </div>
+            <div className="space-y-0">
+              {Array.from({ length: perkCount }, (_, i) => i + 1).map((n) => (
+                <PerkItemBlock key={n} n={n} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Custom CSS ── */}
       <div className="space-y-4">

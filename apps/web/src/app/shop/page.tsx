@@ -386,16 +386,18 @@ export default function ShopPage() {
       {/* ── Membership Perks — full-width carousel ──────────────────────────── */}
       {!loading && (() => {
         const real = filtered.filter((p) => p.memberDiscountEnabled);
+        const perkCount = parseInt(siteSettings['perk_ph_count'] || '6', 10);
         const perkItems: PerkItem[] = [
           ...real,
-          ...[1, 2, 3, 4, 5, 6]
-            .slice(0, Math.max(0, 6 - real.length))
-            .map((n) => ({
+          ...Array.from({ length: Math.max(0, perkCount - real.length) }, (_, i) => {
+            const n = i + 1;
+            return {
               id: `ph${n}`,
-              name:  siteSettings[`perk_ph${n}_name`]  || PERK_PLACEHOLDERS[n - 1].name,
-              price: parseFloat(siteSettings[`perk_ph${n}_price`] || '') || PERK_PLACEHOLDERS[n - 1].price,
+              name:  siteSettings[`perk_ph${n}_name`]  || PERK_PLACEHOLDERS[n - 1]?.name  || `Coming Soon`,
+              price: parseFloat(siteSettings[`perk_ph${n}_price`] || '') || PERK_PLACEHOLDERS[n - 1]?.price || 0,
               isPlaceholder: true,
-            })),
+            };
+          }),
         ];
         const displayRate = memberRate > 0 ? memberRate : 15;
 

@@ -298,12 +298,12 @@ export default function ShopPage() {
         );
       })()}
 
-      {/* ── Collection + Featured Sidebar ──────────────────────────────────── */}
+      {/* ── Collection — full width ─────────────────────────────────────────── */}
       <div ref={collectionRef} className="pb-28">
 
         {/* Sticky filter / sort bar */}
         <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-2xl border-b border-surface-800/80">
-          <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="px-8 md:px-14 py-3">
             <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {(['ALL', 'PHYSICAL', 'DIGITAL'] as const).map((f) => (
                 <button
@@ -348,58 +348,38 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* Two-column: grid left, featured sidebar right */}
-        <div className="max-w-7xl mx-auto px-4 pt-10">
-          <div className="flex gap-8 items-start">
-
-            {/* Main grid */}
-            <div className="flex-1 min-w-0">
-              {loading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="aspect-[4/5] bg-surface-800 rounded-2xl mb-3" />
-                      <div className="h-3 bg-surface-800 rounded w-1/3 mb-2" />
-                      <div className="h-4 bg-surface-800 rounded w-2/3 mb-2" />
-                      <div className="h-5 bg-surface-800 rounded w-1/4" />
-                    </div>
-                  ))}
+        {/* Full-width grid */}
+        <div className="px-8 md:px-14 pt-10">
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-[4/5] bg-surface-800 rounded-2xl mb-3" />
+                  <div className="h-3 bg-surface-800 rounded w-1/3 mb-2" />
+                  <div className="h-4 bg-surface-800 rounded w-2/3 mb-2" />
+                  <div className="h-5 bg-surface-800 rounded w-1/4" />
                 </div>
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-32">
-                  <p className="text-6xl mb-6">📦</p>
-                  <p className="text-white font-black text-2xl mb-3">Drops Coming Soon</p>
-                  <p className="text-gray-500 text-sm mb-6">The Ark is being stocked. Check back shortly.</p>
-                  {(typeFilter !== 'ALL' || tagFilter) && (
-                    <button
-                      onClick={() => { setTypeFilter('ALL'); setTagFilter(null); }}
-                      className="text-brand-400 hover:text-brand-300 text-sm font-bold border border-brand-500/30 px-5 py-2.5 rounded-xl transition-colors"
-                    >
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-10">
-                  {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
-                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-32">
+              <p className="text-6xl mb-6">📦</p>
+              <p className="text-white font-black text-2xl mb-3">Drops Coming Soon</p>
+              <p className="text-gray-500 text-sm mb-6">The Ark is being stocked. Check back shortly.</p>
+              {(typeFilter !== 'ALL' || tagFilter) && (
+                <button
+                  onClick={() => { setTypeFilter('ALL'); setTagFilter(null); }}
+                  className="text-brand-400 hover:text-brand-300 text-sm font-bold border border-brand-500/30 px-5 py-2.5 rounded-xl transition-colors"
+                >
+                  Clear filters
+                </button>
               )}
             </div>
-
-            {/* Featured sidebar — sticky right column */}
-            {!loading && featuredProducts.length > 0 && (
-              <div className="hidden lg:flex flex-col gap-5 w-64 xl:w-72 flex-shrink-0 sticky top-16">
-                <div>
-                  <p className="text-brand-400 text-[10px] font-black uppercase tracking-[0.4em] mb-1">New Drops</p>
-                  <h2 className="text-xl font-black text-white tracking-tight">Featured</h2>
-                </div>
-                {featuredProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            )}
-
-          </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-10">
+              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          )}
         </div>
       </div>
 

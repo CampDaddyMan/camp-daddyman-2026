@@ -158,7 +158,7 @@ export default function ShopPage() {
         <img
           src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-top"
         />
         {/* Dark overlay so text stays readable */}
         <div className="absolute inset-0 bg-black/55" />

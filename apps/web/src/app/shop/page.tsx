@@ -164,37 +164,37 @@ export default function ShopPage() {
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-3xl mx-auto space-y-4">
 
-          <p className="text-white/80 text-base md:text-lg drop-shadow-lg">
+          <p className="text-white font-bold text-2xl md:text-4xl leading-snug drop-shadow-xl">
             Merch, music &amp; limited drops — straight from the Camp.
-            {!user && <><br /><span className="text-brand-400 font-semibold">Members save up to 15%.</span></>}
-            {memberRate > 0 && <><br /><span className="text-camp-400 font-semibold">You&apos;re saving {memberRate}% today.</span></>}
+            {!user && <><br /><span className="text-brand-400">Members save up to 15%.</span></>}
+            {memberRate > 0 && <><br /><span className="text-camp-400">You&apos;re saving {memberRate}% today.</span></>}
           </p>
 
           {!loading && products.length > 0 && (
-            <div className="flex items-center justify-center gap-6 md:gap-10">
+            <div className="flex items-center justify-center gap-10 md:gap-16">
               {[
                 { value: String(products.length), label: 'Products' },
                 { value: '15%', label: 'Max Discount', gold: true },
                 { value: featuredProducts.length > 0 ? String(featuredProducts.length) : '∞', label: 'Featured Drops' },
               ].map(({ value, label, gold }) => (
-                <div key={label} className="text-center drop-shadow-lg">
-                  <p className={`text-xl md:text-3xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
-                  <p className="text-white/50 text-[10px] uppercase tracking-[0.2em] mt-0.5">{label}</p>
+                <div key={label} className="text-center drop-shadow-xl">
+                  <p className={`text-5xl md:text-7xl font-black tabular-nums ${gold ? 'text-brand-400' : 'text-white'}`}>{value}</p>
+                  <p className="text-white/70 text-sm md:text-base uppercase tracking-[0.15em] mt-1 font-semibold">{label}</p>
                 </div>
               ))}
             </div>
           )}
 
-          <div className="flex items-center justify-center gap-3 flex-wrap pt-2">
+          <div className="flex items-center justify-center gap-4 flex-wrap pt-2">
             <button
               onClick={scrollToCollection}
-              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
+              className="bg-brand-500 hover:bg-brand-400 text-black font-black px-10 py-5 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_40px_rgba(248,194,2,0.28)]"
             >
               Shop the Collection
             </button>
             <Link
               href="/shop/cart"
-              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 backdrop-blur-sm text-white font-semibold px-6 py-4 rounded-2xl text-base transition-all duration-200 flex items-center gap-2"
+              className="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white font-bold px-8 py-5 rounded-2xl text-lg transition-all duration-200 flex items-center gap-2"
             >
               <span>🛒</span> Cart
             </Link>

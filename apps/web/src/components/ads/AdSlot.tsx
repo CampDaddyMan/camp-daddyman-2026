@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import api from '@/lib/api';
 
 interface Ad {
@@ -20,6 +19,7 @@ interface AdSlotProps {
 
 export default function AdSlot({ location, className = '' }: AdSlotProps) {
   const [ad, setAd] = useState<Ad | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     api.get(`/partners/serve/${encodeURIComponent(location)}`)
@@ -28,6 +28,8 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
   }, [location]);
 
   if (!ad) return null;
+
+  const showImage = !!ad.imageUrl && !imgError;
 
   async function handleClick() {
     if (!ad) return;
@@ -48,26 +50,23 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
         className="w-full text-left focus:outline-none group"
         aria-label={`Advertisement: ${ad.title}`}
       >
-        {ad.imageUrl && (
-          <div className="relative w-full aspect-[16/5] bg-surface-700">
-            <Image src={ad.imageUrl} alt={ad.title} fill className="object-cover group-hover:opacity-90 transition-opacity" />
-          </div>
+        {showImage && (
+          <img
+            src={ad.imageUrl!}
+            alt={ad.title}
+            onError={() => setImgError(true)}
+            className="w-full object-cover group-hover:opacity-90 transition-opacity"
+            style={{ maxHeight: '200px' }}
+          />
         )}
 
-        {!ad.imageUrl && (
-          <div className="p-4">
-            <p className="font-semibold text-white text-sm group-hover:text-brand-400 transition-colors">{ad.title}</p>
-            {ad.body && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{ad.body}</p>}
-            <p className="text-xs text-gray-600 mt-2">Sponsored by {ad.partner.name}</p>
-          </div>
-        )}
-
-        {ad.imageUrl && (
-          <div className="p-3">
-            <p className="font-semibold text-white text-xs group-hover:text-brand-400 transition-colors">{ad.title}</p>
-            <p className="text-[10px] text-gray-500 mt-0.5">Sponsored by {ad.partner.name}</p>
-          </div>
-        )}
+        <div className="p-3">
+          <p className="font-semibold text-white text-xs group-hover:text-brand-400 transition-colors">{ad.title}</p>
+          {!showImage && ad.body && (
+            <p className="text-xs text-gray-400 mt-1 line-clamp-2">{ad.body}</p>
+          )}
+          <p className="text-[10px] text-gray-500 mt-0.5">Sponsored by {ad.partner.name}</p>
+        </div>
       </button>
     </div>
   );

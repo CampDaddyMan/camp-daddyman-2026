@@ -2248,6 +2248,22 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
   );
 }
 
+function AdField({ label, error, touched, children }: {
+  label: string; error: string; touched: boolean; children: React.ReactNode;
+}) {
+  const icon  = !touched ? '*' : error ? '✗' : '✓';
+  const color = !touched ? 'text-gray-400' : error ? 'text-red-400' : 'text-green-400';
+  return (
+    <div>
+      <label className={`block text-xs mb-1.5 uppercase tracking-wide ${color}`}>
+        {label} <span className="ml-0.5">{icon}</span>
+      </label>
+      {children}
+      {touched && error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
+
 function AddAdModal({ onClose, onCreated }: {
   onClose: () => void; onCreated: (a: AdminAd) => void;
 }) {
@@ -2362,21 +2378,6 @@ function AddAdModal({ onClose, onCreated }: {
     } finally { setSaving(false); }
   }
 
-  function Field({ name, label, error, children }: { name: keyof typeof errors; label: string; error?: string; children: React.ReactNode }) {
-    const s = fieldState(name);
-    return (
-      <div>
-        <label className={`block text-xs mb-1.5 uppercase tracking-wide ${s.label}`}>
-          {label} <span className="ml-0.5">{s.icon}</span>
-        </label>
-        {children}
-        {touched[name] && errors[name] && (
-          <p className="text-red-400 text-xs mt-1">{errors[name]}</p>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -2386,7 +2387,7 @@ function AddAdModal({ onClose, onCreated }: {
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
-          <Field name="partnerId" label="Partner">
+          <AdField label="Partner" error={errors.partnerId} touched={!!touched.partnerId}>
             <select value={partnerId}
               onChange={(e) => { setPartnerId(e.target.value); touch('partnerId'); }}
               onBlur={() => touch('partnerId')}
@@ -2395,8 +2396,8 @@ function AddAdModal({ onClose, onCreated }: {
               <option value="">{loadingData ? 'Loading…' : partners.length === 0 ? 'No partners found' : '— select partner —'}</option>
               {partners.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.status})</option>)}
             </select>
-          </Field>
-          <Field name="placementId" label="Placement">
+          </AdField>
+          <AdField label="Placement" error={errors.placementId} touched={!!touched.placementId}>
             <select value={placementId}
               onChange={(e) => { setPlacement(e.target.value); touch('placementId'); }}
               onBlur={() => touch('placementId')}
@@ -2405,14 +2406,14 @@ function AddAdModal({ onClose, onCreated }: {
               <option value="">{loadingData ? 'Loading…' : placements.length === 0 ? 'No placements found — create one first' : '— select placement —'}</option>
               {placements.map((pl) => <option key={pl.id} value={pl.id}>{pl.name} (${pl.pricePerDay}/day)</option>)}
             </select>
-          </Field>
-          <Field name="title" label="Ad Title">
+          </AdField>
+          <AdField label="Ad Title" error={errors.title} touched={!!touched.title}>
             <input value={title}
               onChange={(e) => { setTitle(e.target.value); touch('title'); }}
               onBlur={() => touch('title')}
               placeholder="Summer Drop — Camp DaddyMan Gear"
               className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('title').border}`} />
-          </Field>
+          </AdField>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Body / Tagline</label>
             <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2}
@@ -2426,38 +2427,38 @@ function AddAdModal({ onClose, onCreated }: {
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
             </label>
           </div>
-          <Field name="linkUrl" label="Click URL">
+          <AdField label="Click URL" error={errors.linkUrl} touched={!!touched.linkUrl}>
             <input value={linkUrl}
               onChange={(e) => { setLinkUrl(e.target.value); touch('linkUrl'); }}
               onBlur={() => touch('linkUrl')}
               placeholder="https://partner.com/offer"
               className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('linkUrl').border}`} />
-          </Field>
+          </AdField>
           <div className="flex gap-3">
             <div className="flex-1">
-              <Field name="startsAt" label="Starts">
+              <AdField label="Starts" error={errors.startsAt} touched={!!touched.startsAt}>
                 <input type="datetime-local" value={startsAt}
                   onChange={(e) => { setStart(e.target.value); touch('startsAt'); touch('endsAt'); }}
                   onBlur={() => touch('startsAt')}
                   className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('startsAt').border}`} />
-              </Field>
+              </AdField>
             </div>
             <div className="flex-1">
-              <Field name="endsAt" label="Ends">
+              <AdField label="Ends" error={errors.endsAt} touched={!!touched.endsAt}>
                 <input type="datetime-local" value={endsAt}
                   onChange={(e) => { setEnd(e.target.value); touch('endsAt'); }}
                   onBlur={() => touch('endsAt')}
                   className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('endsAt').border}`} />
-              </Field>
+              </AdField>
             </div>
           </div>
-          <Field name="paidAmount" label="Amount Paid ($)">
+          <AdField label="Amount Paid ($)" error={errors.paidAmount} touched={!!touched.paidAmount}>
             <input type="number" min="0" step="0.01" value={paidAmount}
               onChange={(e) => { setPaid(e.target.value); touch('paidAmount'); }}
               onBlur={() => touch('paidAmount')}
               placeholder="0.00"
               className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('paidAmount').border}`} />
-          </Field>
+          </AdField>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Internal Notes</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}

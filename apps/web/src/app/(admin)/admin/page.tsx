@@ -1609,7 +1609,12 @@ function PartnersTab() {
     setLoading(true);
     if (view === 'partners')   loadPartners();
     if (view === 'placements') loadPlacements();
-    if (view === 'ads')        loadAds();
+    if (view === 'ads') {
+      loadAds();
+      // also populate dropdowns used in the Add Ad modal
+      loadPartners();
+      loadPlacements();
+    }
   }, [view, statusFilter]); // eslint-disable-line
 
   async function handleApprove(id: string, status: string) {
@@ -2209,8 +2214,17 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
   const [endsAt, setEnd]            = useState('');
   const [paidAmount, setPaid]       = useState('');
   const [notes, setNotes]           = useState('');
+  const [imageFile, setImageFile]   = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [saving, setSaving]         = useState(false);
   const [error, setError]           = useState('');
+
+  function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
 
   async function handleCreate() {
     if (!partnerId || !placementId || !title.trim() || !linkUrl.trim() || !startsAt || !endsAt) {
@@ -2222,6 +2236,12 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
       const { data } = await api.post('/partners/ads', {
         partnerId, placementId, title, body, linkUrl, startsAt, endsAt, paidAmount, notes,
       });
+      if (imageFile) {
+        const fd = new FormData();
+        fd.append('image', imageFile);
+        const { data: imgData } = await api.post(`/partners/ads/${data.ad.id}/image`, fd);
+        data.ad.imageUrl = imgData.imageUrl;
+      }
       onCreated(data.ad);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Create failed');
@@ -2262,6 +2282,16 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Body / Tagline</label>
             <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2}
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Image</label>
+            {imagePreview && (
+              <img src={imagePreview} alt="preview" className="w-full h-32 object-cover rounded-lg mb-2" />
+            )}
+            <label className="flex items-center justify-center gap-2 w-full border border-dashed border-surface-500 rounded-lg py-3 cursor-pointer hover:border-brand-400 transition-colors text-sm text-gray-400 hover:text-white">
+              <span>{imageFile ? imageFile.name : 'Choose image…'}</span>
+              <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
+            </label>
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Click URL *</label>

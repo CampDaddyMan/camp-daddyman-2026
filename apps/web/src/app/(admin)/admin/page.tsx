@@ -2644,7 +2644,7 @@ function ProductFormModal({
 }) {
   const editing = !!initial;
   const [form, setForm] = useState<any>(() => {
-    if (!initial) return { ...EMPTY_PRODUCT, memberDiscountEnabled: presetMemberDiscount ?? false };
+    if (!initial) return { ...EMPTY_PRODUCT, memberDiscountEnabled: presetMemberDiscount ?? false, status: presetMemberDiscount ? 'ACTIVE' : 'DRAFT' };
     return {
       name: initial.name, type: initial.type, price: String(initial.price),
       comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',

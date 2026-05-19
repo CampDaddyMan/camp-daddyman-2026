@@ -19,6 +19,7 @@ import {
   adminUpdateProduct,
   adminListProducts,
   adminListOrders,
+  adminGetOrder,
   adminUpdateOrder,
   adminListCoupons,
   adminCreateCoupon,
@@ -56,6 +57,7 @@ router.get('/products',                  readLimiter,  adminListProducts);
 router.post('/products',                 writeLimiter, adminCreateProduct);
 router.patch('/products/:id',            writeLimiter, adminUpdateProduct);
 router.get('/orders',                    readLimiter,  adminListOrders);
+router.get('/orders/:id',               readLimiter,  adminGetOrder);
 router.patch('/orders/:id',              writeLimiter, adminUpdateOrder);
 
 // Coupon admin

@@ -552,6 +552,22 @@ export async function adminListOrders(req: AuthRequest, res: Response) {
   res.json({ orders, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }
 
+export async function adminGetOrder(req: AuthRequest, res: Response) {
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: {
+      items: {
+        include: {
+          product: { select: { id: true, name: true, imageUrl: true, type: true } },
+        },
+      },
+      user: { select: { id: true, username: true, email: true, displayName: true } },
+    },
+  });
+  if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+  res.json({ order });
+}
+
 export async function adminUpdateOrder(req: AuthRequest, res: Response) {
   const { status, trackingNumber, notes } = req.body;
 

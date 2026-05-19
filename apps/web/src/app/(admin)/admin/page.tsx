@@ -1581,8 +1581,9 @@ function PartnersTab() {
   const [showAddPartner, setAddPartner] = useState(false);
   const [showAddPlacement, setAddPlacement] = useState(false);
   const [editPlacement, setEditPlacement] = useState<AdminPlacement | null>(null);
-  const [showAddAd, setAddAd]     = useState(false);
-  const [editAd, setEditAd]       = useState<AdminAd | null>(null);
+  const [showAddAd, setAddAd]       = useState(false);
+  const [editAd, setEditAd]         = useState<AdminAd | null>(null);
+  const [duplicateAd, setDuplicateAd] = useState<AdminAd | null>(null);
   const [editPartner, setEditPartner] = useState<AdminPartner | null>(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -1855,6 +1856,10 @@ function PartnersTab() {
                       className="text-xs px-3 py-1.5 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors">
                       Edit
                     </button>
+                    <button onClick={() => setDuplicateAd(a)}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors">
+                      Duplicate
+                    </button>
                     {a.status === 'PENDING' && (
                       <button onClick={() => handleAdStatus(a.id, 'ACTIVE')} disabled={acting === a.id}
                         className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
@@ -1933,6 +1938,16 @@ function PartnersTab() {
           ad={editAd}
           onClose={() => setEditAd(null)}
           onCreated={(a) => { setAds((prev) => prev.map((x) => x.id === a.id ? a : x)); setEditAd(null); }}
+        />
+      )}
+
+      {/* Duplicate ad modal — pre-filled but creates a new record */}
+      {duplicateAd && (
+        <AddAdModal
+          ad={duplicateAd}
+          isDuplicate
+          onClose={() => setDuplicateAd(null)}
+          onCreated={(a) => { setAds((prev) => [a, ...prev]); setDuplicateAd(null); }}
         />
       )}
     </div>
@@ -2278,11 +2293,12 @@ function AdField({ label, error, touched, children }: {
   );
 }
 
-function AddAdModal({ ad, onClose, onCreated }: {
+function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
   ad?: AdminAd;
+  isDuplicate?: boolean;
   onClose: () => void; onCreated: (a: AdminAd) => void;
 }) {
-  const isEdit = !!ad;
+  const isEdit = !!ad && !isDuplicate;
   // datetime-local needs "YYYY-MM-DDTHH:mm" — strip seconds/timezone from ISO string
   function toLocal(iso: string) { return iso ? iso.slice(0, 16) : ''; }
 
@@ -2413,7 +2429,7 @@ function AddAdModal({ ad, onClose, onCreated }: {
       <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
-          <h2 className="text-white font-semibold">{isEdit ? 'Edit Ad Campaign' : 'New Ad Campaign'}</h2>
+          <h2 className="text-white font-semibold">{isEdit ? 'Edit Ad Campaign' : isDuplicate ? 'Duplicate Ad Campaign' : 'New Ad Campaign'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
@@ -2534,7 +2550,7 @@ function AddAdModal({ ad, onClose, onCreated }: {
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleCreate} disabled={saving || loadingData}
             className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors text-sm disabled:opacity-50 ${allValid ? 'bg-brand-500 text-black hover:bg-brand-400' : 'bg-surface-600 text-gray-400 cursor-not-allowed'}`}>
-            {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Campaign'}
+            {saving ? 'Saving…' : isEdit ? 'Save Changes' : isDuplicate ? 'Create Copy' : 'Create Campaign'}
           </button>
         </div>
       </div>

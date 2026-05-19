@@ -4259,6 +4259,28 @@ function SettingsTab() {
               <SaveBtn k="shop_perks_line3" />
             </div>
           </div>
+
+          <div className="pt-2 border-t border-surface-700/50">
+            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Plan Descriptions</p>
+            {([
+              { key: 'shop_perks_pro_desc',     label: 'PRO description',     placeholder: 'Unlock discounts + exclusive content' },
+              { key: 'shop_perks_premium_desc', label: 'PREMIUM description', placeholder: 'Maximum savings, all access' },
+              { key: 'shop_perks_creator_desc', label: 'CREATOR description', placeholder: 'Creator tier — full benefits' },
+            ]).map(({ key, label, placeholder }) => (
+              <div key={key} className="mb-3">
+                <label className="block text-xs text-gray-400 mb-1">{label}</label>
+                <div className="flex gap-2">
+                  <input
+                    value={settings[key] ?? ''}
+                    onChange={(e) => set(key, e.target.value)}
+                    placeholder={placeholder}
+                    className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+                  />
+                  <SaveBtn k={key} />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -432,10 +432,12 @@ export default function ShopPage() {
                 </h2>
                 <div className="flex flex-wrap gap-3 mb-8">
                   {([
-                    { plan: 'PRO', pct: 10, desc: 'Unlock discounts + exclusive content' },
-                    { plan: 'PREMIUM', pct: 15, desc: 'Maximum savings, all access' },
-                    { plan: 'CREATOR', pct: 15, desc: 'Creator tier — full benefits' },
-                  ] as const).map(({ plan, pct, desc }) => (
+                    { plan: 'PRO',     pct: 10, settingKey: 'shop_perks_pro_desc',     fallback: 'Unlock discounts + exclusive content' },
+                    { plan: 'PREMIUM', pct: 15, settingKey: 'shop_perks_premium_desc', fallback: 'Maximum savings, all access' },
+                    { plan: 'CREATOR', pct: 15, settingKey: 'shop_perks_creator_desc', fallback: 'Creator tier — full benefits' },
+                  ] as const).map(({ plan, pct, settingKey, fallback }) => {
+                    const desc = siteSettings[settingKey] || fallback;
+                    return (
                     <div key={plan} className="flex items-center gap-2.5 bg-surface-800/60 border border-surface-700/50 rounded-xl px-3.5 py-2.5">
                       <span className="w-8 h-8 bg-brand-500/12 border border-brand-500/25 rounded-lg flex items-center justify-center text-brand-400 text-[11px] font-black flex-shrink-0">
                         {pct}%
@@ -445,7 +447,8 @@ export default function ShopPage() {
                         <span className="text-gray-500 text-[10px] ml-2">{desc}</span>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
                 {memberRate > 0 ? (
                   <div className="inline-flex items-center gap-2 bg-camp-500/10 border border-camp-500/30 rounded-2xl px-5 py-3 text-camp-400 font-bold text-sm">

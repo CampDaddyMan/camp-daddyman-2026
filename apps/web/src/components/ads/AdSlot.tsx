@@ -56,8 +56,7 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
               src={ad.imageUrl!}
               alt={ad.title}
               onError={() => setImgError(true)}
-              className="w-full object-cover group-hover:opacity-90 transition-opacity"
-              style={{ maxHeight: '200px' }}
+              className="w-full group-hover:opacity-90 transition-opacity"
             />
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-3">
               <p className="font-semibold text-white text-xs group-hover:text-brand-400 transition-colors leading-snug">{ad.title}</p>

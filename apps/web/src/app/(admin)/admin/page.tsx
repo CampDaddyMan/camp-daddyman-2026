@@ -2369,15 +2369,16 @@ const VARIANT_PRESETS: Record<string, { group: string; values: string[]; priceMo
 };
 
 function ProductFormModal({
-  initial, onSave, onClose,
+  initial, onSave, onClose, presetMemberDiscount,
 }: {
   initial?: AdminProduct | null;
   onSave: (p: AdminProduct) => void;
   onClose: () => void;
+  presetMemberDiscount?: boolean;
 }) {
   const editing = !!initial;
   const [form, setForm] = useState<any>(() => {
-    if (!initial) return { ...EMPTY_PRODUCT };
+    if (!initial) return { ...EMPTY_PRODUCT, memberDiscountEnabled: presetMemberDiscount ?? false };
     return {
       name: initial.name, type: initial.type, price: String(initial.price),
       comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',
@@ -3696,49 +3697,6 @@ function FieldBlock({
   );
 }
 
-const PERK_DEFAULTS = {
-  names:  ['DaddyMan Classic Tee', 'The Ark Hoodie', 'Camp Cap', 'DaddyMan Crewneck', 'Camp Joggers', 'The Philosophy Tee'],
-  prices: ['34.99', '59.99', '24.99', '49.99', '44.99', '32.99'],
-};
-
-function PerkItemBlock({ n }: { n: number }) {
-  const { settings, set, loading } = useContext(SettingsCtx);
-  const nameKey  = `perk_ph${n}_name`;
-  const priceKey = `perk_ph${n}_price`;
-  return (
-    <div className="flex gap-3 items-start pb-4 border-b border-surface-800/50 last:border-0 last:pb-0">
-      <span className="w-6 h-6 bg-surface-700 rounded-lg flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0 mt-3">{n}</span>
-      <div className="flex-1 space-y-2">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={settings[nameKey] ?? ''}
-            onChange={(e) => set(nameKey, e.target.value)}
-            placeholder={PERK_DEFAULTS.names[n - 1]}
-            disabled={loading}
-            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-          />
-          <SaveBtn k={nameKey} />
-        </div>
-        <div className="flex gap-2 items-center">
-          <span className="text-gray-500 text-sm pl-1">$</span>
-          <input
-            type="number"
-            min={0}
-            step={0.01}
-            value={settings[priceKey] ?? ''}
-            onChange={(e) => set(priceKey, e.target.value)}
-            placeholder={PERK_DEFAULTS.prices[n - 1]}
-            disabled={loading}
-            className="w-36 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-          />
-          <SaveBtn k={priceKey} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SettingsTab() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -3746,11 +3704,19 @@ function SettingsTab() {
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState('');
 
+  const [perkProds, setPerkProds] = useState<AdminProduct[]>([]);
+  const [perkLoading, setPerkLoading] = useState(true);
+  const [editPerkProd, setEditPerkProd] = useState<AdminProduct | null>(null);
+  const [showNewPerkProd, setShowNewPerkProd] = useState(false);
+
   useEffect(() => {
     api.get('/admin/settings')
       .then((r) => setSettings(r.data.settings ?? {}))
       .catch(() => setError('Failed to load settings.'))
       .finally(() => setLoading(false));
+    api.get('/admin/products')
+      .then((r) => setPerkProds((r.data.products as AdminProduct[]).filter((p) => p.memberDiscountEnabled)))
+      .finally(() => setPerkLoading(false));
   }, []);
 
   function set(key: string, value: string) {
@@ -3758,20 +3724,20 @@ function SettingsTab() {
     setSaved(null);
   }
 
-  async function changePerkCount(delta: number) {
-    const current = parseInt(settings['perk_ph_count'] || '6', 10);
-    const next = Math.max(1, current + delta);
-    setSettings((s) => ({ ...s, perk_ph_count: String(next) }));
-    setSaving('perk_ph_count');
-    try {
-      await api.put('/admin/settings', { key: 'perk_ph_count', value: String(next) });
-      setSaved('perk_ph_count');
-      setTimeout(() => setSaved(null), 2000);
-    } catch {
-      setError('Failed to update item count.');
-    } finally {
-      setSaving(null);
-    }
+  function onPerkSaved(p: AdminProduct) {
+    setPerkProds((prev) => {
+      const exists = prev.some((x) => x.id === p.id);
+      const updated = exists ? prev.map((x) => x.id === p.id ? p : x) : [...prev, p];
+      return updated.filter((x) => x.memberDiscountEnabled);
+    });
+    setEditPerkProd(null);
+    setShowNewPerkProd(false);
+  }
+
+  async function archivePerkProd(id: string) {
+    if (!confirm('Archive this product? It will be hidden from the shop.')) return;
+    await api.patch(`/admin/products/${id}`, { status: 'ARCHIVED' });
+    setPerkProds((prev) => prev.filter((p) => p.id !== id));
   }
 
   async function save(key: string) {
@@ -3974,45 +3940,102 @@ function SettingsTab() {
         </div>
       </div>
 
-      {/* ── Membership Perk Items ── */}
-      {(() => {
-        const perkCount = parseInt(settings['perk_ph_count'] || '6', 10);
-        return (
+      {/* ── Membership Perk Products ── */}
+      <div>
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-white mb-1">Membership Perk Items</h2>
-                <p className="text-gray-500 text-sm">
-                  Placeholder cards shown in the &ldquo;With your membership&rdquo; carousel. Slots are replaced automatically once you enable member discounts on real products.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 mt-1">
-                <span className="text-xs text-gray-500 tabular-nums">{perkCount} item{perkCount !== 1 ? 's' : ''}</span>
-                <button
-                  onClick={() => changePerkCount(-1)}
-                  disabled={loading || saving === 'perk_ph_count' || perkCount <= 1}
-                  className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white flex items-center justify-center text-lg leading-none disabled:opacity-40 transition-colors"
-                >
-                  −
-                </button>
-                <button
-                  onClick={() => changePerkCount(1)}
-                  disabled={loading || saving === 'perk_ph_count'}
-                  className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white flex items-center justify-center text-lg leading-none disabled:opacity-40 transition-colors"
-                >
-                  +
-                </button>
-                {saved === 'perk_ph_count' && <span className="text-xs text-camp-400 font-bold">✓</span>}
-              </div>
-            </div>
-            <div className="space-y-0">
-              {Array.from({ length: perkCount }, (_, i) => i + 1).map((n) => (
-                <PerkItemBlock key={n} n={n} />
-              ))}
-            </div>
+            <h2 className="text-xl font-bold text-white mb-1">Membership Perk Products</h2>
+            <p className="text-gray-500 text-sm">
+              Products shown in the &ldquo;With your membership&rdquo; carousel on the shop page. Full product management — images, size &amp; color options, per-variant inventory, and price modifiers.
+            </p>
           </div>
-        );
-      })()}
+          <button
+            onClick={() => setShowNewPerkProd(true)}
+            className="flex-shrink-0 mt-1 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm transition-colors"
+          >
+            + Add Product
+          </button>
+        </div>
+
+        {perkLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-surface-800 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : perkProds.length === 0 ? (
+          <div className="border border-dashed border-surface-700 rounded-2xl py-12 text-center">
+            <p className="text-4xl mb-3">✦</p>
+            <p className="text-gray-400 font-bold mb-1">No perk products yet</p>
+            <p className="text-gray-600 text-sm mb-5">
+              Add products with member discounts enabled to showcase them in the carousel.
+            </p>
+            <button
+              onClick={() => setShowNewPerkProd(true)}
+              className="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-black text-sm transition-colors"
+            >
+              + Add First Product
+            </button>
+          </div>
+        ) : (
+          <div className="divide-y divide-surface-700/50 border border-surface-700/50 rounded-2xl overflow-hidden">
+            {perkProds.map((p) => (
+              <div key={p.id} className="flex items-center gap-4 px-4 py-3 bg-surface-900/40 hover:bg-surface-800/40 transition-colors">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-surface-700 flex-shrink-0">
+                  {p.imagePreviewUrl ? (
+                    <img src={p.imagePreviewUrl} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xl opacity-20">👕</div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-sm truncate">{p.name}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`text-xs font-bold ${STATUS_COLORS[p.status] || 'text-gray-400'}`}>{p.status}</span>
+                    <span className="text-gray-700 text-xs">·</span>
+                    <span className="text-gray-500 text-xs">${p.price.toFixed(2)}</span>
+                    {p.variants.length > 0 && (
+                      <>
+                        <span className="text-gray-700 text-xs">·</span>
+                        <span className="text-gray-500 text-xs">{p.variants.length} variant{p.variants.length !== 1 ? 's' : ''}</span>
+                      </>
+                    )}
+                    {p.optionGroups && p.optionGroups.length > 0 && (
+                      <>
+                        <span className="text-gray-700 text-xs">·</span>
+                        <span className="text-gray-500 text-xs">{p.optionGroups.map((g) => g.name).join(', ')}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setEditPerkProd(p)}
+                    className="px-3 py-1.5 rounded-lg bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white text-xs font-bold transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => archivePerkProd(p.id)}
+                    className="px-3 py-1.5 rounded-lg hover:bg-red-500/10 border border-surface-700 hover:border-red-500/30 text-gray-600 hover:text-red-400 text-xs font-bold transition-colors"
+                  >
+                    Archive
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(showNewPerkProd || editPerkProd) && (
+          <ProductFormModal
+            initial={editPerkProd}
+            presetMemberDiscount={true}
+            onSave={onPerkSaved}
+            onClose={() => { setEditPerkProd(null); setShowNewPerkProd(false); }}
+          />
+        )}
+      </div>
 
       {/* ── Custom CSS ── */}
       <div className="space-y-4">

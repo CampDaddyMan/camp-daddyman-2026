@@ -385,20 +385,8 @@ export default function ShopPage() {
 
       {/* ── Membership Perks — full-width carousel ──────────────────────────── */}
       {!loading && (() => {
-        const real = filtered.filter((p) => p.memberDiscountEnabled);
-        const perkCount = parseInt(siteSettings['perk_ph_count'] || '6', 10);
-        const perkItems: PerkItem[] = [
-          ...real,
-          ...Array.from({ length: Math.max(0, perkCount - real.length) }, (_, i) => {
-            const n = i + 1;
-            return {
-              id: `ph${n}`,
-              name:  siteSettings[`perk_ph${n}_name`]  || PERK_PLACEHOLDERS[n - 1]?.name  || `Coming Soon`,
-              price: parseFloat(siteSettings[`perk_ph${n}_price`] || '') || PERK_PLACEHOLDERS[n - 1]?.price || 0,
-              isPlaceholder: true,
-            };
-          }),
-        ];
+        const real = products.filter((p) => p.memberDiscountEnabled);
+        const perkItems: PerkItem[] = real.length > 0 ? real : PERK_PLACEHOLDERS;
         const displayRate = memberRate > 0 ? memberRate : 15;
 
         function carouselPrev() {

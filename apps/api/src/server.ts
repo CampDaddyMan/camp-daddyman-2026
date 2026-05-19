@@ -5,6 +5,11 @@ import helmet from 'helmet';
 import { router } from './routes';
 import { startTranscodeWorker } from './workers/transcoder';
 
+// Prevent unhandled async rejections from crashing the process (Express 4 doesn't catch these)
+process.on('unhandledRejection', (reason) => {
+  console.error('[UnhandledRejection]', reason);
+});
+
 const app = express();
 
 // Trust Railway's load balancer so express-rate-limit reads the real client IP

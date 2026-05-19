@@ -35,6 +35,25 @@ export async function listProducts(req: Request, res: Response) {
   res.json({ products: signed });
 }
 
+export async function listPerkItems(req: Request, res: Response) {
+  const products = await prisma.product.findMany({
+    where: {
+      memberDiscountEnabled: true,
+      status: { in: ['ACTIVE', 'DRAFT'] },
+    },
+    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    include: { variants: true },
+  });
+
+  const items = await Promise.all(products.map(async (p) => ({
+    ...p,
+    imageUrl: await signR2Url(p.imageUrl),
+    comingSoon: p.status === 'DRAFT',
+  })));
+
+  res.json({ items });
+}
+
 export async function getProduct(req: Request, res: Response) {
   const { idOrSlug } = req.params;
 

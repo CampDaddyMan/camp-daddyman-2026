@@ -2835,9 +2835,9 @@ function ProductFormModal({
               <label className="block text-xs text-gray-400 mb-1">Status</label>
               <select value={form.status} onChange={(e) => setField('status', e.target.value)}
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400">
-                <option value="DRAFT">Draft</option>
-                <option value="ACTIVE">Active</option>
-                <option value="ARCHIVED">Archived</option>
+                <option value="DRAFT">Draft — shows as "Coming Soon" in perk carousel</option>
+                <option value="ACTIVE">Active — live & for sale</option>
+                <option value="ARCHIVED">Archived — hidden everywhere</option>
               </select>
             </div>
           </div>

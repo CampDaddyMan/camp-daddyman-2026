@@ -29,17 +29,8 @@ interface PerkItem {
   price: number;
   imageUrl?: string;
   slug?: string;
-  isPlaceholder?: boolean;
+  comingSoon?: boolean;
 }
-
-const PERK_PLACEHOLDERS: PerkItem[] = [
-  { id: 'ph1', name: 'DaddyMan Classic Tee', price: 34.99, isPlaceholder: true },
-  { id: 'ph2', name: 'The Ark Hoodie', price: 59.99, isPlaceholder: true },
-  { id: 'ph3', name: 'Camp Cap', price: 24.99, isPlaceholder: true },
-  { id: 'ph4', name: 'DaddyMan Crewneck', price: 49.99, isPlaceholder: true },
-  { id: 'ph5', name: 'Camp Joggers', price: 44.99, isPlaceholder: true },
-  { id: 'ph6', name: 'The Philosophy Tee', price: 32.99, isPlaceholder: true },
-];
 
 // ── Product Card ──────────────────────────────────────────────────────────────
 
@@ -127,6 +118,7 @@ export default function ShopPage() {
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<'featured' | 'newest' | 'price_asc' | 'price_desc'>('featured');
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [perkItems, setPerkItems] = useState<PerkItem[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const cardIndexRef = useRef(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
@@ -138,6 +130,9 @@ export default function ShopPage() {
       .finally(() => setLoading(false));
     api.get('/site-settings/public')
       .then((r) => setSiteSettings(r.data.settings ?? {}))
+      .catch(() => {});
+    api.get('/shop/perk-items')
+      .then((r) => setPerkItems(r.data.items ?? []))
       .catch(() => {});
   }, []);
 
@@ -389,8 +384,6 @@ export default function ShopPage() {
 
       {/* ── Membership Perks — full-width carousel ──────────────────────────── */}
       {!loading && (() => {
-        const real = products.filter((p) => p.memberDiscountEnabled);
-        const perkItems: PerkItem[] = real.length > 0 ? real : PERK_PLACEHOLDERS;
         const displayRate = memberRate > 0 ? memberRate : 15;
 
         function carouselPrev() {
@@ -488,7 +481,7 @@ export default function ShopPage() {
                 <div
                   key={item.id}
                   className={`flex-shrink-0 w-[200px] md:w-[220px] flex flex-col rounded-2xl overflow-hidden border transition-colors ${
-                    item.isPlaceholder
+                    item.comingSoon
                       ? 'bg-surface-800/40 border-surface-700/30'
                       : 'bg-surface-800/70 border-surface-700/60 hover:border-brand-500/40'
                   }`}
@@ -501,7 +494,7 @@ export default function ShopPage() {
                         <span className="text-brand-400/40 text-4xl font-black">✦</span>
                       </div>
                     )}
-                    {item.isPlaceholder ? (
+                    {item.comingSoon ? (
                       <span className="absolute top-2 left-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider bg-black/70 px-1.5 py-0.5 rounded-full">
                         Coming Soon
                       </span>
@@ -512,7 +505,7 @@ export default function ShopPage() {
                     )}
                   </div>
                   <div className="p-3.5">
-                    <p className={`text-xs font-bold truncate leading-snug mb-2 ${item.isPlaceholder ? 'text-gray-400' : 'text-white'}`}>
+                    <p className={`text-xs font-bold truncate leading-snug mb-2 ${item.comingSoon ? 'text-gray-400' : 'text-white'}`}>
                       {item.name}
                     </p>
                     <p className="text-gray-500 text-[10px] line-through">${item.price.toFixed(2)}</p>

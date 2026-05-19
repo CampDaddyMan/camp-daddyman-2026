@@ -1,6 +1,7 @@
 import { Router, raw } from 'express';
 import {
   listProducts,
+  listPerkItems,
   getProduct,
   createCheckoutSession,
   validateCoupon,
@@ -19,6 +20,7 @@ router.post('/webhook', raw({ type: 'application/json' }), handleWebhook);
 
 // Public
 router.get('/products',            readLimiter, listProducts);
+router.get('/perk-items',          readLimiter, listPerkItems);
 router.get('/products/:idOrSlug',  readLimiter, getProduct);
 
 // Coupon validation (public — no auth needed to validate a code)

@@ -2251,16 +2251,23 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
 function AddAdModal({ onClose, onCreated }: {
   onClose: () => void; onCreated: (a: AdminAd) => void;
 }) {
-  const [partners, setPartners]     = useState<AdminPartner[]>([]);
-  const [placements, setPlacements] = useState<AdminPlacement[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
-  const [partnerId, setPartnerId]   = useState('');
-  const [placementId, setPlacement] = useState('');
-  const [title, setTitle]           = useState('');
-  const [body, setBody]             = useState('');
-  const [linkUrl, setLinkUrl]       = useState('');
-  const [startsAt, setStart]        = useState('');
-  const [endsAt, setEnd]            = useState('');
+  const [partners, setPartners]         = useState<AdminPartner[]>([]);
+  const [placements, setPlacements]     = useState<AdminPlacement[]>([]);
+  const [loadingData, setLoadingData]   = useState(true);
+  const [partnerId, setPartnerId]       = useState('');
+  const [placementId, setPlacement]     = useState('');
+  const [title, setTitle]               = useState('');
+  const [body, setBody]                 = useState('');
+  const [linkUrl, setLinkUrl]           = useState('');
+  const [startsAt, setStart]            = useState('');
+  const [endsAt, setEnd]                = useState('');
+  const [paidAmount, setPaid]           = useState('');
+  const [notes, setNotes]               = useState('');
+  const [imageFile, setImageFile]       = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [saving, setSaving]             = useState(false);
+  const [submitError, setSubmitError]   = useState('');
+  const [touched, setTouched]           = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     Promise.all([
@@ -2268,12 +2275,29 @@ function AddAdModal({ onClose, onCreated }: {
       api.get('/partners/placements/list').then(({ data }) => setPlacements(data.placements)),
     ]).finally(() => setLoadingData(false));
   }, []);
-  const [paidAmount, setPaid]       = useState('');
-  const [notes, setNotes]           = useState('');
-  const [imageFile, setImageFile]   = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [saving, setSaving]         = useState(false);
-  const [error, setError]           = useState('');
+
+  const valid = {
+    partnerId:   !!partnerId,
+    placementId: !!placementId,
+    title:       !!title.trim(),
+    linkUrl:     !!linkUrl.trim(),
+    startsAt:    !!startsAt,
+    endsAt:      !!endsAt,
+  };
+  const allValid = Object.values(valid).every(Boolean);
+
+  function touch(key: string) { setTouched((p) => ({ ...p, [key]: true })); }
+
+  function labelCls(key: keyof typeof valid) {
+    if (valid[key]) return 'text-green-400';
+    if (touched[key]) return 'text-red-400';
+    return 'text-gray-400';
+  }
+  function inputBorder(key: keyof typeof valid) {
+    if (valid[key]) return 'border-green-500';
+    if (touched[key]) return 'border-red-500';
+    return 'border-surface-600';
+  }
 
   function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -2283,11 +2307,9 @@ function AddAdModal({ onClose, onCreated }: {
   }
 
   async function handleCreate() {
-    if (!partnerId || !placementId || !title.trim() || !linkUrl.trim() || !startsAt || !endsAt) {
-      setError('Partner, placement, title, link URL, start and end dates are all required');
-      return;
-    }
-    setSaving(true); setError('');
+    setTouched({ partnerId: true, placementId: true, title: true, linkUrl: true, startsAt: true, endsAt: true });
+    if (!allValid) return;
+    setSaving(true); setSubmitError('');
     try {
       const { data } = await api.post('/partners/ads', {
         partnerId, placementId, title, body, linkUrl, startsAt, endsAt, paidAmount, notes,
@@ -2300,9 +2322,13 @@ function AddAdModal({ onClose, onCreated }: {
       }
       onCreated(data.ad);
     } catch (e: any) {
-      setError(e?.response?.data?.error || 'Create failed');
+      setSubmitError(e?.response?.data?.error || 'Create failed');
     } finally { setSaving(false); }
   }
+
+  const missing = (Object.keys(valid) as (keyof typeof valid)[])
+    .filter((k) => !valid[k])
+    .map((k) => ({ partnerId: 'Partner', placementId: 'Placement', title: 'Ad Title', linkUrl: 'Click URL', startsAt: 'Start Date', endsAt: 'End Date' }[k]));
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -2314,25 +2340,40 @@ function AddAdModal({ onClose, onCreated }: {
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Partner *</label>
-            <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)} disabled={loadingData}
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50">
+            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('partnerId')}`}>
+              Partner {valid.partnerId ? '✓' : '*'}
+            </label>
+            <select value={partnerId}
+              onChange={(e) => { setPartnerId(e.target.value); touch('partnerId'); }}
+              onBlur={() => touch('partnerId')}
+              disabled={loadingData}
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${inputBorder('partnerId')}`}>
               <option value="">{loadingData ? 'Loading…' : partners.length === 0 ? 'No partners found' : '— select partner —'}</option>
               {partners.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.status})</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Placement *</label>
-            <select value={placementId} onChange={(e) => setPlacement(e.target.value)} disabled={loadingData}
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50">
+            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('placementId')}`}>
+              Placement {valid.placementId ? '✓' : '*'}
+            </label>
+            <select value={placementId}
+              onChange={(e) => { setPlacement(e.target.value); touch('placementId'); }}
+              onBlur={() => touch('placementId')}
+              disabled={loadingData}
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${inputBorder('placementId')}`}>
               <option value="">{loadingData ? 'Loading…' : placements.length === 0 ? 'No placements found — create one first' : '— select placement —'}</option>
               {placements.map((pl) => <option key={pl.id} value={pl.id}>{pl.name} (${pl.pricePerDay}/day)</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Title *</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Summer Drop — Camp DaddyMan Gear"
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('title')}`}>
+              Ad Title {valid.title ? '✓' : '*'}
+            </label>
+            <input value={title}
+              onChange={(e) => { setTitle(e.target.value); touch('title'); }}
+              onBlur={() => touch('title')}
+              placeholder="Summer Drop — Camp DaddyMan Gear"
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('title')}`} />
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Body / Tagline</label>
@@ -2341,29 +2382,40 @@ function AddAdModal({ onClose, onCreated }: {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Image</label>
-            {imagePreview && (
-              <img src={imagePreview} alt="preview" className="w-full h-32 object-cover rounded-lg mb-2" />
-            )}
+            {imagePreview && <img src={imagePreview} alt="preview" className="w-full h-32 object-cover rounded-lg mb-2" />}
             <label className="flex items-center justify-center gap-2 w-full border border-dashed border-surface-500 rounded-lg py-3 cursor-pointer hover:border-brand-400 transition-colors text-sm text-gray-400 hover:text-white">
               <span>{imageFile ? imageFile.name : 'Choose image…'}</span>
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
             </label>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Click URL *</label>
-            <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://partner.com/offer"
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('linkUrl')}`}>
+              Click URL {valid.linkUrl ? '✓' : '*'}
+            </label>
+            <input value={linkUrl}
+              onChange={(e) => { setLinkUrl(e.target.value); touch('linkUrl'); }}
+              onBlur={() => touch('linkUrl')}
+              placeholder="https://partner.com/offer"
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('linkUrl')}`} />
           </div>
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Starts *</label>
-              <input type="datetime-local" value={startsAt} onChange={(e) => setStart(e.target.value)}
-                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none" />
+              <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('startsAt')}`}>
+                Starts {valid.startsAt ? '✓' : '*'}
+              </label>
+              <input type="datetime-local" value={startsAt}
+                onChange={(e) => { setStart(e.target.value); touch('startsAt'); }}
+                onBlur={() => touch('startsAt')}
+                className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('startsAt')}`} />
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ends *</label>
-              <input type="datetime-local" value={endsAt} onChange={(e) => setEnd(e.target.value)}
-                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none" />
+              <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('endsAt')}`}>
+                Ends {valid.endsAt ? '✓' : '*'}
+              </label>
+              <input type="datetime-local" value={endsAt}
+                onChange={(e) => { setEnd(e.target.value); touch('endsAt'); }}
+                onBlur={() => touch('endsAt')}
+                className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('endsAt')}`} />
             </div>
           </div>
           <div>
@@ -2376,13 +2428,16 @@ function AddAdModal({ onClose, onCreated }: {
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {missing.length > 0 && (
+            <p className="text-xs text-amber-400">Still needed: {missing.join(', ')}</p>
+          )}
+          {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
         </div>
         <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
-          <button onClick={handleCreate} disabled={saving}
-            className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Creating…' : 'Create Campaign'}
+          <button onClick={handleCreate} disabled={saving || loadingData}
+            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${allValid ? 'bg-brand-500 text-black hover:bg-brand-400' : 'bg-surface-600 text-gray-400 cursor-not-allowed'} disabled:opacity-50`}>
+            {saving ? 'Creating…' : allValid ? 'Create Campaign' : `${missing.length} field${missing.length !== 1 ? 's' : ''} needed`}
           </button>
         </div>
       </div>

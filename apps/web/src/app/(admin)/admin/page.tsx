@@ -2196,17 +2196,40 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
             <input type="number" value={pricePerDay} onChange={(e) => setPrice(e.target.value)} placeholder="25"
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
           </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Width (px)</label>
-              <input type="number" value={width} onChange={(e) => setWidth(e.target.value)} placeholder="728"
-                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Dimensions (px)</label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {[
+                { label: 'Leaderboard', w: 728, h: 90 },
+                { label: 'Billboard', w: 970, h: 250 },
+                { label: 'Med. Rectangle', w: 300, h: 250 },
+                { label: 'Large Rectangle', w: 336, h: 280 },
+                { label: 'Half Page', w: 300, h: 600 },
+                { label: 'Wide Skyscraper', w: 160, h: 600 },
+              ].map(({ label, w, h }) => (
+                <button key={label} type="button"
+                  onClick={() => { setWidth(String(w)); setHeight(String(h)); }}
+                  className={`text-xs px-2 py-1 rounded border transition-colors ${
+                    width === String(w) && height === String(h)
+                      ? 'border-brand-400 bg-brand-500/20 text-brand-400'
+                      : 'border-surface-600 bg-surface-700 text-gray-400 hover:text-white hover:border-surface-500'
+                  }`}>
+                  {label} <span className="opacity-60">{w}×{h}</span>
+                </button>
+              ))}
             </div>
-            <div className="flex-1">
-              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Height (px)</label>
-              <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="90"
-                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <input type="number" value={width} onChange={(e) => setWidth(e.target.value)} placeholder="Width"
+                  className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+              </div>
+              <div className="flex items-center text-gray-500 text-sm">×</div>
+              <div className="flex-1">
+                <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="Height"
+                  className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-1">Standard IAB sizes. Pick a preset or enter custom values.</p>
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Description</label>

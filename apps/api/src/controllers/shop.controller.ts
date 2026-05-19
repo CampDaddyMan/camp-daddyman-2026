@@ -471,81 +471,96 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
 
   if (!name || !type || !price) return res.status(400).json({ error: 'name, type, and price are required' });
 
-  let slug = slugify(name);
-  const existing = await prisma.product.findUnique({ where: { slug } });
-  if (existing) slug = `${slug}-${Date.now()}`;
+  try {
+    let slug = slugify(name);
+    const existing = await prisma.product.findUnique({ where: { slug } });
+    if (existing) slug = `${slug}-${Date.now()}`;
 
-  const product = await prisma.product.create({
-    data: {
-      name,
-      slug,
-      description,
-      type,
-      price: Number(price),
-      comparePrice: comparePrice ? Number(comparePrice) : null,
-      imageUrl,
-      images: images || [],
-      status: status || 'DRAFT',
-      featured: featured ?? false,
-      tags: tags || [],
-      fileUrl,
-      optionGroups: optionGroups ?? null,
-      memberDiscountEnabled: memberDiscountEnabled ?? false,
-      variants: variants?.length ? {
-        create: variants.map((v: any) => ({
-          name: v.name,
-          sku: v.sku,
-          price: v.price != null ? Number(v.price) : null,
-          inventory: Number(v.inventory || 0),
-          options: v.options || {},
-        })),
-      } : undefined,
-    },
-    include: { variants: true },
-  });
+    const product = await prisma.product.create({
+      data: {
+        name,
+        slug,
+        description,
+        type,
+        price: Number(price),
+        comparePrice: comparePrice ? Number(comparePrice) : null,
+        imageUrl,
+        images: images || [],
+        status: status || 'DRAFT',
+        featured: featured ?? false,
+        tags: tags || [],
+        fileUrl,
+        optionGroups: optionGroups ?? null,
+        memberDiscountEnabled: memberDiscountEnabled ?? false,
+        variants: variants?.length ? {
+          create: variants.map((v: any) => ({
+            name: v.name,
+            sku: v.sku,
+            price: v.price != null ? Number(v.price) : null,
+            inventory: Number(v.inventory || 0),
+            options: v.options || {},
+          })),
+        } : undefined,
+      },
+      include: { variants: true },
+    });
 
-  res.status(201).json({ product });
+    res.status(201).json({ product });
+  } catch (err: any) {
+    console.error('[adminCreateProduct]', err);
+    res.status(500).json({ error: err.message || 'Failed to create product' });
+  }
 }
 
 export async function adminUpdateProduct(req: AuthRequest, res: Response) {
   const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
 
-  const data: any = {};
-  if (name !== undefined) { data.name = name; data.slug = slugify(name); }
-  if (description !== undefined) data.description = description;
-  if (price !== undefined) data.price = Number(price);
-  if (comparePrice !== undefined) data.comparePrice = comparePrice ? Number(comparePrice) : null;
-  if (imageUrl !== undefined) data.imageUrl = imageUrl;
-  if (images !== undefined) data.images = images;
-  if (status !== undefined) data.status = status;
-  if (featured !== undefined) data.featured = featured;
-  if (tags !== undefined) data.tags = tags;
-  if (fileUrl !== undefined) data.fileUrl = fileUrl;
-  if (optionGroups !== undefined) data.optionGroups = optionGroups ?? null;
-  if (memberDiscountEnabled !== undefined) data.memberDiscountEnabled = memberDiscountEnabled;
-
-  if (variants !== undefined) {
-    await prisma.productVariant.deleteMany({ where: { productId: req.params.id } });
-    if (variants.length) {
-      data.variants = {
-        create: variants.map((v: any) => ({
-          name: v.name,
-          sku: v.sku,
-          price: v.price != null ? Number(v.price) : null,
-          inventory: Number(v.inventory || 0),
-          options: v.options || {},
-        })),
-      };
+  try {
+    const data: any = {};
+    if (name !== undefined) {
+      data.name = name;
+      const newSlug = slugify(name);
+      const conflict = await prisma.product.findUnique({ where: { slug: newSlug } });
+      data.slug = (!conflict || conflict.id === req.params.id) ? newSlug : `${newSlug}-${Date.now()}`;
     }
+    if (description !== undefined) data.description = description;
+    if (price !== undefined) data.price = Number(price);
+    if (comparePrice !== undefined) data.comparePrice = comparePrice ? Number(comparePrice) : null;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (images !== undefined) data.images = images;
+    if (status !== undefined) data.status = status;
+    if (featured !== undefined) data.featured = featured;
+    if (tags !== undefined) data.tags = tags;
+    if (fileUrl !== undefined) data.fileUrl = fileUrl;
+    if (optionGroups !== undefined) data.optionGroups = optionGroups ?? null;
+    if (memberDiscountEnabled !== undefined) data.memberDiscountEnabled = memberDiscountEnabled;
+
+    if (variants !== undefined) {
+      await prisma.productVariant.deleteMany({ where: { productId: req.params.id } });
+      if (variants.length) {
+        data.variants = {
+          create: variants.map((v: any) => ({
+            name: v.name,
+            sku: v.sku,
+            price: v.price != null ? Number(v.price) : null,
+            inventory: Number(v.inventory || 0),
+            options: v.options || {},
+          })),
+        };
+      }
+    }
+
+    const product = await prisma.product.update({
+      where: { id: req.params.id },
+      data,
+      include: { variants: true },
+    });
+
+    res.json({ product });
+  } catch (err: any) {
+    console.error('[adminUpdateProduct]', err);
+    res.status(500).json({ error: err.message || 'Failed to update product' });
   }
-
-  const product = await prisma.product.update({
-    where: { id: req.params.id },
-    data,
-    include: { variants: true },
-  });
-
-  res.json({ product });
 }
 
 export async function adminListOrders(req: AuthRequest, res: Response) {

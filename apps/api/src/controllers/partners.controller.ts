@@ -267,7 +267,13 @@ export async function listAds(req: AuthRequest, res: Response) {
         placement: { select: { id: true, name: true, location: true } },
       },
     });
-    res.json({ ads });
+
+    const signed = await Promise.all(ads.map(async (a) => ({
+      ...a,
+      imageUrl: a.imageUrl ? await signR2Url(a.imageUrl) : null,
+    })));
+
+    res.json({ ads: signed });
   } catch (e: any) {
     console.error('[listAds]', e.message);
     res.status(500).json({ error: 'Failed to load ads' });
@@ -346,9 +352,10 @@ export async function uploadAdImage(req: AuthRequest, res: Response) {
     if (!ad)       return res.status(404).json({ error: 'Ad not found' });
     if (!req.file) return res.status(400).json({ error: 'No image provided' });
 
-    const publicUrl = await uploadToS3(req.file, `ads/${req.params.id}`);
-    await prisma.ad.update({ where: { id: req.params.id }, data: { imageUrl: publicUrl } });
-    res.json({ imageUrl: publicUrl });
+    const rawUrl = await uploadToS3(req.file, `ads/${req.params.id}`);
+    await prisma.ad.update({ where: { id: req.params.id }, data: { imageUrl: rawUrl } });
+    const signed = await signR2Url(rawUrl);
+    res.json({ imageUrl: signed ?? rawUrl });
   } catch (e: any) {
     console.error('[uploadAdImage]', e.message);
     res.status(500).json({ error: 'Image upload failed' });
@@ -399,7 +406,12 @@ export async function serveAd(req: AuthRequest, res: Response) {
       data:  { impressions: { increment: 1 } },
     });
 
-    res.json({ ad });
+    const signedAd = {
+      ...ad,
+      imageUrl: ad.imageUrl ? await signR2Url(ad.imageUrl) : null,
+    };
+
+    res.json({ ad: signedAd });
   } catch (e: any) {
     console.error('[serveAd]', e.message);
     res.json({ ad: null });

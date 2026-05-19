@@ -4206,6 +4206,62 @@ function SettingsTab() {
         </div>
       </div>
 
+      {/* ── Membership Perks Section Copy ── */}
+      <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40">
+        <h2 className="text-lg font-bold text-white mb-1">Membership Perks Section</h2>
+        <p className="text-gray-500 text-sm mb-5">The heading block above the carousel on the shop page.</p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Eyebrow Tag</label>
+            <div className="flex gap-2">
+              <input
+                value={settings['shop_perks_eyebrow'] ?? ''}
+                onChange={(e) => set('shop_perks_eyebrow', e.target.value)}
+                placeholder="Membership Perks"
+                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <SaveBtn k="shop_perks_eyebrow" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading — Line 1 <span className="text-gray-600 font-normal normal-case">(white)</span></label>
+            <div className="flex gap-2">
+              <input
+                value={settings['shop_perks_line1'] ?? ''}
+                onChange={(e) => set('shop_perks_line1', e.target.value)}
+                placeholder="Camp Members"
+                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <SaveBtn k="shop_perks_line1" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading — Line 2 <span className="text-gray-600 font-normal normal-case">(gold highlight)</span></label>
+            <div className="flex gap-2">
+              <input
+                value={settings['shop_perks_line2'] ?? ''}
+                onChange={(e) => set('shop_perks_line2', e.target.value)}
+                placeholder="Save Up To 15%"
+                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <SaveBtn k="shop_perks_line2" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading — Line 3 <span className="text-gray-600 font-normal normal-case">(white)</span></label>
+            <div className="flex gap-2">
+              <input
+                value={settings['shop_perks_line3'] ?? ''}
+                onChange={(e) => set('shop_perks_line3', e.target.value)}
+                placeholder="on Every Order."
+                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <SaveBtn k="shop_perks_line3" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Membership Perk Products ── */}
       <div>
         <div className="mb-6 flex items-start justify-between gap-4">

@@ -423,12 +423,12 @@ export default function ShopPage() {
               {/* Left: copy */}
               <div>
                 <div className="inline-flex items-center gap-2 bg-brand-500/12 border border-brand-500/25 rounded-full px-4 py-1.5 mb-6">
-                  <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">Membership Perks</span>
+                  <span className="text-brand-400 text-[10px] font-black uppercase tracking-[0.35em]">{siteSettings.shop_perks_eyebrow || 'Membership Perks'}</span>
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-6">
-                  Camp Members<br />
-                  <span className="text-brand-400">Save Up To 15%</span><br />
-                  on Every Order.
+                  {siteSettings.shop_perks_line1 || 'Camp Members'}<br />
+                  <span className="text-brand-400">{siteSettings.shop_perks_line2 || 'Save Up To 15%'}</span><br />
+                  {siteSettings.shop_perks_line3 || 'on Every Order.'}
                 </h2>
                 <div className="flex flex-wrap gap-3 mb-8">
                   {([

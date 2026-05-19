@@ -2276,27 +2276,63 @@ function AddAdModal({ onClose, onCreated }: {
     ]).finally(() => setLoadingData(false));
   }, []);
 
-  const valid = {
-    partnerId:   !!partnerId,
-    placementId: !!placementId,
-    title:       !!title.trim(),
-    linkUrl:     !!linkUrl.trim(),
-    startsAt:    !!startsAt,
-    endsAt:      !!endsAt,
+  // per-field validators — return error string or ''
+  function validatePartnerId(v: string)   { return v ? '' : 'Select a partner'; }
+  function validatePlacementId(v: string) { return v ? '' : 'Select a placement'; }
+  function validateTitle(v: string) {
+    if (!v.trim()) return 'Ad title is required';
+    if (v.trim().length < 3) return 'Title must be at least 3 characters';
+    return '';
+  }
+  function validateLinkUrl(v: string) {
+    if (!v.trim()) return 'Click URL is required';
+    try { const u = new URL(v.trim()); if (!['http:', 'https:'].includes(u.protocol)) throw new Error(); return ''; }
+    catch { return 'Must be a valid URL starting with https://'; }
+  }
+  function validateStartsAt(v: string) {
+    if (!v) return 'Start date is required';
+    if (isNaN(new Date(v).getTime())) return 'Invalid date';
+    return '';
+  }
+  function validateEndsAt(v: string, start: string) {
+    if (!v) return 'End date is required';
+    if (isNaN(new Date(v).getTime())) return 'Invalid date';
+    if (start && new Date(v) <= new Date(start)) return 'End date must be after start date';
+    return '';
+  }
+  function validatePaidAmount(v: string) {
+    if (!v) return '';
+    const n = parseFloat(v);
+    if (isNaN(n) || n < 0) return 'Amount must be a positive number';
+    return '';
+  }
+
+  const errors = {
+    partnerId:   validatePartnerId(partnerId),
+    placementId: validatePlacementId(placementId),
+    title:       validateTitle(title),
+    linkUrl:     validateLinkUrl(linkUrl),
+    startsAt:    validateStartsAt(startsAt),
+    endsAt:      validateEndsAt(endsAt, startsAt),
+    paidAmount:  validatePaidAmount(paidAmount),
   };
-  const allValid = Object.values(valid).every(Boolean);
+  const allValid = !errors.partnerId && !errors.placementId && !errors.title &&
+                   !errors.linkUrl && !errors.startsAt && !errors.endsAt && !errors.paidAmount;
 
   function touch(key: string) { setTouched((p) => ({ ...p, [key]: true })); }
-
-  function labelCls(key: keyof typeof valid) {
-    if (valid[key]) return 'text-green-400';
-    if (touched[key]) return 'text-red-400';
-    return 'text-gray-400';
+  function touchAll() {
+    setTouched({ partnerId: true, placementId: true, title: true, linkUrl: true, startsAt: true, endsAt: true, paidAmount: true });
   }
-  function inputBorder(key: keyof typeof valid) {
-    if (valid[key]) return 'border-green-500';
-    if (touched[key]) return 'border-red-500';
-    return 'border-surface-600';
+
+  // returns Tailwind border + label color classes based on field state
+  function fieldState(key: keyof typeof errors) {
+    const err = errors[key];
+    const t   = touched[key];
+    return {
+      border: !t ? 'border-surface-600' : err ? 'border-red-500' : 'border-green-500',
+      label:  !t ? 'text-gray-400'      : err ? 'text-red-400'   : 'text-green-400',
+      icon:   !t ? '*' : err ? '✗' : '✓',
+    };
   }
 
   function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -2307,7 +2343,7 @@ function AddAdModal({ onClose, onCreated }: {
   }
 
   async function handleCreate() {
-    setTouched({ partnerId: true, placementId: true, title: true, linkUrl: true, startsAt: true, endsAt: true });
+    touchAll();
     if (!allValid) return;
     setSaving(true); setSubmitError('');
     try {
@@ -2326,9 +2362,20 @@ function AddAdModal({ onClose, onCreated }: {
     } finally { setSaving(false); }
   }
 
-  const missing = (Object.keys(valid) as (keyof typeof valid)[])
-    .filter((k) => !valid[k])
-    .map((k) => ({ partnerId: 'Partner', placementId: 'Placement', title: 'Ad Title', linkUrl: 'Click URL', startsAt: 'Start Date', endsAt: 'End Date' }[k]));
+  function Field({ name, label, error, children }: { name: keyof typeof errors; label: string; error?: string; children: React.ReactNode }) {
+    const s = fieldState(name);
+    return (
+      <div>
+        <label className={`block text-xs mb-1.5 uppercase tracking-wide ${s.label}`}>
+          {label} <span className="ml-0.5">{s.icon}</span>
+        </label>
+        {children}
+        {touched[name] && errors[name] && (
+          <p className="text-red-400 text-xs mt-1">{errors[name]}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -2339,42 +2386,33 @@ function AddAdModal({ onClose, onCreated }: {
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
-          <div>
-            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('partnerId')}`}>
-              Partner {valid.partnerId ? '✓' : '*'}
-            </label>
+          <Field name="partnerId" label="Partner">
             <select value={partnerId}
               onChange={(e) => { setPartnerId(e.target.value); touch('partnerId'); }}
               onBlur={() => touch('partnerId')}
               disabled={loadingData}
-              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${inputBorder('partnerId')}`}>
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${fieldState('partnerId').border}`}>
               <option value="">{loadingData ? 'Loading…' : partners.length === 0 ? 'No partners found' : '— select partner —'}</option>
               {partners.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.status})</option>)}
             </select>
-          </div>
-          <div>
-            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('placementId')}`}>
-              Placement {valid.placementId ? '✓' : '*'}
-            </label>
+          </Field>
+          <Field name="placementId" label="Placement">
             <select value={placementId}
               onChange={(e) => { setPlacement(e.target.value); touch('placementId'); }}
               onBlur={() => touch('placementId')}
               disabled={loadingData}
-              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${inputBorder('placementId')}`}>
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${fieldState('placementId').border}`}>
               <option value="">{loadingData ? 'Loading…' : placements.length === 0 ? 'No placements found — create one first' : '— select placement —'}</option>
               {placements.map((pl) => <option key={pl.id} value={pl.id}>{pl.name} (${pl.pricePerDay}/day)</option>)}
             </select>
-          </div>
-          <div>
-            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('title')}`}>
-              Ad Title {valid.title ? '✓' : '*'}
-            </label>
+          </Field>
+          <Field name="title" label="Ad Title">
             <input value={title}
               onChange={(e) => { setTitle(e.target.value); touch('title'); }}
               onBlur={() => touch('title')}
               placeholder="Summer Drop — Camp DaddyMan Gear"
-              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('title')}`} />
-          </div>
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('title').border}`} />
+          </Field>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Body / Tagline</label>
             <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2}
@@ -2388,56 +2426,50 @@ function AddAdModal({ onClose, onCreated }: {
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
             </label>
           </div>
-          <div>
-            <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('linkUrl')}`}>
-              Click URL {valid.linkUrl ? '✓' : '*'}
-            </label>
+          <Field name="linkUrl" label="Click URL">
             <input value={linkUrl}
               onChange={(e) => { setLinkUrl(e.target.value); touch('linkUrl'); }}
               onBlur={() => touch('linkUrl')}
               placeholder="https://partner.com/offer"
-              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('linkUrl')}`} />
-          </div>
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('linkUrl').border}`} />
+          </Field>
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('startsAt')}`}>
-                Starts {valid.startsAt ? '✓' : '*'}
-              </label>
-              <input type="datetime-local" value={startsAt}
-                onChange={(e) => { setStart(e.target.value); touch('startsAt'); }}
-                onBlur={() => touch('startsAt')}
-                className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('startsAt')}`} />
+              <Field name="startsAt" label="Starts">
+                <input type="datetime-local" value={startsAt}
+                  onChange={(e) => { setStart(e.target.value); touch('startsAt'); touch('endsAt'); }}
+                  onBlur={() => touch('startsAt')}
+                  className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('startsAt').border}`} />
+              </Field>
             </div>
             <div className="flex-1">
-              <label className={`block text-xs mb-1.5 uppercase tracking-wide ${labelCls('endsAt')}`}>
-                Ends {valid.endsAt ? '✓' : '*'}
-              </label>
-              <input type="datetime-local" value={endsAt}
-                onChange={(e) => { setEnd(e.target.value); touch('endsAt'); }}
-                onBlur={() => touch('endsAt')}
-                className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${inputBorder('endsAt')}`} />
+              <Field name="endsAt" label="Ends">
+                <input type="datetime-local" value={endsAt}
+                  onChange={(e) => { setEnd(e.target.value); touch('endsAt'); }}
+                  onBlur={() => touch('endsAt')}
+                  className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('endsAt').border}`} />
+              </Field>
             </div>
           </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Amount Paid ($)</label>
-            <input type="number" value={paidAmount} onChange={(e) => setPaid(e.target.value)} placeholder="0.00"
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
-          </div>
+          <Field name="paidAmount" label="Amount Paid ($)">
+            <input type="number" min="0" step="0.01" value={paidAmount}
+              onChange={(e) => { setPaid(e.target.value); touch('paidAmount'); }}
+              onBlur={() => touch('paidAmount')}
+              placeholder="0.00"
+              className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('paidAmount').border}`} />
+          </Field>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Internal Notes</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
           </div>
-          {missing.length > 0 && (
-            <p className="text-xs text-amber-400">Still needed: {missing.join(', ')}</p>
-          )}
           {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
         </div>
         <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleCreate} disabled={saving || loadingData}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${allValid ? 'bg-brand-500 text-black hover:bg-brand-400' : 'bg-surface-600 text-gray-400 cursor-not-allowed'} disabled:opacity-50`}>
-            {saving ? 'Creating…' : allValid ? 'Create Campaign' : `${missing.length} field${missing.length !== 1 ? 's' : ''} needed`}
+            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors text-sm disabled:opacity-50 ${allValid ? 'bg-brand-500 text-black hover:bg-brand-400' : 'bg-surface-600 text-gray-400 cursor-not-allowed'}`}>
+            {saving ? 'Creating…' : 'Create Campaign'}
           </button>
         </div>
       </div>

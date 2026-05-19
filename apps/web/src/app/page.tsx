@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Content } from '@/types';
 import ContentRow from '@/components/content/ContentRow';
+import AdSlot from '@/components/ads/AdSlot';
 import { useAuth } from '@/context/AuthContext';
 
 interface Creator {
@@ -353,6 +354,9 @@ export default function HomePage() {
             <ContinueWatchingRow items={history} />
 
             <ContentRow title="🔥 Trending" items={data?.trending ?? []} seeAllHref="/browse?sort=trending" emptyText="New drops coming soon." />
+
+            <AdSlot location="home-mid-banner" className="mb-8 rounded-2xl" />
+
             <ContentRow title="✨ New Releases" items={data?.newReleases ?? []} seeAllHref="/browse" emptyText="First releases dropping soon." />
             <ContentRow title="🎵 Music" items={data?.byType.MUSIC ?? []} seeAllHref="/browse?type=MUSIC" emptyText="Original tracks & albums coming soon." />
             <ContentRow title="🎬 Film" items={data?.byType.FILM ?? []} seeAllHref="/browse?type=FILM" emptyText="Short films & features coming soon." />

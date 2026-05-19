@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Content, Comment } from '@/types';
 import Button from '@/components/ui/Button';
+import AdSlot from '@/components/ads/AdSlot';
 
 // Native HLS player using hls.js (falls back to native <video> on Safari)
 function HlsVideoPlayer({
@@ -586,6 +587,8 @@ export default function WatchPage() {
           </div>
         </div>
       )}
+
+      <AdSlot location="watch-below-player" className="mb-4" />
 
       {/* Meta */}
       <div className="mb-6">

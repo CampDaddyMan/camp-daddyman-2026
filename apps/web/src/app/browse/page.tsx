@@ -5,6 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { Content, ContentType } from '@/types';
 import ContentCard from '@/components/content/ContentCard';
+import AdSlot from '@/components/ads/AdSlot';
 
 const TYPES: { value: ContentType | ''; label: string; emoji: string }[] = [
   { value: '',             label: 'All',           emoji: '✦'  },
@@ -159,6 +160,8 @@ function BrowseContent() {
           {tagParam ? ` tagged #${tagParam}` : ''}
         </p>
       )}
+
+      <AdSlot location="browse-banner" className="mb-8" />
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

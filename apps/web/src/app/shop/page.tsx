@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import AdSlot from '@/components/ads/AdSlot';
 
 interface Product {
   id: string;
@@ -297,6 +298,11 @@ export default function ShopPage() {
           </section>
         );
       })()}
+
+      {/* ── Sponsored banner — between hero and collection ──────────────────── */}
+      <div className="px-8 md:px-14 py-6 bg-black">
+        <AdSlot location="shop-banner" />
+      </div>
 
       {/* ── Collection — full width ─────────────────────────────────────────── */}
       <div ref={collectionRef} className="pb-28">

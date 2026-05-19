@@ -1917,8 +1917,6 @@ function PartnersTab() {
       {/* Add ad modal */}
       {showAddAd && (
         <AddAdModal
-          partners={partners}
-          placements={placements}
           onClose={() => setAddAd(false)}
           onCreated={(a) => { setAds((prev) => [a, ...prev]); setAddAd(false); }}
         />
@@ -2250,10 +2248,12 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
   );
 }
 
-function AddAdModal({ partners, placements, onClose, onCreated }: {
-  partners: AdminPartner[]; placements: AdminPlacement[];
+function AddAdModal({ onClose, onCreated }: {
   onClose: () => void; onCreated: (a: AdminAd) => void;
 }) {
+  const [partners, setPartners]     = useState<AdminPartner[]>([]);
+  const [placements, setPlacements] = useState<AdminPlacement[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [partnerId, setPartnerId]   = useState('');
   const [placementId, setPlacement] = useState('');
   const [title, setTitle]           = useState('');
@@ -2261,6 +2261,13 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
   const [linkUrl, setLinkUrl]       = useState('');
   const [startsAt, setStart]        = useState('');
   const [endsAt, setEnd]            = useState('');
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/partners').then(({ data }) => setPartners(data.partners)),
+      api.get('/partners/placements/list').then(({ data }) => setPlacements(data.placements)),
+    ]).finally(() => setLoadingData(false));
+  }, []);
   const [paidAmount, setPaid]       = useState('');
   const [notes, setNotes]           = useState('');
   const [imageFile, setImageFile]   = useState<File | null>(null);
@@ -2308,17 +2315,17 @@ function AddAdModal({ partners, placements, onClose, onCreated }: {
         <div className="flex-1 px-6 py-6 space-y-4">
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Partner *</label>
-            <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)}
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
-              <option value="">— select partner —</option>
-              {partners.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)} disabled={loadingData}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50">
+              <option value="">{loadingData ? 'Loading…' : partners.length === 0 ? 'No partners found' : '— select partner —'}</option>
+              {partners.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.status})</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Placement *</label>
-            <select value={placementId} onChange={(e) => setPlacement(e.target.value)}
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
-              <option value="">— select placement —</option>
+            <select value={placementId} onChange={(e) => setPlacement(e.target.value)} disabled={loadingData}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50">
+              <option value="">{loadingData ? 'Loading…' : placements.length === 0 ? 'No placements found — create one first' : '— select placement —'}</option>
               {placements.map((pl) => <option key={pl.id} value={pl.id}>{pl.name} (${pl.pricePerDay}/day)</option>)}
             </select>
           </div>

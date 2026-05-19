@@ -50,23 +50,27 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
         className="w-full text-left focus:outline-none group"
         aria-label={`Advertisement: ${ad.title}`}
       >
-        {showImage && (
-          <img
-            src={ad.imageUrl!}
-            alt={ad.title}
-            onError={() => setImgError(true)}
-            className="w-full object-cover group-hover:opacity-90 transition-opacity"
-            style={{ maxHeight: '200px' }}
-          />
+        {showImage ? (
+          <div className="relative">
+            <img
+              src={ad.imageUrl!}
+              alt={ad.title}
+              onError={() => setImgError(true)}
+              className="w-full object-cover group-hover:opacity-90 transition-opacity"
+              style={{ maxHeight: '200px' }}
+            />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-3">
+              <p className="font-semibold text-white text-xs group-hover:text-brand-400 transition-colors leading-snug">{ad.title}</p>
+              <p className="text-[10px] text-gray-300 mt-0.5">Sponsored by {ad.partner.name}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4">
+            <p className="font-semibold text-white text-sm group-hover:text-brand-400 transition-colors">{ad.title}</p>
+            {ad.body && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{ad.body}</p>}
+            <p className="text-[10px] text-gray-500 mt-1">Sponsored by {ad.partner.name}</p>
+          </div>
         )}
-
-        <div className="p-3">
-          <p className="font-semibold text-white text-xs group-hover:text-brand-400 transition-colors">{ad.title}</p>
-          {!showImage && ad.body && (
-            <p className="text-xs text-gray-400 mt-1 line-clamp-2">{ad.body}</p>
-          )}
-          <p className="text-[10px] text-gray-500 mt-0.5">Sponsored by {ad.partner.name}</p>
-        </div>
       </button>
     </div>
   );

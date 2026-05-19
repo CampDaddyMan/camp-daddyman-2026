@@ -2517,18 +2517,30 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
           <div className="flex gap-3">
             <div className="flex-1">
               <AdField label="Starts" error={errors.startsAt} touched={!!touched.startsAt}>
-                <input type="datetime-local" value={startsAt}
-                  onChange={(e) => { setStart(e.target.value); touch('startsAt'); touch('endsAt'); }}
-                  onBlur={() => touch('startsAt')}
-                  className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('startsAt').border}`} />
+                <div className="flex gap-1">
+                  <input type="datetime-local" value={startsAt}
+                    onChange={(e) => { setStart(e.target.value); touch('startsAt'); touch('endsAt'); }}
+                    onBlur={() => touch('startsAt')}
+                    className={`flex-1 min-w-0 bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('startsAt').border}`} />
+                  {startsAt && (
+                    <button type="button" onClick={() => { setStart(''); touch('startsAt'); }}
+                      className="text-gray-500 hover:text-white px-2 text-sm" title="Clear date">×</button>
+                  )}
+                </div>
               </AdField>
             </div>
             <div className="flex-1">
               <AdField label="Ends" error={errors.endsAt} touched={!!touched.endsAt}>
-                <input type="datetime-local" value={endsAt}
-                  onChange={(e) => { setEnd(e.target.value); touch('endsAt'); }}
-                  onBlur={() => touch('endsAt')}
-                  className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('endsAt').border}`} />
+                <div className="flex gap-1">
+                  <input type="datetime-local" value={endsAt}
+                    onChange={(e) => { setEnd(e.target.value); touch('endsAt'); }}
+                    onBlur={() => touch('endsAt')}
+                    className={`flex-1 min-w-0 bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('endsAt').border}`} />
+                  {endsAt && (
+                    <button type="button" onClick={() => { setEnd(''); touch('endsAt'); }}
+                      className="text-gray-500 hover:text-white px-2 text-sm" title="Clear date">×</button>
+                  )}
+                </div>
               </AdField>
             </div>
           </div>

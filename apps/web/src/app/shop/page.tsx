@@ -459,7 +459,7 @@ export default function ShopPage() {
                     href="/subscribe"
                     className="inline-block bg-brand-500 hover:bg-brand-400 text-black font-black px-9 py-4 rounded-2xl text-base transition-all hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_32px_rgba(248,194,2,0.22)]"
                   >
-                    Join the Camp →
+                    {siteSettings.shop_perks_cta || 'Join the Camp →'}
                   </Link>
                 )}
               </div>

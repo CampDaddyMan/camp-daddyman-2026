@@ -4261,6 +4261,22 @@ function SettingsTab() {
           </div>
 
           <div className="pt-2 border-t border-surface-700/50">
+            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">CTA Button</p>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-400 mb-1">Button text <span className="text-gray-600 font-normal">(shown to non-members)</span></label>
+              <div className="flex gap-2">
+                <input
+                  value={settings['shop_perks_cta'] ?? ''}
+                  onChange={(e) => set('shop_perks_cta', e.target.value)}
+                  placeholder="Join the Camp →"
+                  className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+                />
+                <SaveBtn k="shop_perks_cta" />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-surface-700/50">
             <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Plan Descriptions</p>
             {([
               { key: 'shop_perks_pro_desc',     label: 'PRO description',     placeholder: 'Unlock discounts + exclusive content' },

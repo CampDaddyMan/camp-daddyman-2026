@@ -32,6 +32,15 @@ interface PerkItem {
   comingSoon?: boolean;
 }
 
+const PERK_PLACEHOLDERS: PerkItem[] = [
+  { id: 'ph1', name: 'DaddyMan Classic Tee', price: 34.99, comingSoon: true },
+  { id: 'ph2', name: 'The Ark Hoodie', price: 59.99, comingSoon: true },
+  { id: 'ph3', name: 'Camp Cap', price: 24.99, comingSoon: true },
+  { id: 'ph4', name: 'DaddyMan Crewneck', price: 49.99, comingSoon: true },
+  { id: 'ph5', name: 'Camp Joggers', price: 44.99, comingSoon: true },
+  { id: 'ph6', name: 'The Philosophy Tee', price: 32.99, comingSoon: true },
+];
+
 // ── Product Card ──────────────────────────────────────────────────────────────
 
 function ProductCard({ product }: { product: Product }) {
@@ -385,6 +394,8 @@ export default function ShopPage() {
       {/* ── Membership Perks — full-width carousel ──────────────────────────── */}
       {!loading && (() => {
         const displayRate = memberRate > 0 ? memberRate : 15;
+        const fillerCount = Math.max(0, 6 - perkItems.length);
+        const carouselItems = [...perkItems, ...PERK_PLACEHOLDERS.slice(0, fillerCount)];
 
         function carouselPrev() {
           const track = carouselRef.current;
@@ -477,7 +488,7 @@ export default function ShopPage() {
               onMouseEnter={() => setCarouselPaused(true)}
               onMouseLeave={() => setCarouselPaused(false)}
             >
-              {perkItems.map((item) => (
+              {carouselItems.map((item) => (
                 <div
                   key={item.id}
                   className={`flex-shrink-0 w-[200px] md:w-[220px] flex flex-col rounded-2xl overflow-hidden border transition-colors ${

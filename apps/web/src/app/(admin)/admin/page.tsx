@@ -1580,6 +1580,7 @@ function PartnersTab() {
   const [acting, setActing]       = useState<string | null>(null);
   const [showAddPartner, setAddPartner] = useState(false);
   const [showAddPlacement, setAddPlacement] = useState(false);
+  const [editPlacement, setEditPlacement] = useState<AdminPlacement | null>(null);
   const [showAddAd, setAddAd]     = useState(false);
   const [editPartner, setEditPartner] = useState<AdminPartner | null>(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -1801,10 +1802,16 @@ function PartnersTab() {
                 </p>
                 {pl.description && <p className="text-gray-600 text-xs mt-1">{pl.description}</p>}
               </div>
-              <button onClick={() => handleDeletePlacement(pl.id, pl.name)} disabled={acting === pl.id}
-                className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40 flex-shrink-0">
-                Delete
-              </button>
+              <div className="flex gap-2 flex-shrink-0">
+                <button onClick={() => setEditPlacement(pl)}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors">
+                  Edit
+                </button>
+                <button onClick={() => handleDeletePlacement(pl.id, pl.name)} disabled={acting === pl.id}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40">
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -1895,6 +1902,15 @@ function PartnersTab() {
         <AddPlacementModal
           onClose={() => setAddPlacement(false)}
           onCreated={(pl) => { setPlacements((prev) => [...prev, pl]); setAddPlacement(false); }}
+        />
+      )}
+
+      {/* Edit placement modal */}
+      {editPlacement && (
+        <AddPlacementModal
+          placement={editPlacement}
+          onClose={() => setEditPlacement(null)}
+          onCreated={(pl) => { setPlacements((prev) => prev.map((x) => x.id === pl.id ? pl : x)); setEditPlacement(null); }}
         />
       )}
 
@@ -2124,24 +2140,34 @@ function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner
   );
 }
 
-function AddPlacementModal({ onClose, onCreated }: { onClose: () => void; onCreated: (pl: AdminPlacement) => void }) {
-  const [name, setName]         = useState('');
-  const [location, setLoc]      = useState('');
-  const [description, setDesc]  = useState('');
-  const [pricePerDay, setPrice] = useState('');
-  const [width, setWidth]       = useState('');
-  const [height, setHeight]     = useState('');
+function AddPlacementModal({ placement, onClose, onCreated }: {
+  placement?: AdminPlacement;
+  onClose: () => void;
+  onCreated: (pl: AdminPlacement) => void;
+}) {
+  const isEdit = !!placement;
+  const [name, setName]         = useState(placement?.name ?? '');
+  const [location, setLoc]      = useState(placement?.location ?? '');
+  const [description, setDesc]  = useState(placement?.description ?? '');
+  const [pricePerDay, setPrice] = useState(placement?.pricePerDay != null ? String(placement.pricePerDay) : '');
+  const [width, setWidth]       = useState(placement?.width != null ? String(placement.width) : '');
+  const [height, setHeight]     = useState(placement?.height != null ? String(placement.height) : '');
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
 
-  async function handleCreate() {
+  async function handleSave() {
     if (!name.trim() || !location.trim()) { setError('Name and location key are required'); return; }
     setSaving(true); setError('');
     try {
-      const { data } = await api.post('/partners/placements', { name, location, description, pricePerDay, width, height });
-      onCreated(data.placement);
+      if (isEdit) {
+        const { data } = await api.patch(`/partners/placements/${placement!.id}`, { name, location, description, pricePerDay, width, height });
+        onCreated(data.placement);
+      } else {
+        const { data } = await api.post('/partners/placements', { name, location, description, pricePerDay, width, height });
+        onCreated(data.placement);
+      }
     } catch (e: any) {
-      setError(e?.response?.data?.error || 'Create failed');
+      setError(e?.response?.data?.error || 'Save failed');
     } finally { setSaving(false); }
   }
 
@@ -2150,7 +2176,7 @@ function AddPlacementModal({ onClose, onCreated }: { onClose: () => void; onCrea
       <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
-          <h2 className="text-white font-semibold">Add Ad Placement</h2>
+          <h2 className="text-white font-semibold">{isEdit ? 'Edit Placement' : 'Add Ad Placement'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
@@ -2191,9 +2217,9 @@ function AddPlacementModal({ onClose, onCreated }: { onClose: () => void; onCrea
         </div>
         <div className="px-6 py-5 border-t border-surface-700 flex gap-3">
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
-          <button onClick={handleCreate} disabled={saving}
+          <button onClick={handleSave} disabled={saving}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Creating…' : 'Create Placement'}
+            {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Placement'}
           </button>
         </div>
       </div>

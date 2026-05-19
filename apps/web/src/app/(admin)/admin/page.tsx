@@ -2451,9 +2451,23 @@ function AddAdModal({ ad, onClose, onCreated }: {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Image</label>
-            {imagePreview && <img src={imagePreview} alt="preview" className="w-full h-32 object-cover rounded-lg mb-2" />}
+            {imagePreview && (
+              <div className="mb-2 relative">
+                <img
+                  src={imagePreview}
+                  alt="preview"
+                  className="w-full h-32 object-cover rounded-lg"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                {imagePreview.startsWith('http') && (
+                  <p className="text-[10px] text-gray-500 mt-1 truncate">
+                    Saved: <a href={imagePreview} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">view image</a>
+                  </p>
+                )}
+              </div>
+            )}
             <label className="flex items-center justify-center gap-2 w-full border border-dashed border-surface-500 rounded-lg py-3 cursor-pointer hover:border-brand-400 transition-colors text-sm text-gray-400 hover:text-white">
-              <span>{imageFile ? imageFile.name : 'Choose image…'}</span>
+              <span>{imageFile ? imageFile.name : imagePreview ? 'Replace image…' : 'Choose image…'}</span>
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
             </label>
           </div>

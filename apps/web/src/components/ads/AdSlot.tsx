@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? '';
+import api from '@/lib/api';
 
 interface Ad {
   id: string;
@@ -23,9 +22,8 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
   const [ad, setAd] = useState<Ad | null>(null);
 
   useEffect(() => {
-    fetch(`${API}/api/partners/serve/${encodeURIComponent(location)}`)
-      .then((r) => r.json())
-      .then((d) => setAd(d.ad ?? null))
+    api.get(`/partners/serve/${encodeURIComponent(location)}`)
+      .then(({ data }) => setAd(data.ad ?? null))
       .catch(() => {});
   }, [location]);
 
@@ -34,7 +32,7 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
   async function handleClick() {
     if (!ad) return;
     try {
-      await fetch(`${API}/api/partners/ads/${ad.id}/click`, { method: 'POST' });
+      await api.post(`/partners/ads/${ad.id}/click`);
     } catch {}
     window.open(ad.linkUrl, '_blank', 'noopener,noreferrer');
   }

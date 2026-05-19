@@ -1901,8 +1901,8 @@ function PartnersTab() {
       {/* Add ad modal */}
       {showAddAd && (
         <AddAdModal
-          partners={partners.filter((p) => p.status === 'APPROVED')}
-          placements={placements.filter((pl) => pl.active)}
+          partners={partners}
+          placements={placements}
           onClose={() => setAddAd(false)}
           onCreated={(a) => { setAds((prev) => [a, ...prev]); setAddAd(false); }}
         />

@@ -300,9 +300,7 @@ export default function ShopPage() {
       })()}
 
       {/* ── Sponsored banner — between hero and collection ──────────────────── */}
-      <div className="px-8 md:px-14 py-6 bg-black">
-        <AdSlot location="shop-banner" />
-      </div>
+      <AdSlot location="shop-banner" wrapperClassName="px-8 md:px-14 py-6 bg-black" />
 
       {/* ── Collection — full width ─────────────────────────────────────────── */}
       <div ref={collectionRef} className="pb-28">

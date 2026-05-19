@@ -15,9 +15,10 @@ interface Ad {
 interface AdSlotProps {
   location: string;
   className?: string;
+  wrapperClassName?: string;
 }
 
-export default function AdSlot({ location, className = '' }: AdSlotProps) {
+export default function AdSlot({ location, className = '', wrapperClassName }: AdSlotProps) {
   const [ad, setAd] = useState<Ad | null>(null);
   const [imgError, setImgError] = useState(false);
 
@@ -39,7 +40,7 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
     window.open(ad.linkUrl, '_blank', 'noopener,noreferrer');
   }
 
-  return (
+  const inner = (
     <div className={`relative rounded-xl overflow-hidden border border-surface-700 bg-surface-800 ${className}`}>
       <span className="absolute top-1.5 left-1.5 z-10 text-[9px] font-bold uppercase tracking-widest text-gray-500 bg-surface-900/80 px-1.5 py-0.5 rounded">
         Ad
@@ -73,4 +74,6 @@ export default function AdSlot({ location, className = '' }: AdSlotProps) {
       </button>
     </div>
   );
+
+  return wrapperClassName ? <div className={wrapperClassName}>{inner}</div> : inner;
 }

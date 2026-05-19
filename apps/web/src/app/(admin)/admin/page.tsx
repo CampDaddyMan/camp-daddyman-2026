@@ -4088,7 +4088,7 @@ function AdminInner() {
     { key: 'polls',     label: 'Polls',     emoji: '🗳️' },
     { key: 'partners',  label: 'Partners',  emoji: '🤝' },
     { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
-    { key: 'settings',  label: 'CSS',        emoji: '🎨' },
+    { key: 'settings',  label: 'Settings',   emoji: '🎨' },
   ];
 
   return (

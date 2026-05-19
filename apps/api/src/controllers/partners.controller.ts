@@ -319,17 +319,19 @@ export async function updateAd(req: AuthRequest, res: Response) {
     const ad = await prisma.ad.findUnique({ where: { id: req.params.id }, select: { id: true } });
     if (!ad) return res.status(404).json({ error: 'Ad not found' });
 
-    const { title, body, imageUrl, linkUrl, startsAt, endsAt, status, paidAmount, notes } = req.body;
+    const { partnerId, placementId, title, body, imageUrl, linkUrl, startsAt, endsAt, status, paidAmount, notes } = req.body;
     const data: any = {};
-    if (title      !== undefined) data.title      = String(title).trim();
-    if (body       !== undefined) data.body       = body?.trim()  || null;
-    if (imageUrl   !== undefined) data.imageUrl   = imageUrl      || null;
-    if (linkUrl    !== undefined) data.linkUrl    = String(linkUrl).trim();
-    if (startsAt   !== undefined) data.startsAt   = new Date(startsAt);
-    if (endsAt     !== undefined) data.endsAt     = new Date(endsAt);
-    if (status     !== undefined) data.status     = status;
-    if (paidAmount !== undefined) data.paidAmount = parseFloat(paidAmount) || 0;
-    if (notes      !== undefined) data.notes      = notes?.trim() || null;
+    if (partnerId   !== undefined) data.partnerId   = String(partnerId);
+    if (placementId !== undefined) data.placementId = String(placementId);
+    if (title       !== undefined) data.title       = String(title).trim();
+    if (body        !== undefined) data.body        = body?.trim()  || null;
+    if (imageUrl    !== undefined) data.imageUrl    = imageUrl      || null;
+    if (linkUrl     !== undefined) data.linkUrl     = String(linkUrl).trim();
+    if (startsAt    !== undefined) data.startsAt    = new Date(startsAt);
+    if (endsAt      !== undefined) data.endsAt      = new Date(endsAt);
+    if (status      !== undefined) data.status      = status;
+    if (paidAmount  !== undefined) data.paidAmount  = parseFloat(paidAmount) || 0;
+    if (notes       !== undefined) data.notes       = notes?.trim() || null;
 
     const updated = await prisma.ad.update({
       where: { id: req.params.id },

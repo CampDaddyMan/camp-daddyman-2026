@@ -2451,23 +2451,43 @@ function AddAdModal({ ad, onClose, onCreated }: {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Image</label>
-            {imagePreview && (
-              <div className="mb-2 relative">
+
+            {/* Saved image row — always show when there's a stored URL */}
+            {ad?.imageUrl && !imageFile && (
+              <div className="mb-2 rounded-lg overflow-hidden border border-surface-600 bg-surface-700">
                 <img
-                  src={imagePreview}
-                  alt="preview"
-                  className="w-full h-32 object-cover rounded-lg"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  src={ad.imageUrl}
+                  alt="current ad image"
+                  className="w-full h-32 object-cover"
+                  onError={(e) => {
+                    const el = e.target as HTMLImageElement;
+                    el.style.display = 'none';
+                    el.nextElementSibling?.classList.remove('hidden');
+                  }}
                 />
-                {imagePreview.startsWith('http') && (
-                  <p className="text-[10px] text-gray-500 mt-1 truncate">
-                    Saved: <a href={imagePreview} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">view image</a>
-                  </p>
-                )}
+                <div className="hidden px-3 py-2 text-xs text-gray-400">
+                  Image saved but can&apos;t render inline —{' '}
+                  <a href={ad.imageUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">open in new tab</a>
+                </div>
+                <p className="px-3 py-1.5 text-[10px] text-gray-500 border-t border-surface-600 truncate">
+                  Saved: <a href={ad.imageUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">view</a>
+                  {' '}<span className="text-gray-600">{ad.imageUrl.split('/').pop()}</span>
+                </p>
               </div>
             )}
+
+            {/* New file preview */}
+            {imageFile && imagePreview && (
+              <div className="mb-2 rounded-lg overflow-hidden border border-brand-500/40">
+                <img src={imagePreview} alt="new image preview" className="w-full h-32 object-cover" />
+                <p className="px-3 py-1.5 text-[10px] text-brand-400 border-t border-brand-500/30 truncate">
+                  New: {imageFile.name}
+                </p>
+              </div>
+            )}
+
             <label className="flex items-center justify-center gap-2 w-full border border-dashed border-surface-500 rounded-lg py-3 cursor-pointer hover:border-brand-400 transition-colors text-sm text-gray-400 hover:text-white">
-              <span>{imageFile ? imageFile.name : imagePreview ? 'Replace image…' : 'Choose image…'}</span>
+              <span>{imageFile ? 'Change selection…' : ad?.imageUrl ? 'Replace image…' : 'Choose image…'}</span>
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
             </label>
           </div>

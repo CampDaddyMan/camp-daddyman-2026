@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\api\\\\src\" -Recurse -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\\", \"\"\\) })",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\web\\\\src\" -Recurse -File | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\\", \"\"\\) })",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\.github\" -Recurse -File | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\\", \"\"\\) })",
+      "PowerShell(npm *)",
+      "PowerShell(node --version; node -e \"const {execSync} = require\\('child_process'\\); console.log\\(execSync\\('npm --version'\\).toString\\(\\).trim\\(\\)\\)\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\nodejs\\\\node.exe\" -e \"const {execSync} = require\\('child_process'\\); try { console.log\\(execSync\\('psql -U postgres -c \\\\\"SELECT datname FROM pg_database WHERE datname=\\\\'camp_daddyman\\\\';\\\\\"', {env: {...process.env}}\\).toString\\(\\)\\); } catch\\(e\\) { console.error\\(e.message\\); }\")",
+      "PowerShell(psql *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\" | Where-Object { $_.Name -match -join\\(\"post\", \"gre\"\\) } | Select-Object FullName)",
+      "PowerShell($env:PGPASSWORD=\"campDaddyMan2026\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -c \"SELECT datname FROM pg_database WHERE datname='camp_daddyman';\" 2>&1)",
+      "PowerShell(Get-Process *)",
+      "PowerShell($env:PGPASSWORD=\"campDaddyMan2026\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -d camp_daddyman -c \"\\\\dt\" 2>&1)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\node_modules\\\\.bin\" | Where-Object { $_.Name -match \"ts-node\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\api\\\\node_modules\\\\.bin\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"ts-node\" } | Select-Object Name; Get-ChildItem \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\node_modules\" | Where-Object { $_.Name -eq \"ts-node-dev\" } | Select-Object Name)",
+      "PowerShell(Start-Sleep -Seconds 3; Invoke-RestMethod -Uri \"http://localhost:4000/health\" -Method GET 2>&1)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:4000/health\" -Method GET | ConvertTo-Json)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\daddy\\\\git-up-tan-up\\\\server\\\\src\" -Recurse -File | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\daddy\\\\git-up-tan-up\\\\\", \"\"\\) })",
+      "PowerShell(Test-NetConnection *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npx prisma *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:campDaddyMan2026@localhost:5432/camp_daddyman\" npx prisma *)",
+      "Bash(PGPASSWORD=campDaddyMan2026 psql *)",
+      "Bash(node *)",
+      "Bash(npx railway *)",
+      "Bash(railway run *)",
+      "Bash(railway login *)",
+      "Bash(findstr /i \"scripts\" /A:5)",
+      "Bash(git -C C:/Users/daddy/camp-daddyman-2026 log --oneline --all)",
+      "Bash(git *)",
+      "Bash(npx next *)"
+    ]
+  }
+}

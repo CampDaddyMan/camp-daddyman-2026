@@ -237,40 +237,50 @@ export default function HomePage() {
   }
 
 
-  const cinematicUrl = siteSettings.home_cinematic_url;
-  const cinematicType = siteSettings.home_cinematic_type || 'image';
-  const cinematicOverlay = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.55')));
+  const cinematicUrl     = siteSettings.home_cinematic_url;
+  const cinematicType    = siteSettings.home_cinematic_type || 'image';
+  const cinematicOverlay = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
 
   return (
     <div>
+
+      {/* ── Cinematic Banner — standalone full-screen section above hero ── */}
+      {cinematicUrl && (
+        <section className="relative w-full min-h-screen overflow-hidden">
+          {cinematicType === 'video' ? (
+            <video
+              autoPlay muted loop playsInline
+              poster={siteSettings.home_cinematic_poster || undefined}
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src={cinematicUrl} />
+            </video>
+          ) : (
+            <img
+              src={cinematicUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          {cinematicOverlay > 0 && (
+            <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
+          )}
+          {/* Cinematic bottom fade into hero below */}
+          <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-surface-900 to-transparent" />
+          {/* Scroll cue */}
+          <div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+            style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}
+          >
+            ↓
+          </div>
+        </section>
+      )}
+
       {/* ── Hero ── */}
-      <div className={`relative flex flex-col items-center justify-center overflow-hidden px-4 text-center ${cinematicUrl ? 'min-h-screen' : 'min-h-[88vh]'}`}>
+      <div className="relative flex flex-col items-center justify-center min-h-[88vh] overflow-hidden px-4 text-center">
         {/* Atmospheric background */}
         <div className="absolute inset-0 bg-surface-900" />
-
-        {/* Cinematic banner — full-bleed image or looping video */}
-        {cinematicUrl && (
-          <>
-            {cinematicType === 'video' ? (
-              <video
-                autoPlay muted loop playsInline
-                poster={siteSettings.home_cinematic_poster || undefined}
-                className="absolute inset-0 w-full h-full object-cover"
-              >
-                <source src={cinematicUrl} />
-              </video>
-            ) : (
-              <img
-                src={cinematicUrl}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
-            {/* Configurable dark overlay so text stays readable */}
-            <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
-          </>
-        )}
-
         {/* Jamaican flag — gold centre glow, green corner glows */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_60%_at_50%_45%,rgba(248,194,2,0.18),transparent_65%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_0%_100%,rgba(2,65,25,0.28),transparent_55%)]" />
@@ -343,13 +353,15 @@ export default function HomePage() {
 
         </div>
 
-        {/* Scroll cue — gold bouncing arrow */}
-        <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
-          style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}
-        >
-          ↓
-        </div>
+        {/* Scroll cue — only when no cinematic banner above */}
+        {!cinematicUrl && (
+          <div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+            style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}
+          >
+            ↓
+          </div>
+        )}
       </div>
 
       {/* Divider */}

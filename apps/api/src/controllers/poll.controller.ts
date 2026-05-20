@@ -80,13 +80,14 @@ async function enrichOptions(options: any[], pollType: string, showCounts: boole
 // ── Create poll (admin only) ──────────────────────────────────────────────────
 
 export async function createPoll(req: AuthRequest, res: Response) {
-  const { title, description, endsAt, pollType = 'CONTENT_VOTE', options } = req.body;
+  const { title, description, startsAt, endsAt, pollType = 'CONTENT_VOTE', allowMultiple = false, options } = req.body;
 
   if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
   if (!VALID_TYPES.includes(pollType)) return res.status(400).json({ error: 'Invalid poll type' });
   if (!Array.isArray(options) || options.length < 2) {
     return res.status(400).json({ error: 'At least 2 options required' });
   }
+  if (options.length > 7) return res.status(400).json({ error: 'Maximum 7 options allowed' });
 
   const optionData = options.map((opt: any, i: number) => {
     const base = { label: opt.label?.trim() || `Option ${i + 1}`, order: i };
@@ -97,12 +98,14 @@ export async function createPoll(req: AuthRequest, res: Response) {
 
   const poll = await prisma.poll.create({
     data: {
-      title:       title.trim(),
-      description: description?.trim() || null,
-      endsAt:      endsAt ? new Date(endsAt) : null,
+      title:         title.trim(),
+      description:   description?.trim() || null,
+      startsAt:      startsAt ? new Date(startsAt) : null,
+      endsAt:        endsAt ? new Date(endsAt) : null,
+      allowMultiple: Boolean(allowMultiple),
       pollType,
-      creatorId:   req.user!.id,
-      options:     { create: optionData },
+      creatorId:     req.user!.id,
+      options:       { create: optionData },
     },
     include: {
       _count: { select: { votes: true, options: true } },
@@ -124,11 +127,12 @@ export async function listPolls(req: AuthRequest, res: Response) {
 
   const where: any = {};
   if (isAdmin) {
-    // Admins can filter by any status
+    // Admins can filter by any status and see polls not yet started
     if (status && status !== 'ALL') where.status = String(status).toUpperCase();
   } else {
-    // Public: only ACTIVE and CLOSED polls, ACTIVE first
+    // Public: only ACTIVE and CLOSED polls that have already started (or have no startsAt)
     where.status = status === 'CLOSED' ? 'CLOSED' : status === 'ACTIVE' ? 'ACTIVE' : { in: ['ACTIVE', 'CLOSED'] };
+    where.OR = [{ startsAt: null }, { startsAt: { lte: new Date() } }];
   }
 
   const polls = await prisma.poll.findMany({
@@ -181,17 +185,25 @@ export async function getPoll(req: AuthRequest, res: Response) {
   const pollClosed       = poll.status === 'CLOSED';
   const showCounts       = isAdminOrCreator || pollClosed;
 
-  const myVote = userId
-    ? await prisma.pollVote.findUnique({
-        where: { pollId_userId: { pollId: poll.id, userId } },
+  // Block non-admins from accessing polls that haven't started yet
+  if (!isAdminOrCreator && (poll as any).startsAt && (poll as any).startsAt > new Date()) {
+    return res.status(404).json({ error: 'Poll not found' });
+  }
+
+  const myVotes = userId
+    ? await prisma.pollVote.findMany({
+        where: { pollId: poll.id, userId },
         select: { optionId: true },
       })
-    : null;
+    : [];
 
   const enriched = await enrichOptions(poll.options, poll.pollType, showCounts);
   const signedImageUrl = await signR2Url((poll as any).imageUrl);
 
-  res.json({ poll: { ...poll, imageUrl: signedImageUrl, options: enriched }, myVoteOptionId: myVote?.optionId ?? null });
+  res.json({
+    poll: { ...poll, imageUrl: signedImageUrl, options: enriched },
+    myVoteOptionIds: myVotes.map((v) => v.optionId),
+  });
 }
 
 // ── Cast / change vote (paid subscribers only) ────────────────────────────────
@@ -202,24 +214,42 @@ export async function castVote(req: AuthRequest, res: Response) {
 
   const poll = await prisma.poll.findUnique({
     where: { id: req.params.id },
-    select: { id: true, status: true, endsAt: true, options: { select: { id: true } } },
+    select: { id: true, status: true, startsAt: true, endsAt: true, allowMultiple: true, options: { select: { id: true } } },
   });
   if (!poll) return res.status(404).json({ error: 'Poll not found' });
 
   if (poll.status === 'CLOSED' || (poll.endsAt && poll.endsAt < new Date())) {
     return res.status(400).json({ error: 'This poll is closed' });
   }
+  if (poll.startsAt && poll.startsAt > new Date()) {
+    return res.status(400).json({ error: 'This poll has not started yet' });
+  }
   if (!poll.options.some((o) => o.id === optionId)) {
     return res.status(400).json({ error: 'Invalid option' });
   }
 
-  await prisma.pollVote.upsert({
-    where:  { pollId_userId: { pollId: poll.id, userId: req.user!.id } },
-    create: { pollId: poll.id, optionId, userId: req.user!.id },
-    update: { optionId },
-  });
+  const userId = req.user!.id;
 
-  res.json({ ok: true, optionId });
+  if (poll.allowMultiple) {
+    // Toggle the specific option — add if not voted, remove if already voted
+    const existing = await prisma.pollVote.findFirst({
+      where: { pollId: poll.id, userId, optionId },
+    });
+    if (existing) {
+      await prisma.pollVote.delete({ where: { id: existing.id } });
+      return res.json({ ok: true, optionId, action: 'removed' });
+    } else {
+      await prisma.pollVote.create({ data: { pollId: poll.id, optionId, userId } });
+      return res.json({ ok: true, optionId, action: 'added' });
+    }
+  } else {
+    // Single-select: delete all existing votes for this user, then create the new one
+    await prisma.$transaction([
+      prisma.pollVote.deleteMany({ where: { pollId: poll.id, userId } }),
+      prisma.pollVote.create({ data: { pollId: poll.id, optionId, userId } }),
+    ]);
+    res.json({ ok: true, optionId });
+  }
 }
 
 // ── Update poll metadata (admin only) ────────────────────────────────────────
@@ -229,13 +259,15 @@ export async function updatePoll(req: AuthRequest, res: Response) {
     const existing = await prisma.poll.findUnique({ where: { id: req.params.id }, select: { id: true, pollType: true } });
     if (!existing) return res.status(404).json({ error: 'Poll not found' });
 
-    const { title, description, endsAt, imageUrl, pollType, options } = req.body;
+    const { title, description, startsAt, endsAt, imageUrl, pollType, allowMultiple, options } = req.body;
     const data: Record<string, any> = {};
-    if (title       !== undefined) data.title       = String(title).trim();
-    if (description !== undefined) data.description = description?.trim() || null;
-    if (endsAt      !== undefined) data.endsAt      = endsAt ? new Date(endsAt) : null;
-    if (imageUrl    !== undefined) data.imageUrl     = imageUrl || null;
-    if (pollType    !== undefined) data.pollType     = pollType;
+    if (title         !== undefined) data.title         = String(title).trim();
+    if (description   !== undefined) data.description   = description?.trim() || null;
+    if (startsAt      !== undefined) data.startsAt      = startsAt ? new Date(startsAt) : null;
+    if (endsAt        !== undefined) data.endsAt        = endsAt ? new Date(endsAt) : null;
+    if (imageUrl      !== undefined) data.imageUrl      = imageUrl || null;
+    if (pollType      !== undefined) data.pollType      = pollType;
+    if (allowMultiple !== undefined) data.allowMultiple = Boolean(allowMultiple);
 
     if (options !== undefined && Array.isArray(options)) {
       const newType: string = pollType ?? existing.pollType;

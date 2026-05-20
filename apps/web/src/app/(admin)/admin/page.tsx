@@ -1077,18 +1077,20 @@ function blankOption(): FlexOption {
 }
 
 function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreated: (p: AdminPoll) => void }) {
-  const [title, setTitle]           = useState('');
-  const [description, setDesc]      = useState('');
-  const [endsAt, setEndsAt]         = useState('');
-  const [pollType, setPollType]     = useState<PollType>('CONTENT_VOTE');
-  const [options, setOptions]       = useState<FlexOption[]>([blankOption(), blankOption()]);
-  const [content, setContent]       = useState<ContentPick[]>([]);
-  const [artists, setArtists]       = useState<ArtistPick[]>([]);
-  const [imageFile, setImageFile]   = useState<File | null>(null);
-  const [imagePreview, setPreview]  = useState('');
-  const [saving, setSaving]         = useState(false);
-  const [error, setError]           = useState('');
-  const imgRef                      = useRef<HTMLInputElement>(null);
+  const [title, setTitle]             = useState('');
+  const [description, setDesc]        = useState('');
+  const [startsAt, setStartsAt]       = useState('');
+  const [endsAt, setEndsAt]           = useState('');
+  const [allowMultiple, setAllowMulti] = useState(false);
+  const [pollType, setPollType]       = useState<PollType>('CONTENT_VOTE');
+  const [options, setOptions]         = useState<FlexOption[]>([blankOption(), blankOption()]);
+  const [content, setContent]         = useState<ContentPick[]>([]);
+  const [artists, setArtists]         = useState<ArtistPick[]>([]);
+  const [imageFile, setImageFile]     = useState<File | null>(null);
+  const [imagePreview, setPreview]    = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState('');
+  const imgRef                        = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.get('/admin/content', { params: { limit: '100', status: 'ACTIVE' } })
@@ -1106,7 +1108,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
     setOptions((prev) => prev.map((o, i) => i === idx ? { ...o, [field]: val } : o));
   }
 
-  function addOption() { setOptions((prev) => [...prev, blankOption()]); }
+  function addOption() { if (options.length < 7) setOptions((prev) => [...prev, blankOption()]); }
   function removeOption(idx: number) {
     if (options.length <= 2) return;
     setOptions((prev) => prev.filter((_, i) => i !== idx));
@@ -1136,7 +1138,9 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
       const { data } = await api.post('/polls', {
         title: title.trim(),
         description: description.trim() || undefined,
+        startsAt: startsAt || undefined,
         endsAt: endsAt || undefined,
+        allowMultiple,
         pollType,
         options: mappedOptions,
       });
@@ -1230,16 +1234,36 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Start Date / Time (optional)</label>
+              <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+              <p className="text-[10px] text-gray-600 mt-1">When poll becomes visible</p>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time (optional)</label>
+              <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+              <p className="text-[10px] text-gray-600 mt-1">When voting closes</p>
+            </div>
+          </div>
+
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time (optional)</label>
-            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">Multi-select</label>
+            <button type="button" onClick={() => setAllowMulti((v) => !v)}
+              className={`w-full rounded-lg border px-4 py-2.5 text-sm font-medium text-left transition-colors ${
+                allowMultiple ? 'border-brand-500 bg-brand-500/10 text-brand-400' : 'border-surface-600 bg-surface-700 text-gray-400'
+              }`}>
+              {allowMultiple ? '✓ Voters can select multiple options' : 'Single choice only (tap to enable multi-select)'}
+            </button>
           </div>
 
           {/* Options — different UI per type */}
           <div>
             <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wide">
               {pollType === 'CONTENT_VOTE' ? 'Song Versions' : pollType === 'ARTIST_VOTE' ? 'Artists' : 'Options'}
+              <span className="text-gray-600 font-normal normal-case ml-2">({options.length}/7)</span>
             </label>
             <div className="space-y-3">
               {options.map((opt, idx) => (
@@ -1282,10 +1306,14 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 </div>
               ))}
             </div>
-            <button onClick={addOption}
-              className="mt-3 text-sm text-brand-400 hover:text-brand-300 transition-colors">
-              + Add another option
-            </button>
+            {options.length < 7 ? (
+              <button onClick={addOption}
+                className="mt-3 text-sm text-brand-400 hover:text-brand-300 transition-colors">
+                + Add another option
+              </button>
+            ) : (
+              <p className="mt-3 text-xs text-gray-600">Maximum 7 options reached</p>
+            )}
           </div>
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -1307,19 +1335,21 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: () => void; onSaved: (p: AdminPoll) => void }) {
-  const [title, setTitle]           = useState(poll.title);
-  const [description, setDesc]      = useState(poll.description || '');
-  const [endsAt, setEndsAt]         = useState(poll.endsAt ? new Date(poll.endsAt).toISOString().slice(0, 16) : '');
-  const [pollType, setPollType]     = useState<PollType>(poll.pollType);
-  const [options, setOptions]       = useState<FlexOption[]>([blankOption(), blankOption()]);
-  const [content, setContent]       = useState<ContentPick[]>([]);
-  const [artists, setArtists]       = useState<ArtistPick[]>([]);
-  const [imagePreview, setPreview]  = useState(poll.imageUrl || '');
-  const [imageFile, setImageFile]   = useState<File | null>(null);
-  const [optionsLoaded, setOptLoaded] = useState(false);
-  const [saving, setSaving]         = useState(false);
-  const [error, setError]           = useState('');
-  const imgRef                      = useRef<HTMLInputElement>(null);
+  const [title, setTitle]               = useState(poll.title);
+  const [description, setDesc]          = useState(poll.description || '');
+  const [startsAt, setStartsAt]         = useState((poll as any).startsAt ? new Date((poll as any).startsAt).toISOString().slice(0, 16) : '');
+  const [endsAt, setEndsAt]             = useState(poll.endsAt ? new Date(poll.endsAt).toISOString().slice(0, 16) : '');
+  const [allowMultiple, setAllowMulti]  = useState((poll as any).allowMultiple ?? false);
+  const [pollType, setPollType]         = useState<PollType>(poll.pollType);
+  const [options, setOptions]           = useState<FlexOption[]>([blankOption(), blankOption()]);
+  const [content, setContent]           = useState<ContentPick[]>([]);
+  const [artists, setArtists]           = useState<ArtistPick[]>([]);
+  const [imagePreview, setPreview]      = useState(poll.imageUrl || '');
+  const [imageFile, setImageFile]       = useState<File | null>(null);
+  const [optionsLoaded, setOptLoaded]   = useState(false);
+  const [saving, setSaving]             = useState(false);
+  const [error, setError]               = useState('');
+  const imgRef                          = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.get('/admin/content', { params: { limit: '100', status: 'ACTIVE' } })
@@ -1342,7 +1372,7 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
   function setField(idx: number, field: keyof FlexOption, val: string) {
     setOptions((prev) => prev.map((o, i) => i === idx ? { ...o, [field]: val } : o));
   }
-  function addOption() { setOptions((prev) => [...prev, blankOption()]); }
+  function addOption() { if (options.length < 7) setOptions((prev) => [...prev, blankOption()]); }
   function removeOption(idx: number) { if (options.length > 2) setOptions((prev) => prev.filter((_, i) => i !== idx)); }
 
   function handleTypeChange(newType: PollType) {
@@ -1381,7 +1411,9 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
       const { data } = await api.patch(`/polls/${poll.id}`, {
         title: title.trim(),
         description: description.trim() || null,
+        startsAt: startsAt || null,
         endsAt: endsAt || null,
+        allowMultiple,
         pollType,
         options: mappedOptions,
       });
@@ -1466,17 +1498,40 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
           </div>
 
-          {/* End date */}
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Start Date / Time</label>
+              <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+              {startsAt && <button type="button" onClick={() => setStartsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">✕ Clear</button>}
+              <p className="text-[10px] text-gray-600 mt-0.5">When poll goes live</p>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time</label>
+              <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+              {endsAt && <button type="button" onClick={() => setEndsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">✕ Clear</button>}
+              <p className="text-[10px] text-gray-600 mt-0.5">When voting closes</p>
+            </div>
+          </div>
+
+          {/* Multi-select toggle */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time</label>
-            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
-              className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
-            {endsAt && <button type="button" onClick={() => setEndsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">✕ Clear end date</button>}
+            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">Multi-select</label>
+            <button type="button" onClick={() => setAllowMulti((v: boolean) => !v)}
+              className={`w-full rounded-lg border px-4 py-2.5 text-sm font-medium text-left transition-colors ${
+                allowMultiple ? 'border-brand-500 bg-brand-500/10 text-brand-400' : 'border-surface-600 bg-surface-700 text-gray-400'
+              }`}>
+              {allowMultiple ? '✓ Voters can select multiple options' : 'Single choice only (tap to enable multi-select)'}
+            </button>
           </div>
 
           {/* Options */}
           <div>
-            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">Options</label>
+            <label className="block text-xs text-gray-400 mb-2 uppercase tracking-wide">
+              Options <span className="text-gray-600 font-normal normal-case">({options.length}/7)</span>
+            </label>
             {!optionsLoaded ? (
               <div className="text-xs text-gray-500 py-4 text-center">Loading options…</div>
             ) : (
@@ -1518,10 +1573,14 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
                     )}
                   </div>
                 ))}
-                <button type="button" onClick={addOption}
-                  className="w-full py-2 rounded-xl border border-dashed border-surface-600 text-gray-500 hover:border-brand-400 hover:text-brand-400 text-sm transition-colors">
-                  + Add option
-                </button>
+                {options.length < 7 ? (
+                  <button type="button" onClick={addOption}
+                    className="w-full py-2 rounded-xl border border-dashed border-surface-600 text-gray-500 hover:border-brand-400 hover:text-brand-400 text-sm transition-colors">
+                    + Add option
+                  </button>
+                ) : (
+                  <p className="text-xs text-gray-600 text-center py-2">Maximum 7 options reached</p>
+                )}
               </div>
             )}
           </div>
@@ -4009,7 +4068,7 @@ function CinematicBannerAdmin() {
 
       <div>
         <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-          Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = transparent · 1 = solid black · default 0.55)</span>
+          Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = fully visible · 1 = solid black · default 0.2)</span>
         </label>
         <div className="flex gap-3 items-center">
           <input

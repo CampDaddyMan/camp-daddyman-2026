@@ -36,7 +36,9 @@ interface Poll {
   imageUrl: string | null;
   pollType: PollType;
   status: 'ACTIVE' | 'CLOSED';
+  startsAt: string | null;
   endsAt: string | null;
+  allowMultiple: boolean;
   createdAt: string;
   creator: { username: string; displayName: string | null };
   options: PollOption[];
@@ -182,15 +184,20 @@ function CustomOptionBody({ opt }: { opt: PollOption }) {
 export default function PollPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [poll, setPoll]       = useState<Poll | null>(null);
-  const [myVote, setMyVote]   = useState<string | null>(null);
-  const [voting, setVoting]   = useState<string | null>(null);
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(true);
+  const [poll, setPoll]         = useState<Poll | null>(null);
+  const [myVotes, setMyVotes]   = useState<string[]>([]);
+  const [voting, setVoting]     = useState<string | null>(null);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
     api.get(`/polls/${id}`)
-      .then(({ data }) => { setPoll(data.poll); setMyVote(data.myVoteOptionId); })
+      .then(({ data }) => {
+        setPoll(data.poll);
+        // Support both old (myVoteOptionId) and new (myVoteOptionIds) API shape
+        if (Array.isArray(data.myVoteOptionIds)) setMyVotes(data.myVoteOptionIds);
+        else if (data.myVoteOptionId) setMyVotes([data.myVoteOptionId]);
+      })
       .catch(() => setError('Poll not found'))
       .finally(() => setLoading(false));
   }, [id]);
@@ -200,8 +207,17 @@ export default function PollPage() {
     setVoting(optionId);
     setError('');
     try {
-      await api.post(`/polls/${id}/vote`, { optionId });
-      setMyVote(optionId);
+      const { data } = await api.post(`/polls/${id}/vote`, { optionId });
+      if (poll.allowMultiple) {
+        // Toggle: server returns action 'added' | 'removed'
+        setMyVotes((prev) =>
+          data.action === 'removed'
+            ? prev.filter((id) => id !== optionId)
+            : [...prev, optionId]
+        );
+      } else {
+        setMyVotes([optionId]);
+      }
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Vote failed');
     } finally {
@@ -212,6 +228,7 @@ export default function PollPage() {
   const isPaid   = !!(user?.subscription?.plan && user.subscription.plan !== 'FREE');
   const canVote  = isPaid || !!user?.isAdmin;
   const isClosed = poll?.status === 'CLOSED';
+  const notStarted = !!(poll?.startsAt && new Date(poll.startsAt) > new Date());
   const totalVotes = poll?._count.votes ?? 0;
 
   if (loading) return (
@@ -247,10 +264,22 @@ export default function PollPage() {
           <span className="text-xs px-2.5 py-1 rounded-full bg-surface-700 text-gray-400 font-medium">
             {TYPE_LABEL[poll.pollType]}
           </span>
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${isClosed ? 'bg-surface-600 text-gray-400' : 'bg-brand-500/20 text-brand-400'}`}>
-            {isClosed ? 'Closed' : 'Voting Open'}
+          {poll.allowMultiple && (
+            <span className="text-xs px-2.5 py-1 rounded-full bg-camp-500/20 text-camp-400 font-medium">
+              Multi-select
+            </span>
+          )}
+          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+            isClosed ? 'bg-surface-600 text-gray-400' : notStarted ? 'bg-surface-600 text-gray-500' : 'bg-brand-500/20 text-brand-400'
+          }`}>
+            {isClosed ? 'Closed' : notStarted ? 'Not started' : 'Voting Open'}
           </span>
-          {poll.endsAt && !isClosed && (
+          {notStarted && poll.startsAt && (
+            <span className="text-xs text-gray-500">
+              Opens {new Date(poll.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+            </span>
+          )}
+          {poll.endsAt && !isClosed && !notStarted && (
             <span className="text-xs text-gray-500">
               Ends {new Date(poll.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
             </span>
@@ -282,14 +311,18 @@ export default function PollPage() {
           </Link>
         </div>
       )}
-      {myVote && !isClosed && (
-        <p className="text-xs text-gray-500 mb-4">You voted · tap another option to change your vote</p>
+      {myVotes.length > 0 && !isClosed && !notStarted && (
+        <p className="text-xs text-gray-500 mb-4">
+          {poll.allowMultiple
+            ? `${myVotes.length} option${myVotes.length !== 1 ? 's' : ''} selected · tap to toggle`
+            : 'You voted · tap another option to change your vote'}
+        </p>
       )}
 
       {/* Options */}
       <div className="space-y-4">
         {poll.options.map((opt) => {
-          const isMyPick = myVote === opt.id;
+          const isMyPick = myVotes.includes(opt.id);
 
           return (
             <div key={opt.id}
@@ -299,14 +332,14 @@ export default function PollPage() {
               <div className="px-5 py-4">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-white font-semibold">{opt.label}</p>
-                  {canVote && !isClosed && (
+                  {canVote && !isClosed && !notStarted && (
                     <button onClick={() => handleVote(opt.id)} disabled={voting === opt.id}
                       className={`flex-shrink-0 text-xs px-4 py-1.5 rounded-full font-semibold transition-colors disabled:opacity-50 ${
                         isMyPick
                           ? 'bg-brand-500 text-black'
                           : 'bg-surface-600 text-gray-300 hover:bg-brand-500/20 hover:text-brand-400'
                       }`}>
-                      {voting === opt.id ? '…' : isMyPick ? 'Your Vote ✓' : 'Vote'}
+                      {voting === opt.id ? '…' : isMyPick ? (poll.allowMultiple ? '✓ Selected' : 'Your Vote ✓') : (poll.allowMultiple ? 'Select' : 'Vote')}
                     </button>
                   )}
                 </div>

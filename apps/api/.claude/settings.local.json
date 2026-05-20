@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; npx prisma db seed)",
+      "PowerShell($env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; node node_modules/.bin/prisma db seed)",
+      "PowerShell($env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; & \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\node_modules\\\\.bin\\\\prisma.cmd\" db seed --schema \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\api\\\\prisma\\\\schema.prisma\")",
+      "PowerShell($env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; cd C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\api; & \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\node_modules\\\\.bin\\\\ts-node.cmd\" --transpile-only prisma/seed.ts)",
+      "PowerShell($env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; & \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\node_modules\\\\.bin\\\\prisma.cmd\" migrate deploy --schema \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\api\\\\prisma\\\\schema.prisma\")",
+      "Bash(railway status *)",
+      "WebFetch(domain:api-production-d91ed.up.railway.app)",
+      "WebFetch(domain:camp-daddyman-2026-f3bv1fuc4-camp-daddy-man-s-projects.vercel.app)",
+      "WebFetch(domain:campdaddyman.com)",
+      "PowerShell(cd C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\apps\\\\api; $env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; & \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\\\\node_modules\\\\.bin\\\\ts-node.cmd\" --transpile-only prisma/seed.ts)",
+      "PowerShell(git *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(where railway *)",
+      "Bash(npx railway *)",
+      "Bash(where psql *)",
+      "Bash(npx *)",
+      "PowerShell(cd \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\"; [System.IO.File]::WriteAllText\\(\"$PWD\\\\fix_stuck.sql\", \"UPDATE `\"Content`\" SET status = 'ACTIVE' WHERE status = 'PROCESSING';\" + \"`n\", [System.Text.UTF8Encoding]::new\\($false\\)\\); Get-Content .\\\\fix_stuck.sql | node_modules\\\\.bin\\\\prisma.cmd db execute --url \"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\" --stdin 2>&1)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "PowerShell(cd \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\"; [System.IO.File]::WriteAllText\\(\"$PWD\\\\check_thumbs.sql\", \"SELECT title, type, status, `\"thumbnailUrl`\" FROM `\"Content`\" ORDER BY `\"createdAt`\" DESC LIMIT 20;\" + \"`n\", [System.Text.UTF8Encoding]::new\\($false\\)\\); node_modules\\\\.bin\\\\prisma.cmd db execute --url \"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\" --file .\\\\check_thumbs.sql 2>&1)",
+      "PowerShell(cd \"C:\\\\Users\\\\daddy\\\\camp-daddyman-2026\"; $env:DATABASE_URL=\"postgresql://postgres:cXFWMcURlQVPeYeQUSSqcjXUnmKGsHix@yamabiko.proxy.rlwy.net:23316/railway\"; node --experimental-vm-modules check_thumbs.mjs 2>&1)",
+      "Bash(git *)",
+      "Bash(node *)"
+    ]
+  }
+}

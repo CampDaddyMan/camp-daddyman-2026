@@ -303,19 +303,21 @@ enum ReportStatus {
 // ── Polls ─────────────────────────────────────────────────────────────────────
 
 model Poll {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  imageUrl    String?
-  pollType    PollType   @default(CONTENT_VOTE)
-  status      PollStatus @default(ACTIVE)
-  creatorId   String
-  creator     User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  options     PollOption[]
-  votes       PollVote[]
-  endsAt      DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  imageUrl      String?
+  pollType      PollType   @default(CONTENT_VOTE)
+  status        PollStatus @default(ACTIVE)
+  creatorId     String
+  creator       User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  options       PollOption[]
+  votes         PollVote[]
+  startsAt      DateTime?
+  endsAt        DateTime?
+  allowMultiple Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@index([creatorId, status])
 }
@@ -352,7 +354,7 @@ model PollVote {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime   @default(now())
 
-  @@unique([pollId, userId])
+  @@unique([pollId, userId, optionId])
 }
 
 enum PollStatus {

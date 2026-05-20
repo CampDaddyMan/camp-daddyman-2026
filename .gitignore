@@ -9,3 +9,5 @@ dist/
 Thumbs.db
 tsconfig.tsbuildinfo
 
+
+.vercel

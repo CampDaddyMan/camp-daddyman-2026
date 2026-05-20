@@ -387,6 +387,19 @@ export default function HomePage() {
         </div>
       </section> 
 
+      {/* ── Active poll banner ── */}
+      {activePoll && (
+        <div className="max-w-7xl mx-auto px-4 pb-8">
+          <p className="text-camp-400 text-xs font-bold uppercase tracking-[0.35em] mb-3">Community Poll</p>
+          <HomePollBanner poll={activePoll} />
+          <div className="mt-2 text-right">
+            <Link href="/polls" className="text-xs text-gray-500 hover:text-brand-400 transition-colors">
+              All polls →
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* ── Dynamic content rows ── */}
       <div className="max-w-7xl mx-auto px-4 pb-10">
         {loading ? (
@@ -434,21 +447,6 @@ export default function HomePage() {
           </>
         )}
       </div>
-
-      {/* ── Active poll banner ── */}
-      {activePoll && (
-        <div className="max-w-7xl mx-auto px-4 pb-10">
-          <div className="mb-4">
-            <p className="text-camp-400 text-xs font-bold uppercase tracking-[0.35em] mb-3">Community Poll</p>
-            <HomePollBanner poll={activePoll} />
-            <div className="mt-2 text-right">
-              <Link href="/polls" className="text-xs text-gray-500 hover:text-brand-400 transition-colors">
-                All polls →
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Philosophy pillars ── */}
       <section className="border-t border-surface-700/50 bg-surface-800/40">

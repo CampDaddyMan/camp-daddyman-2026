@@ -3942,6 +3942,93 @@ const HP_SNIP = [
   { tag: 'italic-off',css: 'font-style: normal;' },
 ];
 
+function CinematicBannerAdmin() {
+  const { settings, set, loading } = useContext(SettingsCtx);
+  return (
+    <div className="space-y-5">
+      <p className="text-gray-500 text-xs leading-relaxed">
+        Paste a direct URL to an image or video file. When set, it fills the homepage hero full-screen behind the logo and copy. Leave blank to use the default atmospheric gradient.
+      </p>
+
+      <div>
+        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+          Media URL <span className="text-gray-600 font-normal normal-case">(direct link to .jpg, .png, .mp4, etc.)</span>
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={settings['home_cinematic_url'] ?? ''}
+            onChange={(e) => set('home_cinematic_url', e.target.value)}
+            placeholder="https://..."
+            disabled={loading}
+            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+          />
+          <SaveBtn k="home_cinematic_url" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Media Type</label>
+        <div className="flex gap-2 items-center">
+          {(['image', 'video'] as const).map((val) => (
+            <button
+              key={val}
+              disabled={loading}
+              onClick={() => set('home_cinematic_type', val)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 ${
+                (settings['home_cinematic_type'] || 'image') === val
+                  ? 'bg-brand-500 text-black border-brand-500'
+                  : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
+              }`}
+            >
+              {val === 'image' ? '🖼 Image' : '🎬 Video'}
+            </button>
+          ))}
+          <SaveBtn k="home_cinematic_type" />
+        </div>
+      </div>
+
+      {settings['home_cinematic_type'] === 'video' && (
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Poster Image URL <span className="text-gray-600 font-normal normal-case">(shown while video loads)</span>
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={settings['home_cinematic_poster'] ?? ''}
+              onChange={(e) => set('home_cinematic_poster', e.target.value)}
+              placeholder="https://..."
+              disabled={loading}
+              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+            />
+            <SaveBtn k="home_cinematic_poster" />
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+          Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = transparent · 1 = solid black · default 0.55)</span>
+        </label>
+        <div className="flex gap-3 items-center">
+          <input
+            type="range" min="0" max="1" step="0.05"
+            value={settings['home_cinematic_overlay'] ?? '0.55'}
+            onChange={(e) => set('home_cinematic_overlay', e.target.value)}
+            disabled={loading}
+            className="flex-1 accent-brand-500"
+          />
+          <span className="text-white text-sm w-10 text-center font-mono tabular-nums">
+            {parseFloat(settings['home_cinematic_overlay'] ?? '0.55').toFixed(2)}
+          </span>
+          <SaveBtn k="home_cinematic_overlay" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HomepageContentSection() {
   return (
     <div>
@@ -3950,6 +4037,10 @@ function HomepageContentSection() {
         <p className="text-gray-500 text-sm">Edit text, font size, line height, color, weight, decoration, alignment and any other CSS property for every section. Click a section to expand.</p>
       </div>
       <div className="space-y-3">
+
+        <HpSection title="🎬 Cinematic Banner">
+          <CinematicBannerAdmin />
+        </HpSection>
 
         <HpSection title="🎯 Hero">
           <FieldBlock label="Est. line" textKey="hero_est" placeholder="Est. 2023"
@@ -4730,6 +4821,25 @@ function SettingsTab() {
 
       {/* ── Homepage Content ── */}
       <HomepageContentSection />
+
+      {/* ── Ark Cinematic Banner ── */}
+      <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40">
+        <h2 className="text-lg font-bold text-white mb-1">The Ark — Cinematic Banner</h2>
+        <p className="text-gray-500 text-sm mb-5">The full-width image at the top of The Ark shop page. Leave blank to use the default image.</p>
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Banner Image URL</label>
+          <div className="flex gap-2">
+            <input
+              value={settings['ark_banner_url'] ?? ''}
+              onChange={(e) => set('ark_banner_url', e.target.value)}
+              placeholder="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
+              disabled={loading}
+              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+            />
+            <SaveBtn k="ark_banner_url" />
+          </div>
+        </div>
+      </div>
 
       {/* ── Shop Page Content ── */}
       <div>

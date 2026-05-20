@@ -217,7 +217,7 @@ export default function ShopPage() {
       {/* ── Hero: Ark poster — full width, natural height, no cropping ──────── */}
       <section className="w-full bg-black">
         <img
-          src="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
+          src={siteSettings.ark_banner_url || "https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"}
           alt="The Ark — Camp DaddyMan"
           className="w-full h-auto block"
         />

@@ -237,12 +237,40 @@ export default function HomePage() {
   }
 
 
+  const cinematicUrl = siteSettings.home_cinematic_url;
+  const cinematicType = siteSettings.home_cinematic_type || 'image';
+  const cinematicOverlay = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.55')));
+
   return (
     <div>
       {/* ── Hero ── */}
-      <div className="relative flex flex-col items-center justify-center min-h-[88vh] overflow-hidden px-4 text-center">
+      <div className={`relative flex flex-col items-center justify-center overflow-hidden px-4 text-center ${cinematicUrl ? 'min-h-screen' : 'min-h-[88vh]'}`}>
         {/* Atmospheric background */}
         <div className="absolute inset-0 bg-surface-900" />
+
+        {/* Cinematic banner — full-bleed image or looping video */}
+        {cinematicUrl && (
+          <>
+            {cinematicType === 'video' ? (
+              <video
+                autoPlay muted loop playsInline
+                poster={siteSettings.home_cinematic_poster || undefined}
+                className="absolute inset-0 w-full h-full object-cover"
+              >
+                <source src={cinematicUrl} />
+              </video>
+            ) : (
+              <img
+                src={cinematicUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            {/* Configurable dark overlay so text stays readable */}
+            <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
+          </>
+        )}
+
         {/* Jamaican flag — gold centre glow, green corner glows */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_60%_at_50%_45%,rgba(248,194,2,0.18),transparent_65%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_0%_100%,rgba(2,65,25,0.28),transparent_55%)]" />

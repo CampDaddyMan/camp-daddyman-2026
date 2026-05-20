@@ -278,7 +278,7 @@ export default function HomePage() {
           <p className="hero-tagline text-brand-400/80 text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em]">
             {s('hero_tagline', 'Discipline · Identity · Legacy')}
           </p>
-          <p className="hero-est text-gray-500 text-[10px] tracking-[0.3em] uppercase -mt-4">{s('hero_est', 'Est. 2023')}</p>
+          <p className="hero-est text-gray-500 text-[10px] tracking-[0.3em] -mt-4">{s('hero_est', 'Est. 2023')}</p>
 
           {/* Headline */}
           <div>

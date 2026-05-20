@@ -13,7 +13,10 @@ const imgUpload = multer({
   },
 });
 
-// Public — optional auth so we can see if user voted
+// Public — list active/closed polls (no auth needed)
+router.get('/', optionalAuthMiddleware, readLimiter, listPolls);
+
+// Public — single poll with optional auth to detect user's vote
 router.get('/:id', optionalAuthMiddleware, readLimiter, getPoll);
 
 // Paid subscribers only — cast / change vote
@@ -21,7 +24,6 @@ router.post('/:id/vote', authMiddleware, subscriberMiddleware, writeLimiter, cas
 
 // Admin only
 router.use(authMiddleware, adminMiddleware);
-router.get('/',                                               readLimiter,  listPolls);
 router.post('/',                                              writeLimiter, createPoll);
 router.patch('/:id',                                          writeLimiter, updatePoll);
 router.post('/:id/image', imgUpload.single('image'),          writeLimiter, uploadPollImage);

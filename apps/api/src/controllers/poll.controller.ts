@@ -120,12 +120,20 @@ export async function createPoll(req: AuthRequest, res: Response) {
 
 export async function listPolls(req: AuthRequest, res: Response) {
   const { status } = req.query;
+  const isAdmin = req.user?.isAdmin;
+
   const where: any = {};
-  if (status && status !== 'ALL') where.status = String(status).toUpperCase();
+  if (isAdmin) {
+    // Admins can filter by any status
+    if (status && status !== 'ALL') where.status = String(status).toUpperCase();
+  } else {
+    // Public: only ACTIVE and CLOSED polls, ACTIVE first
+    where.status = status === 'CLOSED' ? 'CLOSED' : status === 'ACTIVE' ? 'ACTIVE' : { in: ['ACTIVE', 'CLOSED'] };
+  }
 
   const polls = await prisma.poll.findMany({
     where,
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
       _count: { select: { votes: true, options: true } },
     },

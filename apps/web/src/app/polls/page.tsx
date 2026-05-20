@@ -78,19 +78,12 @@ function PollCard({ poll }: { poll: Poll }) {
 }
 
 export default function PollsPage() {
-  const { user }  = useAuth();
+  const { user } = useAuth();
   const [active, setActive]   = useState<Poll[]>([]);
   const [closed, setClosed]   = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Public polls endpoint — fetch all via individual status calls
-    // The /polls list is admin-only, so we fetch each poll's data via getPoll
-    // Instead: expose a lightweight public list endpoint via admin (user is admin) or
-    // use the individual poll page. For now we use the admin endpoint when logged in as admin,
-    // otherwise show a sign-in prompt.
-    if (!user?.isAdmin) { setLoading(false); return; }
-
     Promise.all([
       api.get('/polls', { params: { status: 'ACTIVE' } }),
       api.get('/polls', { params: { status: 'CLOSED' } }),
@@ -99,25 +92,11 @@ export default function PollsPage() {
       setClosed(c.data.polls);
     }).catch(() => {})
       .finally(() => setLoading(false));
-  }, [user]);
+  }, []);
 
   if (loading) return (
     <div className="max-w-3xl mx-auto px-4 py-16 space-y-4">
       {[1,2,3].map((i) => <div key={i} className="h-36 bg-surface-800 rounded-2xl animate-pulse" />)}
-    </div>
-  );
-
-  // Non-admin users can't list polls — show a message
-  if (!user?.isAdmin) return (
-    <div className="max-w-3xl mx-auto px-4 py-16 text-center text-gray-400">
-      <p className="text-4xl mb-4">🗳️</p>
-      <h1 className="text-2xl font-bold text-white mb-2">Community Polls</h1>
-      <p className="text-gray-400 mb-6">Polls are shared directly by the DaddyMan team. Check your feed or messages for active poll links.</p>
-      {!user && (
-        <Link href="/login" className="inline-block px-6 py-2.5 bg-brand-500 text-black rounded-lg font-semibold text-sm hover:bg-brand-400 transition-colors">
-          Sign in
-        </Link>
-      )}
     </div>
   );
 
@@ -130,10 +109,12 @@ export default function PollsPage() {
           <h1 className="text-2xl font-bold text-white">Community Polls</h1>
           <p className="text-gray-400 text-sm mt-0.5">{total} poll{total !== 1 ? 's' : ''} total</p>
         </div>
-        <Link href="/admin?tab=polls&action=create"
-          className="text-xs px-4 py-2 bg-brand-500 text-black rounded-lg font-semibold hover:bg-brand-400 transition-colors">
-          + Create Poll
-        </Link>
+        {user?.isAdmin && (
+          <Link href="/admin?tab=polls"
+            className="text-xs px-4 py-2 bg-brand-500 text-black rounded-lg font-semibold hover:bg-brand-400 transition-colors">
+            + Create Poll
+          </Link>
+        )}
       </div>
 
       {active.length > 0 && (

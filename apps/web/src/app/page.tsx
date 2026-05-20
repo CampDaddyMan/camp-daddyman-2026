@@ -9,6 +9,55 @@ import ContentRow from '@/components/content/ContentRow';
 import AdSlot from '@/components/ads/AdSlot';
 import { useAuth } from '@/context/AuthContext';
 
+// ── Mini poll widget ───────────────────────────────────────────────────────────
+
+interface ActivePoll {
+  id: string;
+  title: string;
+  description: string | null;
+  pollType: string;
+  status: string;
+  endsAt: string | null;
+  _count: { votes: number; options: number };
+}
+
+function HomePollBanner({ poll }: { poll: ActivePoll }) {
+  const isClosed = poll.status === 'CLOSED';
+  const endsDate = poll.endsAt ? new Date(poll.endsAt) : null;
+  const soon = endsDate && !isClosed && (endsDate.getTime() - Date.now()) < 24 * 3600 * 1000;
+
+  const TYPE_EMOJI: Record<string, string> = {
+    CONTENT_VOTE: '🎵', ARTIST_VOTE: '🌟', CUSTOM: '🗳️',
+  };
+
+  return (
+    <Link
+      href={`/polls/${poll.id}`}
+      className="group flex items-center gap-4 bg-surface-800 border border-brand-500/30 hover:border-brand-500/60 rounded-2xl px-6 py-5 transition-all hover:shadow-[0_0_24px_rgba(248,194,2,0.1)]"
+    >
+      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-brand-500/15 flex items-center justify-center text-2xl">
+        {TYPE_EMOJI[poll.pollType] ?? '🗳️'}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+            isClosed ? 'bg-surface-600 text-gray-400' : 'bg-brand-500/20 text-brand-400'
+          }`}>
+            {isClosed ? 'Results Live' : 'Vote Now'}
+          </span>
+          {soon && <span className="text-[11px] text-red-400 font-semibold">Ending soon</span>}
+          <span className="text-[11px] text-gray-500">{poll._count.votes} vote{poll._count.votes !== 1 ? 's' : ''}</span>
+        </div>
+        <p className="text-white font-semibold text-sm leading-snug line-clamp-1">{poll.title}</p>
+        {poll.description && (
+          <p className="text-gray-500 text-xs mt-0.5 line-clamp-1">{poll.description}</p>
+        )}
+      </div>
+      <span className="text-brand-400 text-lg flex-shrink-0 group-hover:translate-x-1 transition-transform">→</span>
+    </Link>
+  );
+}
+
 interface Creator {
   username: string;
   displayName?: string;
@@ -144,12 +193,16 @@ export default function HomePage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [activePoll, setActivePoll] = useState<ActivePoll | null>(null);
 
   useEffect(() => {
     api.get('/content/discover')
       .then((r) => setData(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+    api.get('/polls', { params: { status: 'ACTIVE' } })
+      .then(({ data }) => setActivePoll(data.polls?.[0] ?? null))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -381,6 +434,21 @@ export default function HomePage() {
           </>
         )}
       </div>
+
+      {/* ── Active poll banner ── */}
+      {activePoll && (
+        <div className="max-w-7xl mx-auto px-4 pb-10">
+          <div className="mb-4">
+            <p className="text-camp-400 text-xs font-bold uppercase tracking-[0.35em] mb-3">Community Poll</p>
+            <HomePollBanner poll={activePoll} />
+            <div className="mt-2 text-right">
+              <Link href="/polls" className="text-xs text-gray-500 hover:text-brand-400 transition-colors">
+                All polls →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Philosophy pillars ── */}
       <section className="border-t border-surface-700/50 bg-surface-800/40">

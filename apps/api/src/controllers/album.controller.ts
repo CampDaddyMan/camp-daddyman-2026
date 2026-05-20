@@ -82,7 +82,7 @@ export async function getAlbum(req: AuthRequest, res: Response) {
 // ── Create album (admin only) ─────────────────────────────────────────────────
 
 export async function createAlbum(req: AuthRequest, res: Response) {
-  const { title, description, releaseDate, genre, privacy = 'PUBLIC' } = req.body;
+  const { title, description, releaseDate, genre, privacy = 'PUBLIC', releaseType = 'ALBUM' } = req.body;
   if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
 
   const album = await prisma.album.create({
@@ -92,6 +92,7 @@ export async function createAlbum(req: AuthRequest, res: Response) {
       releaseDate: releaseDate ? new Date(releaseDate) : null,
       genre:       genre?.trim() || null,
       privacy,
+      releaseType,
       creatorId:   req.user!.id,
     },
     include: {
@@ -109,13 +110,14 @@ export async function updateAlbum(req: AuthRequest, res: Response) {
   const album = await prisma.album.findUnique({ where: { id: req.params.id }, select: { id: true } });
   if (!album) return res.status(404).json({ error: 'Album not found' });
 
-  const { title, description, releaseDate, genre, privacy } = req.body;
+  const { title, description, releaseDate, genre, privacy, releaseType } = req.body;
   const data: Record<string, any> = {};
   if (title       !== undefined) data.title       = String(title).trim();
   if (description !== undefined) data.description = description?.trim() || null;
   if (releaseDate !== undefined) data.releaseDate  = releaseDate ? new Date(releaseDate) : null;
   if (genre       !== undefined) data.genre        = genre?.trim() || null;
   if (privacy     !== undefined) data.privacy      = privacy;
+  if (releaseType !== undefined) data.releaseType  = releaseType;
 
   const updated = await prisma.album.update({
     where: { id: req.params.id },

@@ -30,6 +30,7 @@ interface Album {
   coverUrl: string | null;
   releaseDate: string | null;
   genre: string | null;
+  releaseType: string;
   creator: { id: string; username: string; displayName: string | null };
   _count: { tracks: number };
   tracks: Track[];
@@ -187,7 +188,9 @@ export default function AlbumPage() {
         </div>
 
         <div className="flex-1 flex flex-col justify-end">
-          <p className="text-xs font-bold text-camp-400 uppercase tracking-widest mb-2">Album</p>
+          <p className="text-xs font-bold text-camp-400 uppercase tracking-widest mb-2">
+            {album.releaseType === 'SINGLE' ? 'Single' : album.releaseType === 'EP' ? 'EP' : album.releaseType === 'COMPILATION' ? 'Compilation' : 'Album'}
+          </p>
           <h1 className="text-3xl font-bold text-white mb-2">{album.title}</h1>
           <p className="text-gray-400 text-sm mb-1">
             {album.creator.displayName || album.creator.username}

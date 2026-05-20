@@ -4112,7 +4112,7 @@ function FieldBlock({
 
 interface AlbumRow {
   id: string; title: string; description: string | null; coverUrl: string | null;
-  releaseDate: string | null; genre: string | null; privacy: string;
+  releaseDate: string | null; genre: string | null; privacy: string; releaseType: string;
   creator: { username: string; displayName: string | null };
   _count: { tracks: number };
 }
@@ -4140,9 +4140,9 @@ function AlbumsTab() {
   const [coverFile, setCoverFile]       = useState<File | null>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC' });
+  const [form, setForm] = useState({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC', releaseType: 'ALBUM' });
 
-  function resetForm() { setForm({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC' }); setCoverFile(null); }
+  function resetForm() { setForm({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC', releaseType: 'ALBUM' }); setCoverFile(null); }
 
   useEffect(() => {
     api.get('/albums').then((r) => setAlbums(r.data.albums)).catch(() => {}).finally(() => setLoading(false));
@@ -4168,7 +4168,7 @@ function AlbumsTab() {
     if (!form.title.trim()) return;
     setSaving(true);
     try {
-      const r = await api.post('/albums', { ...form, releaseDate: form.releaseDate || null, description: form.description || null, genre: form.genre || null });
+      const r = await api.post('/albums', { ...form, releaseDate: form.releaseDate || null, description: form.description || null, genre: form.genre || null, releaseType: form.releaseType });
       const created = r.data.album;
       if (coverFile) {
         const fd = new FormData(); fd.append('cover', coverFile);
@@ -4220,7 +4220,7 @@ function AlbumsTab() {
 
   function openEdit(album: AlbumRow) {
     setEditAlbum(album);
-    setForm({ title: album.title, description: album.description || '', releaseDate: album.releaseDate ? album.releaseDate.slice(0, 10) : '', genre: album.genre || '', privacy: album.privacy });
+    setForm({ title: album.title, description: album.description || '', releaseDate: album.releaseDate ? album.releaseDate.slice(0, 10) : '', genre: album.genre || '', privacy: album.privacy, releaseType: album.releaseType || 'ALBUM' });
     setCoverFile(null);
     setShowCreate(false);
   }
@@ -4235,8 +4235,18 @@ function AlbumsTab() {
       <h3 className="text-white font-semibold text-sm">{editAlbum ? 'Edit Album' : 'New Album'}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Release Type</label>
+          <select value={form.releaseType} onChange={(e) => setForm((f) => ({ ...f, releaseType: e.target.value }))}
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+            <option value="SINGLE">Single</option>
+            <option value="EP">EP</option>
+            <option value="ALBUM">Album</option>
+            <option value="COMPILATION">Compilation</option>
+          </select>
+        </div>
+        <div>
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Title *</label>
-          <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Album title"
+          <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Title"
             className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
         </div>
         <div>
@@ -4488,7 +4498,8 @@ function AlbumsTab() {
               <div className="flex-1 min-w-0">
                 <p className="text-white font-semibold text-sm truncate">{album.title}</p>
                 <p className="text-gray-500 text-xs">
-                  {album._count.tracks} track{album._count.tracks !== 1 ? 's' : ''}
+                  <span className="text-gray-400 font-medium">{album.releaseType?.charAt(0) + album.releaseType?.slice(1).toLowerCase()}</span>
+                  {` · ${album._count.tracks} track${album._count.tracks !== 1 ? 's' : ''}`}
                   {album.genre && ` · ${album.genre}`}
                   {album.releaseDate && ` · ${new Date(album.releaseDate).getFullYear()}`}
                   {album.privacy !== 'PUBLIC' && <span className="ml-1 text-yellow-600">· {album.privacy.replace('_', ' ').toLowerCase()}</span>}

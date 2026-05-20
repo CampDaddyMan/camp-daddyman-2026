@@ -4241,8 +4241,105 @@ function AlbumsTab() {
         </div>
         <div>
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Genre</label>
-          <input value={form.genre} onChange={(e) => setForm((f) => ({ ...f, genre: e.target.value }))} placeholder="e.g. Hip-Hop, R&B"
-            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+          <select value={form.genre} onChange={(e) => setForm((f) => ({ ...f, genre: e.target.value }))}
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+            <option value="">Select genre…</option>
+            <option>Acoustic</option>
+            <option>Afrobeats</option>
+            <option>Afro-Pop</option>
+            <option>Alternative</option>
+            <option>Alternative R&amp;B</option>
+            <option>Ambient</option>
+            <option>Americana</option>
+            <option>Blues</option>
+            <option>Bluegrass</option>
+            <option>Boom Bap</option>
+            <option>Children's Music</option>
+            <option>Chillhop</option>
+            <option>Christian / Gospel</option>
+            <option>Christian Hip-Hop</option>
+            <option>Classical</option>
+            <option>Comedy / Spoken Word</option>
+            <option>Contemporary Gospel</option>
+            <option>Contemporary R&amp;B</option>
+            <option>Country</option>
+            <option>Dance</option>
+            <option>Dark Ambient</option>
+            <option>Deep House</option>
+            <option>Disco</option>
+            <option>Drill</option>
+            <option>Drum &amp; Bass</option>
+            <option>Dubstep</option>
+            <option>EDM</option>
+            <option>Electronic</option>
+            <option>Experimental</option>
+            <option>Folk</option>
+            <option>Funk</option>
+            <option>Future Bass</option>
+            <option>Garage</option>
+            <option>Gospel</option>
+            <option>Gospel Rap</option>
+            <option>Grime</option>
+            <option>Grunge</option>
+            <option>Hard Rock</option>
+            <option>Heavy Metal</option>
+            <option>Hip-Hop / Rap</option>
+            <option>House</option>
+            <option>Indie</option>
+            <option>Indie Pop</option>
+            <option>Indie Rock</option>
+            <option>Inspirational</option>
+            <option>Instrumental</option>
+            <option>Jazz</option>
+            <option>Jazz Fusion</option>
+            <option>K-Pop</option>
+            <option>Latin</option>
+            <option>Lo-Fi</option>
+            <option>Lo-Fi Hip-Hop</option>
+            <option>Melodic Rap</option>
+            <option>Metal</option>
+            <option>Motivational / Spoken Word</option>
+            <option>Motown</option>
+            <option>Musical Theatre</option>
+            <option>Neo-Soul</option>
+            <option>New Age</option>
+            <option>Oldies</option>
+            <option>Opera</option>
+            <option>Orchestral</option>
+            <option>Piano</option>
+            <option>Pop</option>
+            <option>Pop Punk</option>
+            <option>Pop Rap</option>
+            <option>Progressive Rock</option>
+            <option>Psychedelic</option>
+            <option>Punk</option>
+            <option>Punk Rock</option>
+            <option>Quiet Storm</option>
+            <option>R&amp;B / Soul</option>
+            <option>Reggae</option>
+            <option>Reggaeton</option>
+            <option>Rock</option>
+            <option>Roots</option>
+            <option>Sacred / Worship</option>
+            <option>Singer-Songwriter</option>
+            <option>Ska</option>
+            <option>Smooth Jazz</option>
+            <option>Soft Rock</option>
+            <option>Soul</option>
+            <option>Soundtrack / Score</option>
+            <option>Southern Hip-Hop</option>
+            <option>Spiritual</option>
+            <option>Spoken Word</option>
+            <option>Swing</option>
+            <option>Techno</option>
+            <option>Trap</option>
+            <option>Trap Soul</option>
+            <option>Trip-Hop</option>
+            <option>Tropical</option>
+            <option>Urban Gospel</option>
+            <option>World Music</option>
+            <option>Worship</option>
+          </select>
         </div>
         <div>
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Release Date</label>

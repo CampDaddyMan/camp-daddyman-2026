@@ -96,6 +96,29 @@ function AudioPlayer({ src, label }: { src: string; label: string }) {
   );
 }
 
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+
+function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm"
+      onClick={onClose}>
+      <div className="relative max-w-4xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose}
+          className="absolute -top-10 right-0 text-white/70 hover:text-white text-2xl leading-none transition-colors">
+          ✕
+        </button>
+        <img src={src} alt="" className="w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
+      </div>
+    </div>
+  );
+}
+
 // ── Option card variants ──────────────────────────────────────────────────────
 
 function ResultBar({ votes, total, isMyPick }: { votes: number; total: number; isMyPick: boolean }) {
@@ -114,10 +137,26 @@ function ResultBar({ votes, total, isMyPick }: { votes: number; total: number; i
   );
 }
 
-function ContentOptionBody({ opt, canVote }: { opt: PollOption; canVote: boolean }) {
+function ContentOptionBody({ opt, canVote, onExpand }: { opt: PollOption; canVote: boolean; onExpand: (src: string) => void }) {
+  const thumb = opt.content?.thumbnailUrl;
   return (
     <>
-      <p className="text-gray-500 text-xs mt-0.5">{opt.content?.title}</p>
+      {thumb ? (
+        <button type="button" onClick={() => onExpand(thumb)}
+          className="mt-3 w-full rounded-lg overflow-hidden aspect-video bg-surface-700 relative group block text-left">
+          <img src={thumb} alt={opt.content?.title ?? opt.label} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-2xl drop-shadow">🔍</span>
+          </div>
+          {opt.content?.title && (
+            <p className="absolute bottom-0 left-0 right-0 px-3 py-2 bg-gradient-to-t from-black/70 to-transparent text-white text-xs truncate">
+              {opt.content.title}
+            </p>
+          )}
+        </button>
+      ) : (
+        <p className="text-gray-500 text-xs mt-0.5">{opt.content?.title}</p>
+      )}
       {canVote && opt.content?.mediaUrl && (
         <div className="mt-3">
           <AudioPlayer src={opt.content.mediaUrl} label={opt.content.title} />
@@ -178,13 +217,17 @@ function ArtistOptionBody({ opt }: { opt: PollOption }) {
   );
 }
 
-function CustomOptionBody({ opt }: { opt: PollOption }) {
+function CustomOptionBody({ opt, onExpand }: { opt: PollOption; onExpand: (src: string) => void }) {
   return (
     <>
       {opt.imageUrl && (
-        <div className="mt-3 rounded-lg overflow-hidden aspect-video bg-surface-700">
+        <button type="button" onClick={() => onExpand(opt.imageUrl!)}
+          className="mt-3 w-full rounded-lg overflow-hidden aspect-video bg-surface-700 relative group block text-left">
           <img src={opt.imageUrl} alt={opt.label} className="w-full h-full object-cover" />
-        </div>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-2xl drop-shadow">🔍</span>
+          </div>
+        </button>
       )}
       {opt.body && <p className="text-gray-400 text-sm mt-2 leading-relaxed">{opt.body}</p>}
     </>
@@ -201,6 +244,7 @@ export default function PollPage() {
   const [voting, setVoting]     = useState<string | null>(null);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(true);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
     api.get(`/polls/${id}`)
@@ -358,13 +402,13 @@ export default function PollPage() {
 
                 {/* Type-specific body */}
                 {poll.pollType === 'CONTENT_VOTE' && (
-                  <ContentOptionBody opt={opt} canVote={canVote} />
+                  <ContentOptionBody opt={opt} canVote={canVote} onExpand={setLightbox} />
                 )}
                 {poll.pollType === 'ARTIST_VOTE' && (
                   <ArtistOptionBody opt={opt} />
                 )}
                 {poll.pollType === 'CUSTOM' && (
-                  <CustomOptionBody opt={opt} />
+                  <CustomOptionBody opt={opt} onExpand={setLightbox} />
                 )}
 
                 {/* Results bar — only when closed */}
@@ -378,6 +422,8 @@ export default function PollPage() {
       </div>
 
       {error && <p className="mt-4 text-red-400 text-sm text-center">{error}</p>}
+
+      {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
     </div>
   );
 }

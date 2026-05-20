@@ -4254,6 +4254,7 @@ function AlbumsTab() {
             <option>Blues</option>
             <option>Bluegrass</option>
             <option>Boom Bap</option>
+            <option>Calypso</option>
             <option>Children's Music</option>
             <option>Chillhop</option>
             <option>Christian / Gospel</option>
@@ -4264,6 +4265,7 @@ function AlbumsTab() {
             <option>Contemporary R&amp;B</option>
             <option>Country</option>
             <option>Dance</option>
+            <option>Dancehall</option>
             <option>Dark Ambient</option>
             <option>Deep House</option>
             <option>Disco</option>
@@ -4283,30 +4285,36 @@ function AlbumsTab() {
             <option>Grunge</option>
             <option>Hard Rock</option>
             <option>Heavy Metal</option>
-            <option>Hip-Hop / Rap</option>
+            <option>Hip-Hop</option>
             <option>House</option>
             <option>Indie</option>
             <option>Indie Pop</option>
             <option>Indie Rock</option>
             <option>Inspirational</option>
             <option>Instrumental</option>
+            <option>JaFolk Mix</option>
             <option>Jazz</option>
             <option>Jazz Fusion</option>
             <option>K-Pop</option>
+            <option>Kumina</option>
             <option>Latin</option>
             <option>Lo-Fi</option>
             <option>Lo-Fi Hip-Hop</option>
+            <option>Lovers Rock</option>
             <option>Melodic Rap</option>
+            <option>Mento</option>
             <option>Metal</option>
             <option>Motivational / Spoken Word</option>
             <option>Motown</option>
             <option>Musical Theatre</option>
             <option>Neo-Soul</option>
             <option>New Age</option>
+            <option>Nyabinghi</option>
             <option>Oldies</option>
             <option>Opera</option>
             <option>Orchestral</option>
             <option>Piano</option>
+            <option>Pocomania</option>
             <option>Pop</option>
             <option>Pop Punk</option>
             <option>Pop Rap</option>
@@ -4316,15 +4324,23 @@ function AlbumsTab() {
             <option>Punk Rock</option>
             <option>Quiet Storm</option>
             <option>R&amp;B / Soul</option>
+            <option>Ragga</option>
+            <option>Rap</option>
             <option>Reggae</option>
+            <option>Reggae Fusion</option>
             <option>Reggaeton</option>
+            <option>Revival Zion</option>
             <option>Rock</option>
+            <option>Rocksteady</option>
             <option>Roots</option>
+            <option>Roots Reggae</option>
+            <option>Rub-A-Dub</option>
             <option>Sacred / Worship</option>
             <option>Singer-Songwriter</option>
             <option>Ska</option>
             <option>Smooth Jazz</option>
             <option>Soft Rock</option>
+            <option>Soca</option>
             <option>Soul</option>
             <option>Soundtrack / Score</option>
             <option>Southern Hip-Hop</option>

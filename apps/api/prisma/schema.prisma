@@ -42,6 +42,7 @@ model User {
   pollVotes              PollVote[]
   pollOptionsAsArtist    PollOption[] @relation("PollOptionArtist")
   orders                 Order[]
+  albums                 Album[]
 }
 
 model Token {
@@ -106,7 +107,7 @@ model Content {
 
   cardWidth  Int?    @default(224)
   cardAspect String? @default("video")
-  
+
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
@@ -116,13 +117,13 @@ model Content {
   notifications Notification[]
   reports       Report[]
   pollOptions   PollOption[]
+  albumTracks   AlbumTrack[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([creatorId])
   @@index([type, status, privacy])
-  
 }
 
 enum ContentType {
@@ -584,6 +585,39 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+}
+
+// ── Albums ────────────────────────────────────────────────────────────────────
+
+model Album {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  coverUrl    String?
+  releaseDate DateTime?
+  genre       String?
+  privacy     Privacy      @default(PUBLIC)
+  creatorId   String
+  creator     User         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  tracks      AlbumTrack[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([creatorId])
+  @@index([privacy, createdAt])
+}
+
+model AlbumTrack {
+  albumId     String
+  album       Album   @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  contentId   String
+  content     Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  trackNumber Int
+  discNumber  Int     @default(1)
+
+  @@id([albumId, contentId])
+  @@unique([albumId, discNumber, trackNumber])
+  @@index([contentId])
 }
 
 // ── Site Settings ─────────────────────────────────────────────────────────────

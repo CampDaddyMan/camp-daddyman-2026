@@ -40,7 +40,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -4108,6 +4108,301 @@ function FieldBlock({
   );
 }
 
+// ── Albums Tab ────────────────────────────────────────────────────────────────
+
+interface AlbumRow {
+  id: string; title: string; description: string | null; coverUrl: string | null;
+  releaseDate: string | null; genre: string | null; privacy: string;
+  creator: { username: string; displayName: string | null };
+  _count: { tracks: number };
+}
+
+interface AlbumTrackRow {
+  albumId: string; contentId: string; trackNumber: number; discNumber: number;
+  content: { id: string; title: string; duration: number | null; thumbnailUrl: string | null; creator: { username: string; displayName: string | null } };
+}
+
+interface MusicContent {
+  id: string; title: string; duration: number | null;
+  creator: { username: string; displayName: string | null };
+}
+
+function AlbumsTab() {
+  const [albums, setAlbums]             = useState<AlbumRow[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [editAlbum, setEditAlbum]       = useState<AlbumRow | null>(null);
+  const [tracks, setTracks]             = useState<AlbumTrackRow[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(false);
+  const [musicSearch, setMusicSearch]   = useState('');
+  const [musicResults, setMusicResults] = useState<MusicContent[]>([]);
+  const [showCreate, setShowCreate]     = useState(false);
+  const [saving, setSaving]             = useState(false);
+  const [coverFile, setCoverFile]       = useState<File | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const [form, setForm] = useState({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC' });
+
+  function resetForm() { setForm({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC' }); setCoverFile(null); }
+
+  useEffect(() => {
+    api.get('/albums').then((r) => setAlbums(r.data.albums)).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!editAlbum) return;
+    setTracksLoading(true);
+    api.get(`/albums/${editAlbum.id}`).then((r) => setTracks(r.data.album.tracks)).catch(() => {}).finally(() => setTracksLoading(false));
+  }, [editAlbum]);
+
+  useEffect(() => {
+    if (!musicSearch.trim()) { setMusicResults([]); return; }
+    const t = setTimeout(() => {
+      api.get('/content', { params: { type: 'MUSIC', search: musicSearch, limit: 10 } })
+        .then((r) => setMusicResults(r.data.content || r.data.items || []))
+        .catch(() => {});
+    }, 350);
+    return () => clearTimeout(t);
+  }, [musicSearch]);
+
+  async function handleCreate() {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    try {
+      const r = await api.post('/albums', { ...form, releaseDate: form.releaseDate || null, description: form.description || null, genre: form.genre || null });
+      const created = r.data.album;
+      if (coverFile) {
+        const fd = new FormData(); fd.append('cover', coverFile);
+        const cr = await api.post(`/albums/${created.id}/cover`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        created.coverUrl = cr.data.coverUrl;
+      }
+      setAlbums((prev) => [created, ...prev]);
+      setShowCreate(false); resetForm();
+    } catch { } finally { setSaving(false); }
+  }
+
+  async function handleUpdate() {
+    if (!editAlbum) return;
+    setSaving(true);
+    try {
+      await api.patch(`/albums/${editAlbum.id}`, { ...form, releaseDate: form.releaseDate || null, description: form.description || null, genre: form.genre || null });
+      if (coverFile) {
+        const fd = new FormData(); fd.append('cover', coverFile);
+        await api.post(`/albums/${editAlbum.id}/cover`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      }
+      const r = await api.get('/albums');
+      setAlbums(r.data.albums);
+      setEditAlbum(null); resetForm();
+    } catch { } finally { setSaving(false); }
+  }
+
+  async function handleAddTrack(content: MusicContent) {
+    if (!editAlbum) return;
+    const nextNum = tracks.length + 1;
+    try {
+      const r = await api.post(`/albums/${editAlbum.id}/tracks`, { contentId: content.id, trackNumber: nextNum, discNumber: 1 });
+      setTracks((prev) => [...prev, r.data.track]);
+      setMusicSearch(''); setMusicResults([]);
+    } catch { }
+  }
+
+  async function handleRemoveTrack(contentId: string) {
+    if (!editAlbum) return;
+    await api.delete(`/albums/${editAlbum.id}/tracks/${contentId}`).catch(() => {});
+    setTracks((prev) => prev.filter((t) => t.contentId !== contentId));
+  }
+
+  async function handleDelete(albumId: string) {
+    if (!confirm('Delete this album? Tracks are not deleted, only the grouping.')) return;
+    await api.delete(`/albums/${albumId}`).catch(() => {});
+    setAlbums((prev) => prev.filter((a) => a.id !== albumId));
+    if (editAlbum?.id === albumId) setEditAlbum(null);
+  }
+
+  function openEdit(album: AlbumRow) {
+    setEditAlbum(album);
+    setForm({ title: album.title, description: album.description || '', releaseDate: album.releaseDate ? album.releaseDate.slice(0, 10) : '', genre: album.genre || '', privacy: album.privacy });
+    setCoverFile(null);
+    setShowCreate(false);
+  }
+
+  function fmtDur(s: number | null) {
+    if (!s) return '';
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  const AlbumForm = () => (
+    <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
+      <h3 className="text-white font-semibold text-sm">{editAlbum ? 'Edit Album' : 'New Album'}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Title *</label>
+          <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Album title"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Genre</label>
+          <input value={form.genre} onChange={(e) => setForm((f) => ({ ...f, genre: e.target.value }))} placeholder="e.g. Hip-Hop, R&B"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Release Date</label>
+          <input type="date" value={form.releaseDate} onChange={(e) => setForm((f) => ({ ...f, releaseDate: e.target.value }))}
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Visibility</label>
+          <select value={form.privacy} onChange={(e) => setForm((f) => ({ ...f, privacy: e.target.value }))}
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+            <option value="PUBLIC">Public</option>
+            <option value="SUBSCRIBERS_ONLY">Subscribers Only</option>
+            <option value="PRIVATE">Private (Admin only)</option>
+          </select>
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Description</label>
+          <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} placeholder="Optional description"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Cover Art</label>
+          <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} />
+          <button onClick={() => coverInputRef.current?.click()}
+            className="px-4 py-2 bg-surface-800 border border-surface-600 text-gray-400 rounded-xl text-sm hover:border-surface-400 transition-colors">
+            {coverFile ? coverFile.name : 'Choose image…'}
+          </button>
+          {editAlbum?.coverUrl && !coverFile && (
+            <span className="ml-3 text-xs text-gray-600">Current cover saved</span>
+          )}
+        </div>
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button onClick={editAlbum ? handleUpdate : handleCreate} disabled={saving || !form.title.trim()}
+          className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
+          {saving ? 'Saving…' : editAlbum ? 'Save Changes' : 'Create Album'}
+        </button>
+        <button onClick={() => { setShowCreate(false); setEditAlbum(null); resetForm(); }}
+          className="px-5 py-2 bg-surface-700 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-white">Albums</h2>
+          <p className="text-gray-500 text-sm">{albums.length} album{albums.length !== 1 ? 's' : ''} · manage tracklists and artwork</p>
+        </div>
+        <button onClick={() => { setShowCreate(true); setEditAlbum(null); resetForm(); }}
+          className="px-4 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 transition-colors">
+          + New Album
+        </button>
+      </div>
+
+      {(showCreate && !editAlbum) && <AlbumForm />}
+
+      {editAlbum && (
+        <div className="space-y-4">
+          <AlbumForm />
+
+          {/* Track management */}
+          <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
+            <h3 className="text-white font-semibold text-sm">Tracklist — {editAlbum.title}</h3>
+
+            {/* Add track search */}
+            <div className="relative">
+              <input value={musicSearch} onChange={(e) => setMusicSearch(e.target.value)} placeholder="Search your music to add tracks…"
+                className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 placeholder:text-gray-700" />
+              {musicResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-surface-800 border border-surface-600 rounded-xl overflow-hidden shadow-xl">
+                  {musicResults.map((c) => (
+                    <button key={c.id} onClick={() => handleAddTrack(c)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-700 transition-colors text-left">
+                      <span className="text-sm text-white truncate">{c.title}</span>
+                      <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                        {fmtDur(c.duration)} · {c.creator.displayName || c.creator.username}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {tracksLoading ? (
+              <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-12 bg-surface-800 rounded-xl animate-pulse" />)}</div>
+            ) : tracks.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-4">No tracks yet. Search above to add songs.</p>
+            ) : (
+              <div className="space-y-1">
+                {tracks.sort((a, b) => a.discNumber - b.discNumber || a.trackNumber - b.trackNumber).map((t) => (
+                  <div key={t.contentId} className="flex items-center gap-3 px-3 py-2.5 bg-surface-800 rounded-xl group">
+                    <span className="text-gray-600 text-xs w-5 text-center">{t.trackNumber}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white truncate">{t.content.title}</p>
+                      <p className="text-xs text-gray-500">{fmtDur(t.content.duration)}</p>
+                    </div>
+                    <button onClick={() => handleRemoveTrack(t.contentId)}
+                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 text-xs px-2 py-1 transition-all">
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Album list */}
+      {loading ? (
+        <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-800 rounded-2xl animate-pulse" />)}</div>
+      ) : albums.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-4xl mb-3">🎵</p>
+          <p>No albums yet. Create your first one.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {albums.map((album) => (
+            <div key={album.id} className="flex items-center gap-4 bg-surface-800 border border-surface-700 rounded-2xl p-4">
+              <div className="w-14 h-14 bg-surface-700 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl">
+                {album.coverUrl ? (
+                  <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover" />
+                ) : '🎵'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm truncate">{album.title}</p>
+                <p className="text-gray-500 text-xs">
+                  {album._count.tracks} track{album._count.tracks !== 1 ? 's' : ''}
+                  {album.genre && ` · ${album.genre}`}
+                  {album.releaseDate && ` · ${new Date(album.releaseDate).getFullYear()}`}
+                  {album.privacy !== 'PUBLIC' && <span className="ml-1 text-yellow-600">· {album.privacy.replace('_', ' ').toLowerCase()}</span>}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a href={`/albums/${album.id}`} target="_blank" rel="noreferrer"
+                  className="text-xs px-3 py-1.5 bg-surface-700 text-gray-400 rounded-lg hover:bg-surface-600 transition-colors">
+                  View
+                </a>
+                <button onClick={() => openEdit(album)}
+                  className="text-xs px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors">
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(album.id)}
+                  className="text-xs px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors">
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsTab() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -4619,6 +4914,7 @@ function AdminInner() {
     { key: 'polls',     label: 'Polls',     emoji: '🗳️' },
     { key: 'partners',  label: 'Partners',  emoji: '🤝' },
     { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
+    { key: 'albums',    label: 'Albums',    emoji: '💿' },
     { key: 'settings',  label: 'Settings',   emoji: '🎨' },
   ];
 
@@ -4656,6 +4952,7 @@ function AdminInner() {
       {tab === 'polls'     && <PollsTab autoCreate={autoCreatePoll} />}
       {tab === 'partners'  && <PartnersTab />}
       {tab === 'shop'      && <ShopTab />}
+      {tab === 'albums'    && <AlbumsTab />}
       {tab === 'settings'  && <SettingsTab />}
     </div>
   );

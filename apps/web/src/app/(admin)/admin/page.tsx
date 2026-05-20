@@ -3823,6 +3823,8 @@ function HomepageContentSection() {
       <div className="space-y-3">
 
         <HpSection title="🎯 Hero">
+          <FieldBlock label="Est. line" textKey="hero_est" placeholder="Est. 2023"
+            cssKey="hero_est_css" cssClass="hero-est" fontSizeKey="hero_est_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Tagline" textKey="hero_tagline" placeholder="Discipline · Identity · Legacy"
             cssKey="hero_tagline_css" cssClass="hero-tagline" fontSizeKey="hero_tagline_font_size" lineHeightKey="hero_tagline_line_height" snippets={HP_SNIP} />
           <FieldBlock label="Headline" textKey="hero_headline" placeholder="Music. Film. Teachings."

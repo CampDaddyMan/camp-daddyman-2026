@@ -275,17 +275,17 @@ export default function HomePage() {
           </div>
 
           {/* Tagline from the badge */}
-          <p className="text-brand-400/80 text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em]">
+          <p className="hero-tagline text-brand-400/80 text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em]">
             {s('hero_tagline', 'Discipline · Identity · Legacy')}
           </p>
           <p className="text-gray-500 text-[10px] tracking-[0.3em] uppercase -mt-4">Est. 2023</p>
 
           {/* Headline */}
           <div>
-            <h1 className="text-4xl md:text-6xl font-bold text-camp-400 leading-tight tracking-tight">
+            <h1 className="hero-headline text-4xl md:text-6xl font-bold text-camp-400 leading-tight tracking-tight">
               {s('hero_headline', 'Music. Film. Teachings.')}
             </h1>
-            <p className="text-gray-400 text-base md:text-lg mt-3 max-w-lg mx-auto leading-relaxed">
+            <p className="hero-sub text-gray-400 text-base md:text-lg mt-3 max-w-lg mx-auto leading-relaxed">
               {s('hero_sub', 'Independent content rooted in the DaddyMan philosophy. Stream, follow creators, and join the community.')}
             </p>
           </div>
@@ -301,13 +301,13 @@ export default function HomePage() {
           <div className="flex gap-3 flex-wrap justify-center">
             <Link
               href="/browse"
-              className="bg-camp-500 hover:bg-camp-600 text-white px-7 py-3 rounded-xl text-sm font-semibold transition-colors shadow-[0_0_20px_rgba(2,65,25,0.5)]"
+              className="hero-cta-browse bg-camp-500 hover:bg-camp-600 text-white px-7 py-3 rounded-xl text-sm font-semibold transition-colors shadow-[0_0_20px_rgba(2,65,25,0.5)]"
             >
               {s('hero_cta_browse', 'Browse all')}
             </Link>
             <Link
               href="/register"
-              className="bg-brand-500 hover:bg-brand-600 text-black px-7 py-3 rounded-xl text-sm font-bold transition-colors shadow-[0_0_24px_rgba(248,194,2,0.3)]"
+              className="hero-cta-join bg-brand-500 hover:bg-brand-600 text-black px-7 py-3 rounded-xl text-sm font-bold transition-colors shadow-[0_0_24px_rgba(248,194,2,0.3)]"
             >
               {s('hero_cta_join', 'Join for free →')}
             </Link>
@@ -332,9 +332,9 @@ export default function HomePage() {
 
         {/* Section header */}
         <div className="mb-8 md:mb-10">
-          <p className="text-camp-400 text-base font-bold uppercase tracking-[0.35em] mb-3">{s('browse_eyebrow', 'Explore the Camp')}</p>
+          <p className="browse-eyebrow text-camp-400 text-base font-bold uppercase tracking-[0.35em] mb-3">{s('browse_eyebrow', 'Explore the Camp')}</p>
           <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
-            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
+            <h2 className="browse-title text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
               {s('browse_title', 'What are you feeling?')}
             </h2>
             <Link href="/browse" className="text-sm text-brand-400 hover:underline hidden sm:block flex-shrink-0 mb-1">
@@ -345,7 +345,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3 rounded-xl border border-surface-700 bg-surface-800/60 px-5 py-3.5">
             <span className="text-brand-400 text-xl flex-shrink-0">↓</span>
             <p className="text-gray-300 text-sm leading-relaxed">
-              <span className="text-white font-semibold">{s('browse_banner_bold', 'Pick your format')}</span> — {s('browse_banner_body', 'tap any category below to dive straight into the music, film, podcasts, spoken word, or teachings that move you.')}
+              <span className="browse-banner-bold text-white font-semibold">{s('browse_banner_bold', 'Pick your format')}</span> — <span className="browse-banner-body">{s('browse_banner_body', 'tap any category below to dive straight into the music, film, podcasts, spoken word, or teachings that move you.')}</span>
             </p>
           </div>
         </div>
@@ -459,32 +459,20 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50 bg-surface-800/40">
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-camp-400 text-sm uppercase tracking-[0.3em] mb-2">{s('pillars_eyebrow', 'The Foundation')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-white">{s('pillars_title', 'Built on three pillars')}</h2>
+            <p className="pillars-eyebrow text-camp-400 text-sm uppercase tracking-[0.3em] mb-2">{s('pillars_eyebrow', 'The Foundation')}</p>
+            <h2 className="pillars-title text-2xl md:text-3xl font-bold text-white">{s('pillars_title', 'Built on three pillars')}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
             {[
-              {
-                word: s('pillar1_word', 'Discipline'),
-                icon: s('pillar1_icon', '⚔️'),
-                body: s('pillar1_body', 'Consistent creative output rooted in craft, not trends. Every piece of content released here is intentional.'),
-              },
-              {
-                word: s('pillar2_word', 'Identity'),
-                icon: s('pillar2_icon', '👑'),
-                body: s('pillar2_body', 'Know who you are and let it shape your art. The DaddyMan philosophy starts with a clear sense of self.'),
-              },
-              {
-                word: s('pillar3_word', 'Legacy'),
-                icon: s('pillar3_icon', '🔥'),
-                body: s('pillar3_body', "Create work that lasts. Music, film, and teachings that your children's children will still draw from."),
-              },
+              { n: 1, word: s('pillar1_word', 'Discipline'), icon: s('pillar1_icon', '⚔️'), body: s('pillar1_body', 'Consistent creative output rooted in craft, not trends. Every piece of content released here is intentional.') },
+              { n: 2, word: s('pillar2_word', 'Identity'),   icon: s('pillar2_icon', '👑'), body: s('pillar2_body', 'Know who you are and let it shape your art. The DaddyMan philosophy starts with a clear sense of self.') },
+              { n: 3, word: s('pillar3_word', 'Legacy'),     icon: s('pillar3_icon', '🔥'), body: s('pillar3_body', "Create work that lasts. Music, film, and teachings that your children's children will still draw from.") },
             ].map((pillar) => (
-              <div key={pillar.word} className="relative group p-6 md:p-8 rounded-2xl border border-surface-700 hover:border-camp-500/40 bg-surface-800 hover:bg-surface-700/60 transition-all duration-200">
+              <div key={pillar.n} className="relative group p-6 md:p-8 rounded-2xl border border-surface-700 hover:border-camp-500/40 bg-surface-800 hover:bg-surface-700/60 transition-all duration-200">
                 <div className="absolute top-0 left-8 right-8 h-0.5 bg-gradient-to-r from-camp-500/60 via-brand-500/60 to-transparent rounded-full" />
-                <div className="text-4xl mb-4">{pillar.icon}</div>
-                <h3 className="text-brand-400 font-bold text-xl mb-3 tracking-wide">{pillar.word}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{pillar.body}</p>
+                <div className={`pillar${pillar.n}-icon text-4xl mb-4`}>{pillar.icon}</div>
+                <h3 className={`pillar${pillar.n}-word text-brand-400 font-bold text-xl mb-3 tracking-wide`}>{pillar.word}</h3>
+                <p className={`pillar${pillar.n}-body text-gray-400 text-sm leading-relaxed`}>{pillar.body}</p>
               </div>
             ))}
           </div>
@@ -495,23 +483,23 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50">
         <div className="max-w-5xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-2">{s('features_eyebrow', 'Why Join')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-white">{s('features_title', 'Everything in one place')}</h2>
+            <p className="features-eyebrow text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-2">{s('features_eyebrow', 'Why Join')}</p>
+            <h2 className="features-title text-2xl md:text-3xl font-bold text-white">{s('features_title', 'Everything in one place')}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {[
-              { icon: s('feature1_icon', '🎵'), title: s('feature1_title', 'Music & Film'), body: s('feature1_body', 'Stream original tracks, albums, short films, and full-length features from independent creators.') },
-              { icon: s('feature2_icon', '🎙️'), title: s('feature2_title', 'Podcasts & Teachings'), body: s('feature2_body', 'Weekly conversations, long-form interviews, and spoken word rooted in the DaddyMan philosophy.') },
-              { icon: s('feature3_icon', '🔒'), title: s('feature3_title', 'Members-only content'), body: s('feature3_body', "Subscriber access unlocks exclusive drops, extended cuts, and content you won't find anywhere else.") },
-              { icon: s('feature4_icon', '👥'), title: s('feature4_title', 'Follow creators'), body: s('feature4_body', 'Build your feed. When creators you follow drop something new, you hear about it first.') },
-              { icon: s('feature5_icon', '📱'), title: s('feature5_title', 'Watch anywhere'), body: s('feature5_body', 'Web and mobile — your watch history and progress sync across devices.') },
-              { icon: s('feature6_icon', '🏕️'), title: s('feature6_title', 'Join the Camp'), body: s('feature6_body', "This isn't just content. It's a community built on Discipline, Identity, and Legacy.") },
+              { n: 1, icon: s('feature1_icon', '🎵'), title: s('feature1_title', 'Music & Film'),         body: s('feature1_body', 'Stream original tracks, albums, short films, and full-length features from independent creators.') },
+              { n: 2, icon: s('feature2_icon', '🎙️'), title: s('feature2_title', 'Podcasts & Teachings'), body: s('feature2_body', 'Weekly conversations, long-form interviews, and spoken word rooted in the DaddyMan philosophy.') },
+              { n: 3, icon: s('feature3_icon', '🔒'), title: s('feature3_title', 'Members-only content'), body: s('feature3_body', "Subscriber access unlocks exclusive drops, extended cuts, and content you won't find anywhere else.") },
+              { n: 4, icon: s('feature4_icon', '👥'), title: s('feature4_title', 'Follow creators'),      body: s('feature4_body', 'Build your feed. When creators you follow drop something new, you hear about it first.') },
+              { n: 5, icon: s('feature5_icon', '📱'), title: s('feature5_title', 'Watch anywhere'),       body: s('feature5_body', 'Web and mobile — your watch history and progress sync across devices.') },
+              { n: 6, icon: s('feature6_icon', '🏕️'), title: s('feature6_title', 'Join the Camp'),        body: s('feature6_body', "This isn't just content. It's a community built on Discipline, Identity, and Legacy.") },
             ].map((f) => (
-              <div key={f.title} className="flex gap-4 p-5 rounded-2xl bg-surface-800 border border-surface-700">
-                <span className="text-2xl mt-0.5 shrink-0">{f.icon}</span>
+              <div key={f.n} className="flex gap-4 p-5 rounded-2xl bg-surface-800 border border-surface-700">
+                <span className={`feature${f.n}-icon text-2xl mt-0.5 shrink-0`}>{f.icon}</span>
                 <div>
-                  <p className="text-white font-semibold text-sm mb-1">{f.title}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed">{f.body}</p>
+                  <p className={`feature${f.n}-title text-white font-semibold text-sm mb-1`}>{f.title}</p>
+                  <p className={`feature${f.n}-body text-gray-500 text-sm leading-relaxed`}>{f.body}</p>
                 </div>
               </div>
             ))}
@@ -523,9 +511,9 @@ export default function HomePage() {
       <section className="border-t border-surface-700/50 bg-surface-800/30">
         <div className="max-w-5xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <p className="text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-2">{s('pricing_eyebrow', 'Membership')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-white">{s('pricing_title', 'Simple, transparent pricing')}</h2>
-            <p className="text-gray-400 text-sm mt-2">{s('pricing_sub', "Start free. Upgrade when you're ready.")}</p>
+            <p className="pricing-eyebrow text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-2">{s('pricing_eyebrow', 'Membership')}</p>
+            <h2 className="pricing-title text-2xl md:text-3xl font-bold text-white">{s('pricing_title', 'Simple, transparent pricing')}</h2>
+            <p className="pricing-sub text-gray-400 text-sm mt-2">{s('pricing_sub', "Start free. Upgrade when you're ready.")}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* FREE */}
@@ -638,18 +626,18 @@ export default function HomePage() {
       {/* ── Become a creator CTA ── */}
       <section className="border-t border-surface-700/50">
         <div className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-center">
-          <p className="text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-4">{s('creator_eyebrow', 'For Creators')}</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+          <p className="creator-eyebrow text-brand-400/70 text-sm uppercase tracking-[0.3em] mb-4">{s('creator_eyebrow', 'For Creators')}</p>
+          <h2 className="creator-headline text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
             {s('creator_headline', 'Your voice deserves its own platform.')}
           </h2>
-          <p className="text-gray-400 text-base md:text-lg mb-8 max-w-xl mx-auto">
+          <p className="creator-sub text-gray-400 text-base md:text-lg mb-8 max-w-xl mx-auto">
             {s('creator_sub', 'Upload your music, films, podcasts, and teachings. Grow a following, gate premium content, and get paid — on your terms.')}
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/register" className="bg-brand-500 hover:bg-brand-600 text-black font-bold px-8 py-3.5 rounded-xl text-sm transition-colors shadow-[0_0_30px_rgba(248,194,2,0.25)]">
+            <Link href="/register" className="creator-cta-start bg-brand-500 hover:bg-brand-600 text-black font-bold px-8 py-3.5 rounded-xl text-sm transition-colors shadow-[0_0_30px_rgba(248,194,2,0.25)]">
               {s('creator_cta_start', 'Start creating →')}
             </Link>
-            <Link href="/browse" className="border border-surface-600 hover:border-surface-500 text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-colors">
+            <Link href="/browse" className="creator-cta-explore border border-surface-600 hover:border-surface-500 text-gray-300 hover:text-white px-8 py-3.5 rounded-xl text-sm font-medium transition-colors">
               {s('creator_cta_explore', 'Explore first')}
             </Link>
           </div>

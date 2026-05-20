@@ -19,8 +19,31 @@ export const adminUpdateSetting = async (req: Request, res: Response) => {
 };
 
 export const getPublicCss = async (_req: Request, res: Response) => {
-  const row = await prisma.siteSetting.findUnique({ where: { key: 'custom_css' } });
-  res.json({ css: row?.value ?? '' });
+  const rows = await prisma.siteSetting.findMany();
+  const settings = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+
+  const classBlocks: Record<string, string[]> = {};
+
+  const addDecl = (rawKey: string, suffix: string, decl: (v: string) => string) => {
+    const value = settings[rawKey]?.trim();
+    if (!value) return;
+    const className = rawKey.slice(0, -suffix.length).replace(/_/g, '-');
+    if (!classBlocks[className]) classBlocks[className] = [];
+    classBlocks[className].push(decl(value));
+  };
+
+  for (const key of Object.keys(settings)) {
+    if (key.endsWith('_css'))         addDecl(key, '_css',         (v) => v);
+    else if (key.endsWith('_font_size'))   addDecl(key, '_font_size',   (v) => `font-size:${v};`);
+    else if (key.endsWith('_line_height')) addDecl(key, '_line_height', (v) => `line-height:${v};`);
+  }
+
+  const rules = Object.entries(classBlocks)
+    .map(([cls, decls]) => `.${cls}{${decls.join('')}}`)
+    .join('\n');
+
+  const custom = settings['custom_css']?.trim() ?? '';
+  res.json({ css: [rules, custom].filter(Boolean).join('\n') });
 };
 
 export const getPublicSettings = async (_req: Request, res: Response) => {

@@ -3772,142 +3772,147 @@ function ShopTab() {
 
 // ── Homepage Content Editor ───────────────────────────────────────────────────
 
-function HpField({ label, k, placeholder, multiline }: {
-  label: string; k: string; placeholder: string; multiline?: boolean;
-}) {
-  const { settings, set, loading } = useContext(SettingsCtx);
-  return (
-    <div>
-      <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">{label}</label>
-      <div className="flex gap-2 items-start">
-        {multiline ? (
-          <textarea
-            value={settings[k] ?? ''}
-            onChange={(e) => set(k, e.target.value)}
-            placeholder={placeholder}
-            disabled={loading}
-            rows={2}
-            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50 resize-none"
-          />
-        ) : (
-          <input
-            type="text"
-            value={settings[k] ?? ''}
-            onChange={(e) => set(k, e.target.value)}
-            placeholder={placeholder}
-            disabled={loading}
-            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-          />
-        )}
-        <SaveBtn k={k} />
-      </div>
-    </div>
-  );
-}
-
 function HpSection({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border border-surface-700 rounded-xl overflow-hidden">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-800/60 transition-colors"
-      >
+      <button onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-800/60 transition-colors">
         <span className="text-white font-semibold text-sm">{title}</span>
         <span className={`text-gray-400 text-lg transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>⌄</span>
       </button>
       {open && (
-        <div className="px-5 pb-5 pt-2 space-y-4 border-t border-surface-700/50">
-          {children}
-        </div>
+        <div className="px-5 pb-5 pt-2 space-y-6 border-t border-surface-700/50">{children}</div>
       )}
     </div>
   );
 }
+
+const HP_SNIP = [
+  { tag: 'bold',      css: 'font-weight: bold;' },
+  { tag: 'semibold',  css: 'font-weight: 600;' },
+  { tag: 'light',     css: 'font-weight: 300;' },
+  { tag: 'italic',    css: 'font-style: italic;' },
+  { tag: 'uppercase', css: 'text-transform: uppercase;' },
+  { tag: 'capitalize',css: 'text-transform: capitalize;' },
+  { tag: 'center',    css: 'text-align: center;' },
+  { tag: 'left',      css: 'text-align: left;' },
+  { tag: 'right',     css: 'text-align: right;' },
+  { tag: 'underline', css: 'text-decoration: underline;' },
+  { tag: 'strike',    css: 'text-decoration: line-through;' },
+  { tag: 'gold',      css: 'color: #e8b800;' },
+  { tag: 'green',     css: 'color: #024119;' },
+  { tag: 'white',     css: 'color: #ffffff;' },
+  { tag: 'muted',     css: 'color: #9ca3af;' },
+  { tag: 'wide',      css: 'letter-spacing: 0.1em;' },
+  { tag: 'wider',     css: 'letter-spacing: 0.25em;' },
+  { tag: 'tight',     css: 'letter-spacing: -0.02em;' },
+  { tag: 'shadow',    css: 'text-shadow: 0 2px 8px rgba(0,0,0,0.6);' },
+  { tag: 'glow-gold', css: 'text-shadow: 0 0 16px rgba(232,184,0,0.6);' },
+  { tag: 'no-wrap',   css: 'white-space: nowrap;' },
+  { tag: 'italic-off',css: 'font-style: normal;' },
+];
 
 function HomepageContentSection() {
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-white mb-1">Homepage Content</h2>
-        <p className="text-gray-500 text-sm">Edit every text section on the homepage. Click a section to expand it.</p>
+        <p className="text-gray-500 text-sm">Edit text, font size, line height, color, weight, decoration, alignment and any other CSS property for every section. Click a section to expand.</p>
       </div>
       <div className="space-y-3">
 
         <HpSection title="🎯 Hero">
-          <HpField k="hero_tagline"   label="Tagline"     placeholder="Discipline · Identity · Legacy" />
-          <HpField k="hero_headline"  label="Headline"    placeholder="Music. Film. Teachings." />
-          <HpField k="hero_sub"       label="Sub-text"    placeholder="Independent content rooted in the DaddyMan philosophy..." multiline />
-          <HpField k="hero_cta_browse" label="Browse CTA" placeholder="Browse all" />
-          <HpField k="hero_cta_join"  label="Join CTA"    placeholder="Join for free →" />
+          <FieldBlock label="Tagline" textKey="hero_tagline" placeholder="Discipline · Identity · Legacy"
+            cssKey="hero_tagline_css" cssClass="hero-tagline" fontSizeKey="hero_tagline_font_size" lineHeightKey="hero_tagline_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Headline" textKey="hero_headline" placeholder="Music. Film. Teachings."
+            cssKey="hero_headline_css" cssClass="hero-headline" fontSizeKey="hero_headline_font_size" lineHeightKey="hero_headline_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Sub-text" textKey="hero_sub" placeholder="Independent content rooted in the DaddyMan philosophy..."
+            cssKey="hero_sub_css" cssClass="hero-sub" fontSizeKey="hero_sub_font_size" lineHeightKey="hero_sub_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Browse CTA button" textKey="hero_cta_browse" placeholder="Browse all"
+            cssKey="hero_cta_browse_css" cssClass="hero-cta-browse" fontSizeKey="hero_cta_browse_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Join CTA button" textKey="hero_cta_join" placeholder="Join for free →"
+            cssKey="hero_cta_join_css" cssClass="hero-cta-join" fontSizeKey="hero_cta_join_font_size" snippets={HP_SNIP} />
         </HpSection>
 
         <HpSection title="🎵 Browse by Category">
-          <HpField k="browse_eyebrow"      label="Eyebrow"           placeholder="Explore the Camp" />
-          <HpField k="browse_title"        label="Title"             placeholder="What are you feeling?" />
-          <HpField k="browse_banner_bold"  label="Direction (bold)"  placeholder="Pick your format" />
-          <HpField k="browse_banner_body"  label="Direction (body)"  placeholder="tap any category below to dive straight into..." multiline />
+          <FieldBlock label="Eyebrow" textKey="browse_eyebrow" placeholder="Explore the Camp"
+            cssKey="browse_eyebrow_css" cssClass="browse-eyebrow" fontSizeKey="browse_eyebrow_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Title" textKey="browse_title" placeholder="What are you feeling?"
+            cssKey="browse_title_css" cssClass="browse-title" fontSizeKey="browse_title_font_size" lineHeightKey="browse_title_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Direction — bold text" textKey="browse_banner_bold" placeholder="Pick your format"
+            cssKey="browse_banner_bold_css" cssClass="browse-banner-bold" fontSizeKey="browse_banner_bold_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Direction — body text" textKey="browse_banner_body" placeholder="tap any category below to dive straight into..."
+            cssKey="browse_banner_body_css" cssClass="browse-banner-body" fontSizeKey="browse_banner_body_font_size" lineHeightKey="browse_banner_body_line_height" snippets={HP_SNIP} />
         </HpSection>
 
         <HpSection title="⚔️ Built on Three Pillars">
-          <HpField k="pillars_eyebrow" label="Eyebrow" placeholder="The Foundation" />
-          <HpField k="pillars_title"   label="Title"   placeholder="Built on three pillars" />
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-3">
-              <p className="text-xs text-brand-400/70 font-semibold uppercase tracking-wider">Pillar 1</p>
-              <HpField k="pillar1_icon" label="Icon"  placeholder="⚔️" />
-              <HpField k="pillar1_word" label="Word"  placeholder="Discipline" />
-              <HpField k="pillar1_body" label="Body"  placeholder="Consistent creative output..." multiline />
+          <FieldBlock label="Eyebrow" textKey="pillars_eyebrow" placeholder="The Foundation"
+            cssKey="pillars_eyebrow_css" cssClass="pillars-eyebrow" fontSizeKey="pillars_eyebrow_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Title" textKey="pillars_title" placeholder="Built on three pillars"
+            cssKey="pillars_title_css" cssClass="pillars-title" fontSizeKey="pillars_title_font_size" lineHeightKey="pillars_title_line_height" snippets={HP_SNIP} />
+          {[
+            { n: 1, iDef: '⚔️', wDef: 'Discipline', bDef: 'Consistent creative output rooted in craft, not trends.' },
+            { n: 2, iDef: '👑', wDef: 'Identity',   bDef: 'Know who you are and let it shape your art.' },
+            { n: 3, iDef: '🔥', wDef: 'Legacy',     bDef: 'Create work that lasts.' },
+          ].map(({ n, iDef, wDef, bDef }) => (
+            <div key={n} className="border border-surface-700/50 rounded-xl p-4 space-y-4">
+              <p className="text-xs text-brand-400/70 font-bold uppercase tracking-widest">Pillar {n}</p>
+              <FieldBlock label="Icon (emoji)" textKey={`pillar${n}_icon`} placeholder={iDef}
+                cssKey={`pillar${n}_icon_css`} cssClass={`pillar${n}-icon`} snippets={HP_SNIP} />
+              <FieldBlock label="Word / Title" textKey={`pillar${n}_word`} placeholder={wDef}
+                cssKey={`pillar${n}_word_css`} cssClass={`pillar${n}-word`} fontSizeKey={`pillar${n}_word_font_size`} lineHeightKey={`pillar${n}_word_line_height`} snippets={HP_SNIP} />
+              <FieldBlock label="Body text" textKey={`pillar${n}_body`} placeholder={bDef}
+                cssKey={`pillar${n}_body_css`} cssClass={`pillar${n}-body`} fontSizeKey={`pillar${n}_body_font_size`} lineHeightKey={`pillar${n}_body_line_height`} snippets={HP_SNIP} />
             </div>
-            <div className="space-y-3">
-              <p className="text-xs text-brand-400/70 font-semibold uppercase tracking-wider">Pillar 2</p>
-              <HpField k="pillar2_icon" label="Icon"  placeholder="👑" />
-              <HpField k="pillar2_word" label="Word"  placeholder="Identity" />
-              <HpField k="pillar2_body" label="Body"  placeholder="Know who you are..." multiline />
-            </div>
-            <div className="space-y-3">
-              <p className="text-xs text-brand-400/70 font-semibold uppercase tracking-wider">Pillar 3</p>
-              <HpField k="pillar3_icon" label="Icon"  placeholder="🔥" />
-              <HpField k="pillar3_word" label="Word"  placeholder="Legacy" />
-              <HpField k="pillar3_body" label="Body"  placeholder="Create work that lasts..." multiline />
-            </div>
-          </div>
+          ))}
         </HpSection>
 
         <HpSection title="✨ Everything in One Place">
-          <HpField k="features_eyebrow" label="Eyebrow" placeholder="Why Join" />
-          <HpField k="features_title"   label="Title"   placeholder="Everything in one place" />
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { n: 1, def_icon: '🎵', def_title: 'Music & Film',           def_body: 'Stream original tracks, albums, short films...' },
-              { n: 2, def_icon: '🎙️', def_title: 'Podcasts & Teachings',   def_body: 'Weekly conversations, long-form interviews...' },
-              { n: 3, def_icon: '🔒', def_title: 'Members-only content',   def_body: 'Subscriber access unlocks exclusive drops...' },
-              { n: 4, def_icon: '👥', def_title: 'Follow creators',        def_body: 'Build your feed. When creators you follow...' },
-              { n: 5, def_icon: '📱', def_title: 'Watch anywhere',         def_body: 'Web and mobile — your watch history syncs...' },
-              { n: 6, def_icon: '🏕️', def_title: 'Join the Camp',          def_body: "This isn't just content..." },
-            ].map(({ n, def_icon, def_title, def_body }) => (
-              <div key={n} className="space-y-2 p-3 bg-surface-900/40 rounded-xl">
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Feature {n}</p>
-                <HpField k={`feature${n}_icon`}  label="Icon"  placeholder={def_icon} />
-                <HpField k={`feature${n}_title`} label="Title" placeholder={def_title} />
-                <HpField k={`feature${n}_body`}  label="Body"  placeholder={def_body} multiline />
-              </div>
-            ))}
-          </div>
+          <FieldBlock label="Eyebrow" textKey="features_eyebrow" placeholder="Why Join"
+            cssKey="features_eyebrow_css" cssClass="features-eyebrow" fontSizeKey="features_eyebrow_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Title" textKey="features_title" placeholder="Everything in one place"
+            cssKey="features_title_css" cssClass="features-title" fontSizeKey="features_title_font_size" lineHeightKey="features_title_line_height" snippets={HP_SNIP} />
+          {[
+            { n: 1, iDef: '🎵', tDef: 'Music & Film',         bDef: 'Stream original tracks, albums, short films...' },
+            { n: 2, iDef: '🎙️', tDef: 'Podcasts & Teachings', bDef: 'Weekly conversations, long-form interviews...' },
+            { n: 3, iDef: '🔒', tDef: 'Members-only content', bDef: 'Subscriber access unlocks exclusive drops...' },
+            { n: 4, iDef: '👥', tDef: 'Follow creators',      bDef: 'Build your feed...' },
+            { n: 5, iDef: '📱', tDef: 'Watch anywhere',       bDef: 'Web and mobile — your watch history syncs...' },
+            { n: 6, iDef: '🏕️', tDef: 'Join the Camp',        bDef: "This isn't just content..." },
+          ].map(({ n, iDef, tDef, bDef }) => (
+            <div key={n} className="border border-surface-700/50 rounded-xl p-4 space-y-4">
+              <p className="text-xs text-brand-400/70 font-bold uppercase tracking-widest">Feature {n}</p>
+              <FieldBlock label="Icon (emoji)" textKey={`feature${n}_icon`} placeholder={iDef}
+                cssKey={`feature${n}_icon_css`} cssClass={`feature${n}-icon`} snippets={HP_SNIP} />
+              <FieldBlock label="Title" textKey={`feature${n}_title`} placeholder={tDef}
+                cssKey={`feature${n}_title_css`} cssClass={`feature${n}-title`} fontSizeKey={`feature${n}_title_font_size`} snippets={HP_SNIP} />
+              <FieldBlock label="Body text" textKey={`feature${n}_body`} placeholder={bDef}
+                cssKey={`feature${n}_body_css`} cssClass={`feature${n}-body`} fontSizeKey={`feature${n}_body_font_size`} lineHeightKey={`feature${n}_body_line_height`} snippets={HP_SNIP} />
+            </div>
+          ))}
         </HpSection>
 
         <HpSection title="💳 Pricing Section">
-          <HpField k="pricing_eyebrow" label="Eyebrow"  placeholder="Membership" />
-          <HpField k="pricing_title"   label="Title"    placeholder="Simple, transparent pricing" />
-          <HpField k="pricing_sub"     label="Subtitle" placeholder="Start free. Upgrade when you're ready." />
+          <FieldBlock label="Eyebrow" textKey="pricing_eyebrow" placeholder="Membership"
+            cssKey="pricing_eyebrow_css" cssClass="pricing-eyebrow" fontSizeKey="pricing_eyebrow_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Title" textKey="pricing_title" placeholder="Simple, transparent pricing"
+            cssKey="pricing_title_css" cssClass="pricing-title" fontSizeKey="pricing_title_font_size" lineHeightKey="pricing_title_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Subtitle" textKey="pricing_sub" placeholder="Start free. Upgrade when you're ready."
+            cssKey="pricing_sub_css" cssClass="pricing-sub" fontSizeKey="pricing_sub_font_size" lineHeightKey="pricing_sub_line_height" snippets={HP_SNIP} />
         </HpSection>
 
         <HpSection title="🎤 Creator CTA">
-          <HpField k="creator_eyebrow"      label="Eyebrow"       placeholder="For Creators" />
-          <HpField k="creator_headline"     label="Headline"      placeholder="Your voice deserves its own platform." />
-          <HpField k="creator_sub"          label="Body"          placeholder="Upload your music, films, podcasts..." multiline />
-          <HpField k="creator_cta_start"    label="Primary CTA"   placeholder="Start creating →" />
-          <HpField k="creator_cta_explore"  label="Secondary CTA" placeholder="Explore first" />
+          <FieldBlock label="Eyebrow" textKey="creator_eyebrow" placeholder="For Creators"
+            cssKey="creator_eyebrow_css" cssClass="creator-eyebrow" fontSizeKey="creator_eyebrow_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Headline" textKey="creator_headline" placeholder="Your voice deserves its own platform."
+            cssKey="creator_headline_css" cssClass="creator-headline" fontSizeKey="creator_headline_font_size" lineHeightKey="creator_headline_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Body text" textKey="creator_sub" placeholder="Upload your music, films, podcasts..."
+            cssKey="creator_sub_css" cssClass="creator-sub" fontSizeKey="creator_sub_font_size" lineHeightKey="creator_sub_line_height" snippets={HP_SNIP} />
+          <FieldBlock label="Primary CTA button" textKey="creator_cta_start" placeholder="Start creating →"
+            cssKey="creator_cta_start_css" cssClass="creator-cta-start" fontSizeKey="creator_cta_start_font_size" snippets={HP_SNIP} />
+          <FieldBlock label="Secondary CTA button" textKey="creator_cta_explore" placeholder="Explore first"
+            cssKey="creator_cta_explore_css" cssClass="creator-cta-explore" fontSizeKey="creator_cta_explore_font_size" snippets={HP_SNIP} />
         </HpSection>
 
       </div>

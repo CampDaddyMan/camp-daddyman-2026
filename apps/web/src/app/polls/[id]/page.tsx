@@ -47,6 +47,10 @@ interface Poll {
 
 // ── Mini audio player ─────────────────────────────────────────────────────────
 
+// Module-level singleton: whichever audio element is currently playing.
+// When a new one starts, this reference is paused first.
+let activeAudio: HTMLAudioElement | null = null;
+
 function AudioPlayer({ src, label }: { src: string; label: string }) {
   const ref = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -55,8 +59,14 @@ function AudioPlayer({ src, label }: { src: string; label: string }) {
   function toggle() {
     const el = ref.current;
     if (!el) return;
-    playing ? el.pause() : el.play();
-    setPlaying(!playing);
+    if (playing) {
+      el.pause();
+    } else {
+      // Stop whichever player is currently active before starting this one
+      if (activeAudio && activeAudio !== el) activeAudio.pause();
+      activeAudio = el;
+      el.play();
+    }
   }
 
   return (
@@ -74,6 +84,8 @@ function AudioPlayer({ src, label }: { src: string; label: string }) {
       <audio ref={ref} src={src}
         controlsList="nodownload"
         onContextMenu={(e) => e.preventDefault()}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onTimeUpdate={() => {
           const el = ref.current;
           if (el?.duration) setProgress((el.currentTime / el.duration) * 100);

@@ -10,6 +10,7 @@ interface Poll {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   pollType: PollType;
   status: 'ACTIVE' | 'CLOSED';
   endsAt: string | null;
@@ -32,46 +33,53 @@ function PollCard({ poll }: { poll: Poll }) {
 
   return (
     <Link href={`/polls/${poll.id}`}
-      className="block bg-surface-800 border border-surface-700 hover:border-surface-500 rounded-2xl p-5 transition-colors group">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${meta.color}`}>
-            {meta.emoji} {meta.label}
-          </span>
-          {closed ? (
-            <span className="text-xs px-2.5 py-1 rounded-full bg-surface-700 text-gray-500">Closed · Results live</span>
-          ) : soon ? (
-            <span className="text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 font-medium">Ending soon</span>
-          ) : (
-            <span className="text-xs px-2.5 py-1 rounded-full bg-green-500/20 text-green-400">Voting open</span>
+      className="block bg-surface-800 border border-surface-700 hover:border-surface-500 rounded-2xl overflow-hidden transition-colors group">
+      {poll.imageUrl && (
+        <div className="aspect-video bg-surface-700 overflow-hidden">
+          <img src={poll.imageUrl} alt={poll.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+        </div>
+      )}
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${meta.color}`}>
+              {meta.emoji} {meta.label}
+            </span>
+            {closed ? (
+              <span className="text-xs px-2.5 py-1 rounded-full bg-surface-700 text-gray-500">Closed · Results live</span>
+            ) : soon ? (
+              <span className="text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 font-medium">Ending soon</span>
+            ) : (
+              <span className="text-xs px-2.5 py-1 rounded-full bg-green-500/20 text-green-400">Voting open</span>
+            )}
+          </div>
+          <span className="text-brand-400 text-sm group-hover:translate-x-0.5 transition-transform flex-shrink-0">→</span>
+        </div>
+
+        <h2 className="text-white font-semibold text-base mb-1 group-hover:text-brand-400 transition-colors line-clamp-2">
+          {poll.title}
+        </h2>
+        {poll.description && (
+          <p className="text-gray-500 text-sm line-clamp-2 mb-3">{poll.description}</p>
+        )}
+
+        <div className="flex items-center gap-3 text-xs text-gray-500 mt-3 pt-3 border-t border-surface-700">
+          <span>{poll._count.options} options</span>
+          <span>·</span>
+          <span>{poll._count.votes} vote{poll._count.votes !== 1 ? 's' : ''}</span>
+          {expires && !closed && (
+            <>
+              <span>·</span>
+              <span>Ends {expires.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            </>
+          )}
+          {closed && poll.endsAt && (
+            <>
+              <span>·</span>
+              <span>Closed {new Date(poll.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            </>
           )}
         </div>
-        <span className="text-brand-400 text-sm group-hover:translate-x-0.5 transition-transform flex-shrink-0">→</span>
-      </div>
-
-      <h2 className="text-white font-semibold text-base mb-1 group-hover:text-brand-400 transition-colors line-clamp-2">
-        {poll.title}
-      </h2>
-      {poll.description && (
-        <p className="text-gray-500 text-sm line-clamp-2 mb-3">{poll.description}</p>
-      )}
-
-      <div className="flex items-center gap-3 text-xs text-gray-500 mt-3 pt-3 border-t border-surface-700">
-        <span>{poll._count.options} options</span>
-        <span>·</span>
-        <span>{poll._count.votes} vote{poll._count.votes !== 1 ? 's' : ''}</span>
-        {expires && !closed && (
-          <>
-            <span>·</span>
-            <span>Ends {expires.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-          </>
-        )}
-        {closed && poll.endsAt && (
-          <>
-            <span>·</span>
-            <span>Closed {new Date(poll.endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-          </>
-        )}
       </div>
     </Link>
   );

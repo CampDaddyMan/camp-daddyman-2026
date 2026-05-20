@@ -15,6 +15,7 @@ interface ActivePoll {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   pollType: string;
   status: string;
   endsAt: string | null;
@@ -33,12 +34,15 @@ function HomePollBanner({ poll }: { poll: ActivePoll }) {
   return (
     <Link
       href={`/polls/${poll.id}`}
-      className="group flex items-center gap-4 bg-surface-800 border border-brand-500/30 hover:border-brand-500/60 rounded-2xl px-6 py-5 transition-all hover:shadow-[0_0_24px_rgba(248,194,2,0.1)]"
+      className="group flex items-center gap-4 bg-surface-800 border border-brand-500/30 hover:border-brand-500/60 rounded-2xl overflow-hidden transition-all hover:shadow-[0_0_24px_rgba(248,194,2,0.1)]"
     >
-      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-brand-500/15 flex items-center justify-center text-2xl">
-        {TYPE_EMOJI[poll.pollType] ?? '🗳️'}
+      <div className="flex-shrink-0 w-20 h-20 bg-brand-500/15 flex items-center justify-center text-2xl overflow-hidden">
+        {poll.imageUrl
+          ? <img src={poll.imageUrl} alt="" className="w-full h-full object-cover" />
+          : <span>{TYPE_EMOJI[poll.pollType] ?? '🗳️'}</span>
+        }
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 py-5 pr-6">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
             isClosed ? 'bg-surface-600 text-gray-400' : 'bg-brand-500/20 text-brand-400'
@@ -53,7 +57,7 @@ function HomePollBanner({ poll }: { poll: ActivePoll }) {
           <p className="text-gray-500 text-xs mt-0.5 line-clamp-1">{poll.description}</p>
         )}
       </div>
-      <span className="text-brand-400 text-lg flex-shrink-0 group-hover:translate-x-1 transition-transform">→</span>
+      <span className="text-brand-400 text-lg flex-shrink-0 mr-6 group-hover:translate-x-1 transition-transform">→</span>
     </Link>
   );
 }

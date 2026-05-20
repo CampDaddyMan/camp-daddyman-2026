@@ -33,6 +33,7 @@ interface Poll {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   pollType: PollType;
   status: 'ACTIVE' | 'CLOSED';
   endsAt: string | null;
@@ -237,6 +238,11 @@ export default function PollPage() {
     <div className="max-w-2xl mx-auto px-4 py-10">
       {/* Header */}
       <div className="mb-8">
+        {poll.imageUrl && (
+          <div className="rounded-2xl overflow-hidden aspect-video bg-surface-800 mb-6">
+            <img src={poll.imageUrl} alt={poll.title} className="w-full h-full object-cover" />
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="text-xs px-2.5 py-1 rounded-full bg-surface-700 text-gray-400 font-medium">
             {TYPE_LABEL[poll.pollType]}

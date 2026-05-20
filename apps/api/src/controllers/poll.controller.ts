@@ -139,7 +139,12 @@ export async function listPolls(req: AuthRequest, res: Response) {
     },
   });
 
-  res.json({ polls });
+  const signed = await Promise.all(polls.map(async (p) => ({
+    ...p,
+    imageUrl: await signR2Url(p.imageUrl),
+  })));
+
+  res.json({ polls: signed });
 }
 
 // ── Get single poll (public, auth optional) ───────────────────────────────────
@@ -184,8 +189,9 @@ export async function getPoll(req: AuthRequest, res: Response) {
     : null;
 
   const enriched = await enrichOptions(poll.options, poll.pollType, showCounts);
+  const signedImageUrl = await signR2Url((poll as any).imageUrl);
 
-  res.json({ poll: { ...poll, options: enriched }, myVoteOptionId: myVote?.optionId ?? null });
+  res.json({ poll: { ...poll, imageUrl: signedImageUrl, options: enriched }, myVoteOptionId: myVote?.optionId ?? null });
 }
 
 // ── Cast / change vote (paid subscribers only) ────────────────────────────────
@@ -219,15 +225,27 @@ export async function castVote(req: AuthRequest, res: Response) {
 // ── Update poll metadata (admin only, votes unaffected) ──────────────────────
 
 export async function updatePoll(req: AuthRequest, res: Response) {
-  const poll = await prisma.poll.findUnique({ where: { id: req.params.id }, select: { id: true } });
-  if (!poll) return res.status(404).json({ error: 'Poll not found' });
+  const existing = await prisma.poll.findUnique({ where: { id: req.params.id }, select: { id: true, pollType: true } });
+  if (!existing) return res.status(404).json({ error: 'Poll not found' });
 
-  const { title, description, endsAt, imageUrl } = req.body;
+  const { title, description, endsAt, imageUrl, pollType, options } = req.body;
   const data: Record<string, any> = {};
   if (title       !== undefined) data.title       = String(title).trim();
   if (description !== undefined) data.description = description?.trim() || null;
   if (endsAt      !== undefined) data.endsAt      = endsAt ? new Date(endsAt) : null;
   if (imageUrl    !== undefined) data.imageUrl     = imageUrl || null;
+  if (pollType    !== undefined) data.pollType     = pollType;
+
+  if (options !== undefined && Array.isArray(options)) {
+    const newType: string = pollType ?? existing.pollType;
+    const optionData = (options as any[]).map((opt: any, i: number) => {
+      const base = { label: opt.label?.trim() || `Option ${i + 1}`, order: i };
+      if (newType === 'CONTENT_VOTE') return { ...base, contentId: opt.contentId };
+      if (newType === 'ARTIST_VOTE')  return { ...base, artistId: opt.artistId };
+      return { ...base, imageUrl: opt.imageUrl || null, body: opt.body || null };
+    });
+    data.options = { deleteMany: {}, create: optionData };
+  }
 
   const updated = await prisma.poll.update({
     where: { id: req.params.id },

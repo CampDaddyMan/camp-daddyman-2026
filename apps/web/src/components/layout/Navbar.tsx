@@ -170,6 +170,12 @@ export default function Navbar() {
           </div>
 
           <Link
+            href="/albums"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname?.startsWith('/albums') ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            Albums
+          </Link>
+          <Link
             href="/polls"
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/polls' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
           >
@@ -316,6 +322,7 @@ export default function Navbar() {
 
           {/* Community */}
           <MobileSection label="Community">
+            <MobileLink href="/albums" onClick={() => setMobileOpen(false)}>Albums</MobileLink>
             <MobileLink href="/polls" onClick={() => setMobileOpen(false)}>Polls</MobileLink>
             <MobileLink href="/partners" onClick={() => setMobileOpen(false)}>Partners</MobileLink>
           </MobileSection>

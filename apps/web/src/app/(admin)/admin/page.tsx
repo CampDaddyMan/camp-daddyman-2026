@@ -3770,6 +3770,151 @@ function ShopTab() {
   );
 }
 
+// ── Homepage Content Editor ───────────────────────────────────────────────────
+
+function HpField({ label, k, placeholder, multiline }: {
+  label: string; k: string; placeholder: string; multiline?: boolean;
+}) {
+  const { settings, set, loading } = useContext(SettingsCtx);
+  return (
+    <div>
+      <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">{label}</label>
+      <div className="flex gap-2 items-start">
+        {multiline ? (
+          <textarea
+            value={settings[k] ?? ''}
+            onChange={(e) => set(k, e.target.value)}
+            placeholder={placeholder}
+            disabled={loading}
+            rows={2}
+            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50 resize-none"
+          />
+        ) : (
+          <input
+            type="text"
+            value={settings[k] ?? ''}
+            onChange={(e) => set(k, e.target.value)}
+            placeholder={placeholder}
+            disabled={loading}
+            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+          />
+        )}
+        <SaveBtn k={k} />
+      </div>
+    </div>
+  );
+}
+
+function HpSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-surface-700 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-800/60 transition-colors"
+      >
+        <span className="text-white font-semibold text-sm">{title}</span>
+        <span className={`text-gray-400 text-lg transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>⌄</span>
+      </button>
+      {open && (
+        <div className="px-5 pb-5 pt-2 space-y-4 border-t border-surface-700/50">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HomepageContentSection() {
+  return (
+    <div>
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-1">Homepage Content</h2>
+        <p className="text-gray-500 text-sm">Edit every text section on the homepage. Click a section to expand it.</p>
+      </div>
+      <div className="space-y-3">
+
+        <HpSection title="🎯 Hero">
+          <HpField k="hero_tagline"   label="Tagline"     placeholder="Discipline · Identity · Legacy" />
+          <HpField k="hero_headline"  label="Headline"    placeholder="Music. Film. Teachings." />
+          <HpField k="hero_sub"       label="Sub-text"    placeholder="Independent content rooted in the DaddyMan philosophy..." multiline />
+          <HpField k="hero_cta_browse" label="Browse CTA" placeholder="Browse all" />
+          <HpField k="hero_cta_join"  label="Join CTA"    placeholder="Join for free →" />
+        </HpSection>
+
+        <HpSection title="🎵 Browse by Category">
+          <HpField k="browse_eyebrow"      label="Eyebrow"           placeholder="Explore the Camp" />
+          <HpField k="browse_title"        label="Title"             placeholder="What are you feeling?" />
+          <HpField k="browse_banner_bold"  label="Direction (bold)"  placeholder="Pick your format" />
+          <HpField k="browse_banner_body"  label="Direction (body)"  placeholder="tap any category below to dive straight into..." multiline />
+        </HpSection>
+
+        <HpSection title="⚔️ Built on Three Pillars">
+          <HpField k="pillars_eyebrow" label="Eyebrow" placeholder="The Foundation" />
+          <HpField k="pillars_title"   label="Title"   placeholder="Built on three pillars" />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-3">
+              <p className="text-xs text-brand-400/70 font-semibold uppercase tracking-wider">Pillar 1</p>
+              <HpField k="pillar1_icon" label="Icon"  placeholder="⚔️" />
+              <HpField k="pillar1_word" label="Word"  placeholder="Discipline" />
+              <HpField k="pillar1_body" label="Body"  placeholder="Consistent creative output..." multiline />
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs text-brand-400/70 font-semibold uppercase tracking-wider">Pillar 2</p>
+              <HpField k="pillar2_icon" label="Icon"  placeholder="👑" />
+              <HpField k="pillar2_word" label="Word"  placeholder="Identity" />
+              <HpField k="pillar2_body" label="Body"  placeholder="Know who you are..." multiline />
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs text-brand-400/70 font-semibold uppercase tracking-wider">Pillar 3</p>
+              <HpField k="pillar3_icon" label="Icon"  placeholder="🔥" />
+              <HpField k="pillar3_word" label="Word"  placeholder="Legacy" />
+              <HpField k="pillar3_body" label="Body"  placeholder="Create work that lasts..." multiline />
+            </div>
+          </div>
+        </HpSection>
+
+        <HpSection title="✨ Everything in One Place">
+          <HpField k="features_eyebrow" label="Eyebrow" placeholder="Why Join" />
+          <HpField k="features_title"   label="Title"   placeholder="Everything in one place" />
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { n: 1, def_icon: '🎵', def_title: 'Music & Film',           def_body: 'Stream original tracks, albums, short films...' },
+              { n: 2, def_icon: '🎙️', def_title: 'Podcasts & Teachings',   def_body: 'Weekly conversations, long-form interviews...' },
+              { n: 3, def_icon: '🔒', def_title: 'Members-only content',   def_body: 'Subscriber access unlocks exclusive drops...' },
+              { n: 4, def_icon: '👥', def_title: 'Follow creators',        def_body: 'Build your feed. When creators you follow...' },
+              { n: 5, def_icon: '📱', def_title: 'Watch anywhere',         def_body: 'Web and mobile — your watch history syncs...' },
+              { n: 6, def_icon: '🏕️', def_title: 'Join the Camp',          def_body: "This isn't just content..." },
+            ].map(({ n, def_icon, def_title, def_body }) => (
+              <div key={n} className="space-y-2 p-3 bg-surface-900/40 rounded-xl">
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Feature {n}</p>
+                <HpField k={`feature${n}_icon`}  label="Icon"  placeholder={def_icon} />
+                <HpField k={`feature${n}_title`} label="Title" placeholder={def_title} />
+                <HpField k={`feature${n}_body`}  label="Body"  placeholder={def_body} multiline />
+              </div>
+            ))}
+          </div>
+        </HpSection>
+
+        <HpSection title="💳 Pricing Section">
+          <HpField k="pricing_eyebrow" label="Eyebrow"  placeholder="Membership" />
+          <HpField k="pricing_title"   label="Title"    placeholder="Simple, transparent pricing" />
+          <HpField k="pricing_sub"     label="Subtitle" placeholder="Start free. Upgrade when you're ready." />
+        </HpSection>
+
+        <HpSection title="🎤 Creator CTA">
+          <HpField k="creator_eyebrow"      label="Eyebrow"       placeholder="For Creators" />
+          <HpField k="creator_headline"     label="Headline"      placeholder="Your voice deserves its own platform." />
+          <HpField k="creator_sub"          label="Body"          placeholder="Upload your music, films, podcasts..." multiline />
+          <HpField k="creator_cta_start"    label="Primary CTA"   placeholder="Start creating →" />
+          <HpField k="creator_cta_explore"  label="Secondary CTA" placeholder="Explore first" />
+        </HpSection>
+
+      </div>
+    </div>
+  );
+}
+
 // ── Settings Tab ──────────────────────────────────────────────────────────────
 
 interface SettingsCtxType {
@@ -4027,6 +4172,9 @@ function SettingsTab() {
       {error && (
         <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
       )}
+
+      {/* ── Homepage Content ── */}
+      <HomepageContentSection />
 
       {/* ── Shop Page Content ── */}
       <div>

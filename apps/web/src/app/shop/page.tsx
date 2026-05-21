@@ -216,9 +216,10 @@ export default function ShopPage() {
 
       {/* ── Hero: Ark banner — full width, natural height, no cropping ────── */}
       {(() => {
-        const arkUrl     = siteSettings.ark_banner_url || 'https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg';
-        const arkType    = siteSettings.ark_banner_type || 'image';
-        const arkOverlay = parseFloat(siteSettings.ark_banner_overlay || '0');
+        const arkUrl      = siteSettings.ark_banner_url || 'https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg';
+        const arkType     = siteSettings.ark_banner_type || 'image';
+        const arkOverlay  = parseFloat(siteSettings.ark_banner_overlay || '0');
+        const arkGradient = Math.min(400, Math.max(0, parseInt(siteSettings.ark_banner_gradient || '0', 10)));
         return (
           <section className="w-full bg-black relative">
             {arkType === 'video' ? (
@@ -232,6 +233,10 @@ export default function ShopPage() {
             )}
             {arkOverlay > 0 && (
               <div className="absolute inset-0 bg-black" style={{ opacity: arkOverlay }} />
+            )}
+            {arkGradient > 0 && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
+                style={{ height: `${arkGradient}px` }} />
             )}
           </section>
         );

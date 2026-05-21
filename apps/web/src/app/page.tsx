@@ -241,9 +241,10 @@ export default function HomePage() {
   }
 
 
-  const cinematicUrl     = siteSettings.home_cinematic_url;
-  const cinematicType    = siteSettings.home_cinematic_type || 'image';
-  const cinematicOverlay = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
+  const cinematicUrl      = siteSettings.home_cinematic_url;
+  const cinematicType     = siteSettings.home_cinematic_type || 'image';
+  const cinematicOverlay  = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
+  const cinematicGradient = Math.min(400, Math.max(0, parseInt(siteSettings.home_cinematic_gradient || '0', 10)));
 
   return (
     <div>
@@ -264,6 +265,10 @@ export default function HomePage() {
           )}
           {cinematicOverlay > 0 && (
             <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
+          )}
+          {cinematicGradient > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-surface-900 to-transparent pointer-events-none"
+              style={{ height: `${cinematicGradient}px` }} />
           )}
         </section>
       )}

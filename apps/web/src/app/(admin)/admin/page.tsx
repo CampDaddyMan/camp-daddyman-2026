@@ -4092,6 +4092,25 @@ function CinematicBannerAdmin() {
         </div>
       </div>
 
+      <div>
+        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+          Bottom Gradient Height <span className="text-gray-600 font-normal normal-case">(0 = none · 400 = 400px fade into page · default 0)</span>
+        </label>
+        <div className="flex gap-3 items-center">
+          <input
+            type="range" min="0" max="400" step="8"
+            value={settings['home_cinematic_gradient'] ?? '0'}
+            onChange={(e) => set('home_cinematic_gradient', e.target.value)}
+            disabled={loading}
+            className="flex-1 accent-brand-500"
+          />
+          <span className="text-white text-sm w-14 text-center font-mono tabular-nums">
+            {settings['home_cinematic_gradient'] ?? '0'}px
+          </span>
+          <SaveBtn k="home_cinematic_gradient" />
+        </div>
+      </div>
+
     </div>
   );
 }
@@ -4964,6 +4983,24 @@ function SettingsTab() {
               {parseFloat(settings['ark_banner_overlay'] ?? '0').toFixed(2)}
             </span>
             <SaveBtn k="ark_banner_overlay" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Bottom Gradient Height <span className="text-gray-600 font-normal normal-case">(0 = none · 400 = 400px fade into page · default 0)</span>
+          </label>
+          <div className="flex gap-3 items-center">
+            <input type="range" min="0" max="400" step="8"
+              value={settings['ark_banner_gradient'] ?? '0'}
+              onChange={(e) => set('ark_banner_gradient', e.target.value)}
+              disabled={loading}
+              className="flex-1 accent-brand-500"
+            />
+            <span className="text-white text-sm w-14 text-center font-mono tabular-nums">
+              {settings['ark_banner_gradient'] ?? '0'}px
+            </span>
+            <SaveBtn k="ark_banner_gradient" />
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { AuthRequest } from '../middleware/auth';
 import { notify } from '../utils/notifications';
+import { signR2Url } from '../utils/s3';
 
 export async function getCreator(req: AuthRequest, res: Response) {
   const creator = await prisma.user.findUnique({
@@ -17,7 +18,6 @@ export async function getCreator(req: AuthRequest, res: Response) {
     return res.status(404).json({ error: 'Creator not found' });
   }
 
-  // Check if the requesting user follows this creator
   let isFollowing = false;
   if (req.user) {
     const follow = await prisma.follow.findUnique({
@@ -26,7 +26,8 @@ export async function getCreator(req: AuthRequest, res: Response) {
     isFollowing = !!follow;
   }
 
-  res.json({ creator: { ...creator, isFollowing } });
+  const signedAvatar = await signR2Url(creator.avatar ?? null);
+  res.json({ creator: { ...creator, avatar: signedAvatar, isFollowing } });
 }
 
 export async function toggleFollow(req: AuthRequest, res: Response) {
@@ -109,7 +110,7 @@ export async function getFollowingFeed(req: AuthRequest, res: Response) {
 }
 
 export async function getCreatorContent(req: Request, res: Response) {
-  const { type, page = '1', limit = '12' } = req.query;
+  const { type, page = '1', limit = '12', sort = 'latest' } = req.query;
 
   const creator = await prisma.user.findUnique({
     where: { username: req.params.username },
@@ -119,23 +120,34 @@ export async function getCreatorContent(req: Request, res: Response) {
   if (!creator) return res.status(404).json({ error: 'Creator not found' });
 
   const where: any = { creatorId: creator.id, status: 'ACTIVE', privacy: 'PUBLIC' };
-  if (type) where.type = String(type).toUpperCase();
+  if (type) {
+    const types = String(type).split(',').map((t) => t.trim().toUpperCase()).filter(Boolean);
+    where.type = types.length === 1 ? types[0] : { in: types };
+  }
 
-  const [items, total] = await Promise.all([
+  const orderBy = sort === 'popular' ? { views: 'desc' as const } : { createdAt: 'desc' as const };
+
+  const [raw, total] = await Promise.all([
     prisma.content.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       skip: (Number(page) - 1) * Number(limit),
       take: Number(limit),
       select: {
         id: true, title: true, description: true, type: true, status: true, privacy: true,
-        thumbnailUrl: true, hlsUrl: true, duration: true, views: true, tags: true, createdAt: true,
+        thumbnailUrl: true, mediaUrl: true, hlsUrl: true, duration: true, views: true, tags: true, createdAt: true,
         creator: { select: { username: true, displayName: true, avatar: true } },
         _count: { select: { likes: true, comments: true } },
       },
     }),
     prisma.content.count({ where }),
   ]);
+
+  const items = await Promise.all(raw.map(async (item) => ({
+    ...item,
+    thumbnailUrl: await signR2Url(item.thumbnailUrl),
+    creator: { ...item.creator, avatar: await signR2Url(item.creator.avatar ?? null) },
+  })));
 
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }

@@ -5,9 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { usePlayer } from '@/context/PlayerContext';
 import { Content, Comment } from '@/types';
 import Button from '@/components/ui/Button';
 import AdSlot from '@/components/ads/AdSlot';
+
+const AUDIO_TYPES = ['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'];
 
 // Native HLS player using hls.js (falls back to native <video> on Safari)
 function HlsVideoPlayer({
@@ -311,6 +314,7 @@ function MiniContentCard({ item }: { item: RelatedContent }) {
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const player = usePlayer();
   const [content, setContent] = useState<Content | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
@@ -382,6 +386,26 @@ export default function WatchPage() {
       saveProgress(currentProgressRef.current);
     };
   }, [id, user, saveProgress]);
+
+  // Auto-load audio content into global mini-player
+  useEffect(() => {
+    if (!content || !AUDIO_TYPES.includes(content.type) || !content.mediaUrl) return;
+    player.play({
+      id: content.id,
+      title: content.title,
+      creator: content.creator.displayName || content.creator.username,
+      mediaUrl: content.mediaUrl,
+      thumbnailUrl: content.thumbnailUrl ?? null,
+      type: content.type,
+    });
+  }, [content?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync global player progress → currentProgressRef so API progress saving works for audio
+  useEffect(() => {
+    if (content && AUDIO_TYPES.includes(content.type)) {
+      currentProgressRef.current = player.progress;
+    }
+  }, [player.progress, content?.type]);
 
   async function handleLike() {
     if (!user) return;
@@ -456,7 +480,11 @@ export default function WatchPage() {
   }
 
   function handleResume() {
-    seekTo(savedProgress);
+    if (AUDIO_TYPES.includes(content!.type)) {
+      player.seek(savedProgress);
+    } else {
+      seekTo(savedProgress);
+    }
     setHasResumed(true);
     setShowResumeBanner(false);
   }
@@ -497,27 +525,35 @@ export default function WatchPage() {
               </a>
             )}
           </div>
-        ) : ['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(content.type) ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6">
-            <div className="text-5xl mb-4">
-              {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : content.type === 'DADDYMAN_ISMS' ? '💡' : '🎤'}
-            </div>
-            <p className="text-white font-semibold text-center mb-6 line-clamp-2">{content.title}</p>
-            <audio
-              src={content.mediaUrl ?? undefined}
-              controls
-              controlsList="nodownload"
-              className="w-full max-w-md"
-              onContextMenu={(e) => e.preventDefault()}
-              onLoadedMetadata={() => handlePlayerReady()}
-              onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLAudioElement).currentTime; }}
-              onError={(e) => {
-                const code = (e.target as HTMLAudioElement).error?.code;
-                if (code === 3) setError('Decode error — file may be corrupt. Try re-uploading as MP3.');
-                else if (code === 4) setError('File not found or access denied.');
-                else setError('Playback error. Please try again.');
-              }}
-            />
+        ) : AUDIO_TYPES.includes(content.type) ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6 gap-2">
+            {content.thumbnailUrl ? (
+              <img src={content.thumbnailUrl} alt={content.title}
+                className="w-28 h-28 rounded-2xl object-cover mb-2 shadow-lg" />
+            ) : (
+              <div className="text-5xl mb-2">
+                {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : content.type === 'DADDYMAN_ISMS' ? '💡' : '🎤'}
+              </div>
+            )}
+            <p className="text-white font-semibold text-center line-clamp-2">{content.title}</p>
+            <p className="text-gray-400 text-sm">{content.creator.displayName || content.creator.username}</p>
+            <button
+              onClick={player.toggle}
+              className="mt-3 w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-400 text-black flex items-center justify-center text-xl font-bold transition-colors"
+            >
+              {player.playing && player.track?.id === content.id ? '❚❚' : '▶'}
+            </button>
+            {player.track?.id === content.id && player.duration > 0 && (
+              <div className="w-full max-w-sm mt-4 flex items-center gap-3">
+                <span className="text-gray-500 text-xs font-mono tabular-nums w-10 text-right">{formatTime(player.progress)}</span>
+                <input
+                  type="range" min={0} max={player.duration} step={1} value={player.progress}
+                  onChange={(e) => player.seek(Number(e.target.value))}
+                  className="flex-1 accent-brand-500 cursor-pointer h-1"
+                />
+                <span className="text-gray-500 text-xs font-mono tabular-nums w-10">{formatTime(player.duration)}</span>
+              </div>
+            )}
           </div>
         ) : (
           <>

@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - gcr.io/camp-daddyman-2026/camp-daddyman-api
+      - -f
+      - apps/api/Dockerfile
+      - .
+images:
+  - gcr.io/camp-daddyman-2026/camp-daddyman-api

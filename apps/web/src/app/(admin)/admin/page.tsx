@@ -4029,6 +4029,7 @@ function CinematicBannerAdmin() {
             disabled={loading}
             className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
           />
+          <UploadBannerBtn settingKey="home_cinematic_url" />
           <SaveBtn k="home_cinematic_url" />
         </div>
       </div>
@@ -4255,6 +4256,51 @@ function SaveBtn({ k }: { k: string }) {
     >
       {saving === k ? 'Saving…' : saved === k ? '✓ Saved' : 'Save'}
     </button>
+  );
+}
+
+function UploadBannerBtn({ settingKey }: { settingKey: string }) {
+  const { set } = useContext(SettingsCtx);
+  const [uploading, setUploading] = useState(false);
+  const [done, setDone] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setDone(false);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const { data } = await api.post('/admin/settings/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      set(settingKey, data.url);
+      await api.put('/admin/settings', { key: settingKey, value: data.url });
+      setDone(true);
+      setTimeout(() => setDone(false), 2500);
+    } catch {}
+    finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className={`px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-colors disabled:opacity-50 ${
+          done ? 'bg-camp-500 text-white' : 'bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-white'
+        }`}
+      >
+        {uploading ? 'Uploading…' : done ? '✓ Saved' : '⬆ Upload'}
+      </button>
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFile} />
+    </>
   );
 }
 
@@ -4928,6 +4974,7 @@ function SettingsTab() {
               disabled={loading}
               className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
             />
+            <UploadBannerBtn settingKey="ark_banner_url" />
             <SaveBtn k="ark_banner_url" />
           </div>
         </div>

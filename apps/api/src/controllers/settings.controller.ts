@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
+import type { AuthRequest } from '../middleware/auth';
 
 export const adminGetSettings = async (_req: Request, res: Response) => {
   const rows = await prisma.siteSetting.findMany();
@@ -44,6 +45,14 @@ export const getPublicCss = async (_req: Request, res: Response) => {
 
   const custom = settings['custom_css']?.trim() ?? '';
   res.json({ css: [rules, custom].filter(Boolean).join('\n') });
+};
+
+export const adminUploadSettingsImage = async (req: AuthRequest, res: Response) => {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) { res.status(400).json({ error: 'No image file provided' }); return; }
+  const { uploadToS3 } = await import('../utils/s3');
+  const url = await uploadToS3(file, 'settings');
+  res.json({ url });
 };
 
 export const getPublicSettings = async (_req: Request, res: Response) => {

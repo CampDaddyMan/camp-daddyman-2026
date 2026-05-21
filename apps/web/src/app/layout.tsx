@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { PlayerProvider } from '@/context/PlayerContext';
 import Navbar from '@/components/layout/Navbar';
+import MiniPlayer from '@/components/layout/MiniPlayer';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://campdaddyman.com';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
@@ -54,11 +56,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
         <AuthProvider>
           <CartProvider>
-            <Navbar />
-            <main className="min-h-screen">{children}</main>
-            <footer className="border-t border-surface-700 py-8 text-center text-sm text-gray-500">
-              © {new Date().getFullYear()} Camp DaddyMan. All rights reserved.
-            </footer>
+            <PlayerProvider>
+              <Navbar />
+              <main className="min-h-screen pb-24">{children}</main>
+              <footer className="border-t border-surface-700 py-8 text-center text-sm text-gray-500">
+                © {new Date().getFullYear()} Camp DaddyMan. All rights reserved.
+              </footer>
+              <MiniPlayer />
+            </PlayerProvider>
           </CartProvider>
         </AuthProvider>
       </body>

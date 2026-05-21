@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { usePlayer } from '@/context/PlayerContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -47,25 +48,22 @@ interface Poll {
 
 // ── Mini audio player ─────────────────────────────────────────────────────────
 
-// Module-level singleton: whichever audio element is currently playing.
-// When a new one starts, this reference is paused first.
-let activeAudio: HTMLAudioElement | null = null;
-
-function AudioPlayer({ src, label }: { src: string; label: string }) {
-  const ref = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+function AudioPlayer({
+  contentId, src, label, thumbnailUrl, type, creator,
+}: {
+  contentId: string; src: string; label: string;
+  thumbnailUrl: string | null; type: string; creator: string;
+}) {
+  const player = usePlayer();
+  const isThis = player.track?.id === contentId;
+  const isPlaying = isThis && player.playing;
+  const pct = isThis && player.duration > 0 ? (player.progress / player.duration) * 100 : 0;
 
   function toggle() {
-    const el = ref.current;
-    if (!el) return;
-    if (playing) {
-      el.pause();
+    if (isThis) {
+      player.toggle();
     } else {
-      // Stop whichever player is currently active before starting this one
-      if (activeAudio && activeAudio !== el) activeAudio.pause();
-      activeAudio = el;
-      el.play();
+      player.play({ id: contentId, title: label, creator, mediaUrl: src, thumbnailUrl, type });
     }
   }
 
@@ -73,25 +71,14 @@ function AudioPlayer({ src, label }: { src: string; label: string }) {
     <div className="flex items-center gap-3 bg-surface-900 rounded-lg px-3 py-2">
       <button onClick={toggle}
         className="w-9 h-9 rounded-full bg-brand-500 hover:bg-brand-400 text-black flex items-center justify-center flex-shrink-0 transition-colors text-sm">
-        {playing ? '❚❚' : '▶'}
+        {isPlaying ? '❚❚' : '▶'}
       </button>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-gray-400 truncate">{label}</p>
         <div className="h-1 bg-surface-600 rounded-full mt-1 overflow-hidden">
-          <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
-      <audio ref={ref} src={src}
-        controlsList="nodownload"
-        onContextMenu={(e) => e.preventDefault()}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onTimeUpdate={() => {
-          const el = ref.current;
-          if (el?.duration) setProgress((el.currentTime / el.duration) * 100);
-        }}
-        onEnded={() => { setPlaying(false); setProgress(0); }}
-      />
     </div>
   );
 }
@@ -137,7 +124,9 @@ function ResultBar({ votes, total, isMyPick }: { votes: number; total: number; i
   );
 }
 
-function ContentOptionBody({ opt, canVote, onExpand }: { opt: PollOption; canVote: boolean; onExpand: (src: string) => void }) {
+function ContentOptionBody({ opt, canVote, creator, onExpand }: {
+  opt: PollOption; canVote: boolean; creator: string; onExpand: (src: string) => void;
+}) {
   const thumb = opt.content?.thumbnailUrl;
   return (
     <>
@@ -159,7 +148,14 @@ function ContentOptionBody({ opt, canVote, onExpand }: { opt: PollOption; canVot
       )}
       {canVote && opt.content?.mediaUrl && (
         <div className="mt-3">
-          <AudioPlayer src={opt.content.mediaUrl} label={opt.content.title} />
+          <AudioPlayer
+            contentId={opt.content.id}
+            src={opt.content.mediaUrl}
+            label={opt.content.title}
+            thumbnailUrl={opt.content.thumbnailUrl}
+            type={opt.content.type}
+            creator={creator}
+          />
         </div>
       )}
     </>
@@ -402,7 +398,7 @@ export default function PollPage() {
 
                 {/* Type-specific body */}
                 {poll.pollType === 'CONTENT_VOTE' && (
-                  <ContentOptionBody opt={opt} canVote={canVote} onExpand={setLightbox} />
+                  <ContentOptionBody opt={opt} canVote={canVote} creator={poll.creator.displayName || poll.creator.username} onExpand={setLightbox} />
                 )}
                 {poll.pollType === 'ARTIST_VOTE' && (
                   <ArtistOptionBody opt={opt} />

@@ -343,7 +343,7 @@ export async function searchContent(req: AuthRequest, res: Response) {
 
   if (type) where.type = String(type).toUpperCase();
 
-  const [items, total] = await Promise.all([
+  const [raw, total] = await Promise.all([
     prisma.content.findMany({
       where,
       orderBy: { views: 'desc' },
@@ -359,6 +359,11 @@ export async function searchContent(req: AuthRequest, res: Response) {
     }),
     prisma.content.count({ where }),
   ]);
+
+  const items = await Promise.all(raw.map(async (item) => ({
+    ...item,
+    thumbnailUrl: await signR2Url(item.thumbnailUrl),
+  })));
 
   res.json({ items, total, query: term, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }

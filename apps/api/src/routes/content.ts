@@ -18,6 +18,7 @@ import {
   getProgress,
   getWatchHistory,
   getRelatedContent,
+  getLikedContent,
   reportContent,
   unreportContent,
 } from '../controllers/content.controller';
@@ -53,6 +54,7 @@ router.get('/', optionalAuthMiddleware, readLimiter, listContent);
 router.get('/discover', optionalAuthMiddleware, readLimiter, getDiscovery);
 router.get('/search', optionalAuthMiddleware, searchLimiter, searchContent);
 router.get('/history', authMiddleware, readLimiter, getWatchHistory);
+router.get('/liked', authMiddleware, readLimiter, getLikedContent);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getContent);
 router.get('/:id/comments', readLimiter, getComments);
 router.get('/:id/related', optionalAuthMiddleware, readLimiter, getRelatedContent);

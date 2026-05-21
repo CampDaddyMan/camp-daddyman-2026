@@ -90,7 +90,7 @@ export async function getFollowingFeed(req: AuthRequest, res: Response) {
     privacy: isPaid ? { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } : 'PUBLIC' as const,
   };
 
-  const [items, total] = await Promise.all([
+  const [raw, total] = await Promise.all([
     prisma.content.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -105,6 +105,12 @@ export async function getFollowingFeed(req: AuthRequest, res: Response) {
     }),
     prisma.content.count({ where }),
   ]);
+
+  const items = await Promise.all(raw.map(async (item) => ({
+    ...item,
+    thumbnailUrl: await signR2Url(item.thumbnailUrl),
+    creator: { ...item.creator, avatar: await signR2Url(item.creator.avatar ?? null) },
+  })));
 
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }

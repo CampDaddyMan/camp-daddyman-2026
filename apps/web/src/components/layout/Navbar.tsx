@@ -88,13 +88,18 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [browseOpen, setBrowseOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const browseRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (browseRef.current && !browseRef.current.contains(e.target as Node)) {
         setBrowseOpen(false);
+      }
+      if (userRef.current && !userRef.current.contains(e.target as Node)) {
+        setUserOpen(false);
       }
     }
     document.addEventListener('mousedown', handler);
@@ -240,9 +245,31 @@ export default function Navbar() {
           {user ? (
             <>
               <NotificationBell />
-              <Link href="/dashboard" className="text-sm text-gray-300 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-surface-800 max-w-[120px] truncate">
-                {user.displayName || user.username}
-              </Link>
+
+              {/* User dropdown */}
+              <div className="relative" ref={userRef}>
+                <button
+                  onClick={() => setUserOpen((o) => !o)}
+                  className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-surface-800 max-w-[130px]"
+                >
+                  <span className="truncate">{user.displayName || user.username}</span>
+                  <IconChevron open={userOpen} />
+                </button>
+                {userOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-44 bg-surface-800 border border-surface-600/60 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+                    <Link href="/dashboard" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Dashboard</Link>
+                    <Link href="/feed" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Following</Link>
+                    <Link href="/liked" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Liked</Link>
+                    <Link href="/history" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Watch History</Link>
+                    <Link href="/shop/orders" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">My Orders</Link>
+                    <div className="border-t border-surface-700 my-1" />
+                    <button onClick={() => { logout(); setUserOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-500 hover:text-white hover:bg-surface-700 transition-colors">
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <Link href="/upload" className="text-sm bg-surface-700 hover:bg-surface-600 border border-surface-600 hover:border-surface-500 text-gray-200 px-3 py-1.5 rounded-lg font-medium transition-all">
                 Upload
               </Link>
@@ -251,9 +278,6 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
-              <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-                Sign out
-              </button>
             </>
           ) : (
             <>
@@ -351,9 +375,11 @@ export default function Navbar() {
           {/* Account */}
           {user ? (
             <MobileSection label="Account">
-              <MobileLink href="/feed" onClick={() => setMobileOpen(false)}>Following</MobileLink>
-              <MobileLink href="/notifications" onClick={() => setMobileOpen(false)}>Notifications</MobileLink>
               <MobileLink href="/dashboard" onClick={() => setMobileOpen(false)}>{user.displayName || user.username}</MobileLink>
+              <MobileLink href="/feed" onClick={() => setMobileOpen(false)}>Following</MobileLink>
+              <MobileLink href="/liked" onClick={() => setMobileOpen(false)}>Liked</MobileLink>
+              <MobileLink href="/history" onClick={() => setMobileOpen(false)}>Watch History</MobileLink>
+              <MobileLink href="/notifications" onClick={() => setMobileOpen(false)}>Notifications</MobileLink>
               <MobileLink href="/shop/orders" onClick={() => setMobileOpen(false)}>My Orders</MobileLink>
               <MobileLink href="/upload" onClick={() => setMobileOpen(false)}>Upload</MobileLink>
               {user.isAdmin && (

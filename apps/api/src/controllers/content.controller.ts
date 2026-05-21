@@ -510,6 +510,40 @@ export async function getWatchHistory(req: AuthRequest, res: Response) {
   res.json({ items });
 }
 
+export async function getLikedContent(req: AuthRequest, res: Response) {
+  const { page = '1', limit = '12' } = req.query;
+  const take = Number(limit);
+  const skip = (Number(page) - 1) * take;
+
+  const [raw, total] = await Promise.all([
+    prisma.like.findMany({
+      where: { userId: req.user!.id, content: { status: 'ACTIVE' } },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+      select: {
+        createdAt: true,
+        content: {
+          select: {
+            id: true, title: true, type: true, status: true, privacy: true,
+            thumbnailUrl: true, mediaUrl: true, duration: true, views: true, tags: true, createdAt: true,
+            creator: { select: { username: true, displayName: true, avatar: true } },
+            _count: { select: { likes: true, comments: true } },
+          },
+        },
+      },
+    }),
+    prisma.like.count({ where: { userId: req.user!.id, content: { status: 'ACTIVE' } } }),
+  ]);
+
+  const items = await Promise.all(raw.map(async ({ content: c }) => ({
+    ...c,
+    thumbnailUrl: await signR2Url(c.thumbnailUrl),
+  })));
+
+  res.json({ items, total, page: Number(page), pages: Math.ceil(total / take) });
+}
+
 export async function getRelatedContent(req: AuthRequest, res: Response) {
   const content = await prisma.content.findUnique({
     where: { id: req.params.id },

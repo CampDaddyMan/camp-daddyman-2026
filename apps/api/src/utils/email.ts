@@ -16,14 +16,24 @@ function base(title: string, body: string) {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>${title}</title>
 </head>
-<body style="margin:0;padding:0;background:#0f0f17;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f17;padding:40px 20px;">
+<body style="margin:0;padding:0;background:#0d0d14;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d14;padding:40px 20px;">
     <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:16px;overflow:hidden;border:1px solid #2e2e3e;">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#141420;border-radius:16px;overflow:hidden;border:1px solid #222232;">
         <!-- Header -->
         <tr>
-          <td style="background:#a78bfa;padding:24px 32px;">
-            <h1 style="margin:0;color:#000;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${APP_NAME}</h1>
+          <td style="background:#f8c202;padding:20px 32px;">
+            <table cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td>
+                  <h1 style="margin:0;color:#000;font-size:18px;font-weight:900;letter-spacing:-0.3px;">${APP_NAME}</h1>
+                  <p style="margin:2px 0 0;color:#000;opacity:0.55;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;">Discipline · Identity · Legacy</p>
+                </td>
+                <td align="right">
+                  <span style="font-size:28px;line-height:1;">🏕️</span>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
         <!-- Body -->
@@ -34,9 +44,9 @@ function base(title: string, body: string) {
         </tr>
         <!-- Footer -->
         <tr>
-          <td style="padding:16px 32px 24px;border-top:1px solid #2e2e3e;">
-            <p style="margin:0;color:#555;font-size:12px;text-align:center;">
-              You received this email from ${APP_NAME}.<br/>
+          <td style="padding:16px 32px 24px;border-top:1px solid #222232;">
+            <p style="margin:0;color:#444;font-size:12px;text-align:center;">
+              You received this email from ${APP_NAME} · <a href="${APP_URL}" style="color:#f8c202;text-decoration:none;">campdaddyman.com</a><br/>
               If you didn't request this, you can safely ignore it.
             </p>
           </td>
@@ -49,7 +59,7 @@ function base(title: string, body: string) {
 }
 
 function btn(href: string, label: string) {
-  return `<a href="${href}" style="display:inline-block;background:#a78bfa;color:#000;font-weight:700;font-size:15px;text-decoration:none;padding:14px 32px;border-radius:10px;margin-top:8px;">${label}</a>`;
+  return `<a href="${href}" style="display:inline-block;background:#f8c202;color:#000;font-weight:700;font-size:15px;text-decoration:none;padding:14px 32px;border-radius:10px;margin-top:8px;">${label}</a>`;
 }
 
 function h2(text: string) {

@@ -33,13 +33,13 @@ function PollCard({ poll }: { poll: Poll }) {
 
   return (
     <Link href={`/polls/${poll.id}`}
-      className="block bg-surface-800 border border-surface-700 hover:border-surface-500 rounded-2xl overflow-hidden transition-colors group">
+      className="flex items-stretch bg-surface-800 border border-surface-700 hover:border-surface-500 rounded-2xl overflow-hidden transition-colors group">
       {poll.imageUrl && (
-        <div className="aspect-video bg-surface-700 overflow-hidden">
-          <img src={poll.imageUrl} alt={poll.title} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+        <div className="flex-shrink-0 w-24 bg-surface-700 overflow-hidden">
+          <img src={poll.imageUrl} alt={poll.title} className="w-full h-full object-cover" />
         </div>
       )}
-      <div className="p-5">
+      <div className="flex-1 min-w-0 p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${meta.color}`}>

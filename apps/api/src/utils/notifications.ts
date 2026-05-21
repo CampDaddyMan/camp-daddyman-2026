@@ -55,10 +55,13 @@ export async function notifyFollowers(creatorId: string, contentId: string) {
 
 async function sendFollowerEmail(recipientId: string, actorId: string) {
   const [recipient, actor] = await Promise.all([
-    prisma.user.findUnique({ where: { id: recipientId }, select: { email: true, username: true, emailVerified: true } }),
-    prisma.user.findUnique({ where: { id: actorId },    select: { username: true, displayName: true } }),
+    prisma.user.findUnique({
+      where: { id: recipientId },
+      select: { email: true, username: true, emailVerified: true, emailNewFollower: true },
+    }),
+    prisma.user.findUnique({ where: { id: actorId }, select: { username: true, displayName: true } }),
   ]);
-  if (!recipient?.emailVerified || !actor) return;
+  if (!recipient?.emailVerified || !recipient.emailNewFollower || !actor) return;
   await sendNewFollowerEmail(
     recipient.email,
     recipient.username,
@@ -75,9 +78,9 @@ async function sendContentEmail(
 ) {
   const recipient = await prisma.user.findUnique({
     where: { id: recipientId },
-    select: { email: true, username: true, emailVerified: true },
+    select: { email: true, username: true, emailVerified: true, emailNewContent: true },
   });
-  if (!recipient?.emailVerified) return;
+  if (!recipient?.emailVerified || !recipient.emailNewContent) return;
   await sendNewContentEmail(
     recipient.email,
     recipient.username,

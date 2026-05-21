@@ -319,6 +319,7 @@ export default function WatchPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [subRequired, setSubRequired] = useState(false);
   const [preview, setPreview] = useState<PreviewContent | null>(null);
@@ -342,7 +343,7 @@ export default function WatchPage() {
 
   useEffect(() => {
     api.get(`/content/${id}`)
-      .then((r) => { setContent(r.data.content); setLiked(r.data.isLiked ?? false); })
+      .then((r) => { setContent(r.data.content); setLiked(r.data.isLiked ?? false); setSaved(r.data.isSaved ?? false); })
       .catch((err) => {
         if (err.response?.data?.requiresSubscription) {
           setSubRequired(true);
@@ -411,6 +412,12 @@ export default function WatchPage() {
     if (!user) return;
     const { data } = await api.post(`/content/${id}/like`);
     setLiked(data.liked);
+  }
+
+  async function handleSave() {
+    if (!user) return;
+    const { data } = await api.post(`/content/${id}/save`);
+    setSaved(data.saved);
   }
 
   async function handleComment(e: React.FormEvent) {
@@ -497,7 +504,7 @@ export default function WatchPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Player */}
-      <div className="aspect-video bg-black rounded-2xl overflow-hidden mb-3 relative">
+      <div className={`${content.type === 'BOOK' ? 'min-h-[75vh]' : 'aspect-video'} bg-black rounded-2xl overflow-hidden mb-3 relative`}>
         {content.status === 'PROCESSING' ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-900">
             <div className="w-10 h-10 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
@@ -511,20 +518,22 @@ export default function WatchPage() {
             onProgress={(s) => { currentProgressRef.current = s; }}
           />
         ) : content.type === 'BOOK' ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6 gap-4">
-            {content.thumbnailUrl && (
-              <img src={content.thumbnailUrl} alt={content.title}
-                className="h-40 object-contain rounded-lg shadow-lg" />
-            )}
-            {!content.thumbnailUrl && <div className="text-6xl">📖</div>}
-            <p className="text-white font-semibold text-center line-clamp-2">{content.title}</p>
-            {content.mediaUrl && (
-              <a href={content.mediaUrl} target="_blank" rel="noopener noreferrer"
-                className="px-6 py-2.5 bg-brand-500 hover:bg-brand-400 text-black font-semibold rounded-lg text-sm transition-colors">
-                Open / Read Book
-              </a>
-            )}
-          </div>
+          content.mediaUrl ? (
+            <iframe
+              src={content.mediaUrl}
+              className="absolute inset-0 w-full h-full border-0"
+              title={content.title}
+              allow="fullscreen"
+            />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 gap-4">
+              {content.thumbnailUrl
+                ? <img src={content.thumbnailUrl} alt={content.title} className="h-40 object-contain rounded-lg shadow-lg" />
+                : <div className="text-6xl">📖</div>}
+              <p className="text-white font-semibold text-center">{content.title}</p>
+              <p className="text-gray-400 text-sm">No file available for this book.</p>
+            </div>
+          )
         ) : AUDIO_TYPES.includes(content.type) ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6 gap-2">
             {content.thumbnailUrl ? (
@@ -588,6 +597,20 @@ export default function WatchPage() {
         )}
       </div>
 
+      {content.type === 'BOOK' && content.mediaUrl && (
+        <div className="flex items-center justify-between bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5 mb-3 text-sm">
+          <span className="text-gray-400">Having trouble viewing?</span>
+          <a
+            href={content.mediaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+          >
+            Open in new tab ↗
+          </a>
+        </div>
+      )}
+
       {error === 'MOV_COMPAT' ? (
         <div className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4 mb-3">
           <p className="text-white font-medium mb-1">MOV file — limited browser support</p>
@@ -646,6 +669,9 @@ export default function WatchPage() {
       <div className="flex items-center gap-3 mb-8 pb-8 border-b border-surface-700 flex-wrap">
         <Button variant={liked ? 'primary' : 'secondary'} size="sm" onClick={handleLike} disabled={!user}>
           {liked ? '👍 Liked' : '👍 Like'} · {(content._count?.likes || 0) + (liked ? 1 : 0)}
+        </Button>
+        <Button variant={saved ? 'primary' : 'secondary'} size="sm" onClick={handleSave} disabled={!user}>
+          {saved ? '🔖 Saved' : '🔖 Save'}
         </Button>
         <Link href={`/creator/${content.creator.username}`}>
           <Button variant="ghost" size="sm">

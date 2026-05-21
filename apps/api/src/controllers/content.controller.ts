@@ -158,23 +158,28 @@ export async function getContent(req: AuthRequest, res: Response) {
     }
   }
 
-  // Increment view count (fire and forget)
-  prisma.content.update({ where: { id: content.id }, data: { views: { increment: 1 } } }).catch(() => {});
+  // Increment view count + log for analytics (fire and forget)
+  Promise.all([
+    prisma.content.update({ where: { id: content.id }, data: { views: { increment: 1 } } }),
+    prisma.viewLog.create({ data: { contentId: content.id } }),
+  ]).catch(() => {});
 
   // Always sign URLs — R2 public access unreliable; signed URLs work regardless
   const mediaUrl    = await signR2Url(content.mediaUrl, 4 * 3600);
   const thumbnailUrl = await signR2Url(content.thumbnailUrl);
 
-  // Check if the requesting user has liked this content
   let isLiked = false;
+  let isSaved = false;
   if (req.user) {
-    const like = await prisma.like.findUnique({
-      where: { userId_contentId: { userId: req.user.id, contentId: content.id } },
-    });
+    const [like, saved] = await Promise.all([
+      prisma.like.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }),
+      prisma.savedContent.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }),
+    ]);
     isLiked = !!like;
+    isSaved = !!saved;
   }
 
-  res.json({ content: { ...content, mediaUrl, thumbnailUrl }, isLiked });
+  res.json({ content: { ...content, mediaUrl, thumbnailUrl }, isLiked, isSaved });
 }
 
 export async function uploadContent(req: AuthRequest, res: Response) {
@@ -534,6 +539,57 @@ export async function getLikedContent(req: AuthRequest, res: Response) {
       },
     }),
     prisma.like.count({ where: { userId: req.user!.id, content: { status: 'ACTIVE' } } }),
+  ]);
+
+  const items = await Promise.all(raw.map(async ({ content: c }) => ({
+    ...c,
+    thumbnailUrl: await signR2Url(c.thumbnailUrl),
+  })));
+
+  res.json({ items, total, page: Number(page), pages: Math.ceil(total / take) });
+}
+
+export async function toggleSaved(req: AuthRequest, res: Response) {
+  const userId = req.user!.id;
+  const contentId = req.params.id;
+
+  const existing = await prisma.savedContent.findUnique({
+    where: { userId_contentId: { userId, contentId } },
+  });
+
+  if (existing) {
+    await prisma.savedContent.delete({ where: { userId_contentId: { userId, contentId } } });
+    return res.json({ saved: false });
+  }
+
+  await prisma.savedContent.create({ data: { userId, contentId } });
+  return res.json({ saved: true });
+}
+
+export async function getSavedContent(req: AuthRequest, res: Response) {
+  const { page = '1', limit = '12' } = req.query;
+  const take = Number(limit);
+  const skip = (Number(page) - 1) * take;
+
+  const [raw, total] = await Promise.all([
+    prisma.savedContent.findMany({
+      where: { userId: req.user!.id, content: { status: 'ACTIVE' } },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+      select: {
+        createdAt: true,
+        content: {
+          select: {
+            id: true, title: true, type: true, status: true, privacy: true,
+            thumbnailUrl: true, mediaUrl: true, duration: true, views: true, tags: true, createdAt: true,
+            creator: { select: { username: true, displayName: true, avatar: true } },
+            _count: { select: { likes: true, comments: true } },
+          },
+        },
+      },
+    }),
+    prisma.savedContent.count({ where: { userId: req.user!.id, content: { status: 'ACTIVE' } } }),
   ]);
 
   const items = await Promise.all(raw.map(async ({ content: c }) => ({

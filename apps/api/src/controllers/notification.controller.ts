@@ -44,3 +44,25 @@ export async function getUnreadCount(req: AuthRequest, res: Response) {
   });
   res.json({ count });
 }
+
+export async function getPreferences(req: AuthRequest, res: Response) {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user!.id },
+    select: { emailNewFollower: true, emailNewContent: true },
+  });
+  res.json(user ?? { emailNewFollower: true, emailNewContent: true });
+}
+
+export async function updatePreferences(req: AuthRequest, res: Response) {
+  const { emailNewFollower, emailNewContent } = req.body;
+  const data: Record<string, boolean> = {};
+  if (typeof emailNewFollower === 'boolean') data.emailNewFollower = emailNewFollower;
+  if (typeof emailNewContent  === 'boolean') data.emailNewContent  = emailNewContent;
+
+  const user = await prisma.user.update({
+    where: { id: req.user!.id },
+    data,
+    select: { emailNewFollower: true, emailNewContent: true },
+  });
+  res.json(user);
+}

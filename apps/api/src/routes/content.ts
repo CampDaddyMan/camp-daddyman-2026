@@ -19,6 +19,8 @@ import {
   getWatchHistory,
   getRelatedContent,
   getLikedContent,
+  toggleSaved,
+  getSavedContent,
   reportContent,
   unreportContent,
 } from '../controllers/content.controller';
@@ -55,6 +57,7 @@ router.get('/discover', optionalAuthMiddleware, readLimiter, getDiscovery);
 router.get('/search', optionalAuthMiddleware, searchLimiter, searchContent);
 router.get('/history', authMiddleware, readLimiter, getWatchHistory);
 router.get('/liked', authMiddleware, readLimiter, getLikedContent);
+router.get('/saved', authMiddleware, readLimiter, getSavedContent);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getContent);
 router.get('/:id/comments', readLimiter, getComments);
 router.get('/:id/related', optionalAuthMiddleware, readLimiter, getRelatedContent);
@@ -76,6 +79,7 @@ router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);
 router.delete('/:id/comment/:commentId', authMiddleware, writeLimiter, deleteComment);
 router.post('/:id/progress', authMiddleware, saveProgress);
 router.get('/:id/progress', authMiddleware, getProgress);
+router.post('/:id/save', authMiddleware, writeLimiter, toggleSaved);
 router.post('/:id/report', authMiddleware, writeLimiter, reportContent);
 router.delete('/:id/report', authMiddleware, writeLimiter, unreportContent);
 

@@ -260,6 +260,7 @@ export default function Navbar() {
                     <Link href="/dashboard" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Dashboard</Link>
                     <Link href="/feed" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Following</Link>
                     <Link href="/liked" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Liked</Link>
+                    <Link href="/saved" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Watch Later</Link>
                     <Link href="/history" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Watch History</Link>
                     <Link href="/shop/orders" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">My Orders</Link>
                     <div className="border-t border-surface-700 my-1" />
@@ -378,6 +379,7 @@ export default function Navbar() {
               <MobileLink href="/dashboard" onClick={() => setMobileOpen(false)}>{user.displayName || user.username}</MobileLink>
               <MobileLink href="/feed" onClick={() => setMobileOpen(false)}>Following</MobileLink>
               <MobileLink href="/liked" onClick={() => setMobileOpen(false)}>Liked</MobileLink>
+              <MobileLink href="/saved" onClick={() => setMobileOpen(false)}>Watch Later</MobileLink>
               <MobileLink href="/history" onClick={() => setMobileOpen(false)}>Watch History</MobileLink>
               <MobileLink href="/notifications" onClick={() => setMobileOpen(false)}>Notifications</MobileLink>
               <MobileLink href="/shop/orders" onClick={() => setMobileOpen(false)}>My Orders</MobileLink>

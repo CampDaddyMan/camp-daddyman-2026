@@ -23,6 +23,9 @@ model User {
   isBanned       Boolean @default(false)
   emailVerified  Boolean @default(false)
 
+  emailNewFollower Boolean @default(true)
+  emailNewContent  Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -31,6 +34,7 @@ model User {
   likes        Like[]
   comments     Comment[]
   watchHistory WatchHistory[]
+  savedContent SavedContent[]
   followers              Follow[]       @relation("UserFollowing")
   following              Follow[]       @relation("UserFollowers")
   notifications          Notification[] @relation("NotificationRecipient")
@@ -114,6 +118,8 @@ model Content {
   likes         Like[]
   comments      Comment[]
   watchHistory  WatchHistory[]
+  savedBy       SavedContent[]
+  viewLogs      ViewLog[]
   notifications Notification[]
   reports       Report[]
   pollOptions   PollOption[]
@@ -185,6 +191,27 @@ enum SubscriptionStatus {
 // ── Engagement ────────────────────────────────────────────────────────────────
 
 model Like {
+  id        String  @id @default(cuid())
+  userId    String
+  contentId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contentId])
+}
+
+model ViewLog {
+  id        String   @id @default(cuid())
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([contentId, createdAt])
+}
+
+model SavedContent {
   id        String  @id @default(cuid())
   userId    String
   contentId String

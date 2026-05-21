@@ -17,7 +17,7 @@ interface DashboardContent {
   _count: { likes: number; comments: number };
 }
 
-interface ActivityDay { date: string; likes: number; comments: number }
+interface ActivityDay { date: string; views: number; likes: number; comments: number }
 
 interface DashboardData {
   stats: {
@@ -49,49 +49,74 @@ const PRIVACY_LABEL: Record<Privacy, string> = {
   PUBLIC: 'Public', PRIVATE: 'Private', SUBSCRIBERS_ONLY: 'Members Only',
 };
 
-// ── Activity bar chart (pure SVG, no dependencies) ───────────────────────────
+// ── Views area chart (pure SVG) ───────────────────────────────────────────────
 
-function ActivityChart({ data }: { data: ActivityDay[] }) {
-  const W = 700, H = 80, PAD = 2;
-  const barW = Math.floor((W - PAD * (data.length - 1)) / data.length);
+function ViewsChart({ data }: { data: ActivityDay[] }) {
+  const W = 700, H = 90, PAD_LEFT = 4, PAD_RIGHT = 4;
+  const n = data.length;
+  const maxViews = Math.max(...data.map((d) => d.views), 1);
+
+  const xPos = (i: number) => PAD_LEFT + (i / (n - 1)) * (W - PAD_LEFT - PAD_RIGHT);
+  const yPos = (v: number) => H - Math.round((v / maxViews) * H);
+
+  const linePoints = data.map((d, i) => `${xPos(i)},${yPos(d.views)}`).join(' L ');
+  const areaPoints = `M ${xPos(0)},${H} L ${linePoints} L ${xPos(n - 1)},${H} Z`;
+
+  const labelStep = n <= 7 ? 1 : n <= 30 ? Math.ceil(n / 6) : Math.ceil(n / 7);
+  const totalViews = data.reduce((s, d) => s + d.views, 0);
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full" preserveAspectRatio="none" style={{ minWidth: 280 }}>
+        <defs>
+          <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f8c202" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#f8c202" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        <path d={areaPoints} fill="url(#viewsGrad)" />
+        <path d={`M ${linePoints}`} fill="none" stroke="#f8c202" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {data.map((d, i) => {
+          if (i % labelStep !== 0 && i !== n - 1) return null;
+          return (
+            <text key={d.date} x={xPos(i)} y={H + 15} textAnchor="middle" fill="#6b7280" fontSize={9}>
+              {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </text>
+          );
+        })}
+      </svg>
+      <p className="text-xs text-gray-500 mt-1">{totalViews.toLocaleString()} views in this period</p>
+    </div>
+  );
+}
+
+// ── Engagement bar chart ───────────────────────────────────────────────────────
+
+function EngagementChart({ data }: { data: ActivityDay[] }) {
+  const W = 700, H = 60, PAD = 2;
+  const n = data.length;
+  const barW = Math.max(2, Math.floor((W - PAD * (n - 1)) / n));
   const maxVal = Math.max(...data.map((d) => d.likes + d.comments), 1);
 
   return (
     <div className="w-full overflow-x-auto">
-      <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full" preserveAspectRatio="none" style={{ minWidth: 320 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ minWidth: 280 }}>
         {data.map((d, i) => {
           const total = d.likes + d.comments;
           const barH = Math.round((total / maxVal) * H);
           const likeH = Math.round((d.likes / maxVal) * H);
           const x = i * (barW + PAD);
-          const isLast = i === data.length - 1;
-          const isFirst = i === 0;
-          const showLabel = isFirst || isLast || i === Math.floor(data.length / 2);
-
           return (
             <g key={d.date}>
-              {/* comments (bottom layer, muted) */}
-              <rect
-                x={x} y={H - barH} width={barW} height={barH - likeH}
-                fill="#004d1d" opacity={0.8} rx={2}
-              />
-              {/* likes (top layer, brand) */}
-              <rect
-                x={x} y={H - likeH} width={barW} height={likeH}
-                fill="#009B3A" rx={2}
-              />
-              {showLabel && (
-                <text x={x + barW / 2} y={H + 15} textAnchor="middle" fill="#6b7280" fontSize={9}>
-                  {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </text>
-              )}
+              <rect x={x} y={H - barH} width={barW} height={barH - likeH} fill="#7c3aed" opacity={0.5} rx={1} />
+              <rect x={x} y={H - likeH} width={barW} height={likeH} fill="#f8c202" opacity={0.85} rx={1} />
             </g>
           );
         })}
       </svg>
       <div className="flex gap-4 mt-2 text-xs text-gray-500">
-        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-brand-400" />Likes</span>
-        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm bg-camp-600 opacity-80" />Comments</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#f8c202', opacity: 0.85 }} />Likes</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#7c3aed', opacity: 0.5 }} />Comments</span>
       </div>
     </div>
   );
@@ -217,6 +242,9 @@ export default function DashboardPage() {
 
   const [data, setData]             = useState<DashboardData | null>(null);
   const [fetching, setFetching]     = useState(true);
+  const [days, setDays]             = useState<7 | 30 | 90>(30);
+  const [prefs, setPrefs]           = useState({ emailNewFollower: true, emailNewContent: true });
+  const [prefSaving, setPrefSaving] = useState(false);
   const [deleting, setDeleting]     = useState<string | null>(null);
   const [editOpen, setEditOpen]     = useState(false);
   const [editingContent, setEditingContent] = useState<DashboardContent | null>(null);
@@ -239,11 +267,15 @@ export default function DashboardPage() {
     if (!user) return;
     setDisplayName(user.displayName || '');
     setBio((user as any).bio || '');
-    api.get('/dashboard')
+    setFetching(true);
+    api.get('/dashboard', { params: { days } })
       .then((r) => setData(r.data))
       .catch(() => {})
       .finally(() => setFetching(false));
-  }, [user]);
+    api.get('/notifications/preferences')
+      .then((r) => setPrefs(r.data))
+      .catch(() => {});
+  }, [user, days]);
 
   async function handleDelete(id: string, title: string) {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
@@ -304,6 +336,14 @@ export default function DashboardPage() {
       setAvatarUploading(false);
       if (avatarInputRef.current) avatarInputRef.current.value = '';
     }
+  }
+
+  async function handlePrefToggle(key: 'emailNewFollower' | 'emailNewContent') {
+    const updated = { ...prefs, [key]: !prefs[key] };
+    setPrefs(updated);
+    setPrefSaving(true);
+    await api.put('/notifications/preferences', updated).catch(() => setPrefs(prefs));
+    setPrefSaving(false);
   }
 
   async function handleManageBilling() {
@@ -423,14 +463,42 @@ export default function DashboardPage() {
             <StatCard label="Pieces Published" value={data.stats.totalContent}  emoji="🎵" />
           </div>
 
-          {/* ── Engagement chart ── */}
+          {/* ── Analytics charts ── */}
           <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 mb-8">
-            <h2 className="text-base font-semibold text-white mb-4">Engagement — last 30 days</h2>
-            {data.activity.every((d) => d.likes + d.comments === 0) ? (
-              <p className="text-gray-500 text-sm py-6 text-center">No engagement data yet. Share your content to start seeing activity here.</p>
-            ) : (
-              <ActivityChart data={data.activity} />
-            )}
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <h2 className="text-base font-semibold text-white">Analytics</h2>
+              <div className="flex gap-1 bg-surface-700 rounded-lg p-0.5">
+                {([7, 30, 90] as const).map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setDays(d)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                      days === d ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Views</p>
+              {data.activity.every((d) => d.views === 0) ? (
+                <p className="text-gray-600 text-sm py-4 text-center">No views logged in this period yet.</p>
+              ) : (
+                <ViewsChart data={data.activity} />
+              )}
+            </div>
+
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Engagement</p>
+              {data.activity.every((d) => d.likes + d.comments === 0) ? (
+                <p className="text-gray-600 text-sm py-4 text-center">No likes or comments in this period.</p>
+              ) : (
+                <EngagementChart data={data.activity} />
+              )}
+            </div>
           </div>
 
           {/* ── Top content + profile side by side ── */}
@@ -561,6 +629,42 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* ── Notification preferences ── */}
+          <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-white">Email Notifications</h2>
+              {prefSaving && <span className="text-xs text-gray-500">Saving…</span>}
+            </div>
+            <div className="space-y-4">
+              {[
+                { key: 'emailNewFollower' as const, label: 'New follower', desc: 'Email when someone follows you' },
+                { key: 'emailNewContent'  as const, label: 'New content from creators',  desc: 'Email when someone you follow posts something new' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-white font-medium">{label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                  </div>
+                  <button
+                    onClick={() => handlePrefToggle(key)}
+                    disabled={prefSaving}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-60 ${
+                      prefs[key] ? 'bg-brand-500' : 'bg-surface-600'
+                    }`}
+                    role="switch"
+                    aria-checked={prefs[key]}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                        prefs[key] ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 

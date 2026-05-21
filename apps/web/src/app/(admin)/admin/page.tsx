@@ -4890,13 +4890,19 @@ function SettingsTab() {
       <HomepageContentSection />
 
       {/* ── Ark Cinematic Banner ── */}
-      <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40">
-        <h2 className="text-lg font-bold text-white mb-1">The Ark — Cinematic Banner</h2>
-        <p className="text-gray-500 text-sm mb-5">The full-width image at the top of The Ark shop page. Leave blank to use the default image.</p>
+      <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40 space-y-5">
         <div>
-          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Banner Image URL</label>
+          <h2 className="text-lg font-bold text-white mb-1">The Ark — Cinematic Banner</h2>
+          <p className="text-gray-500 text-sm">The full-width banner at the top of The Ark shop page. Leave blank to use the default image.</p>
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Media URL <span className="text-gray-600 font-normal normal-case">(direct link to .jpg, .png, .mp4, etc.)</span>
+          </label>
           <div className="flex gap-2">
             <input
+              type="url"
               value={settings['ark_banner_url'] ?? ''}
               onChange={(e) => set('ark_banner_url', e.target.value)}
               placeholder="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
@@ -4904,6 +4910,60 @@ function SettingsTab() {
               className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
             />
             <SaveBtn k="ark_banner_url" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Media Type</label>
+          <div className="flex gap-2 items-center">
+            {(['image', 'video'] as const).map((val) => (
+              <button key={val} disabled={loading}
+                onClick={() => set('ark_banner_type', val)}
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 ${
+                  (settings['ark_banner_type'] || 'image') === val
+                    ? 'bg-brand-500 text-black border-brand-500'
+                    : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
+                }`}>
+                {val === 'image' ? '🖼 Image' : '🎬 Video'}
+              </button>
+            ))}
+            <SaveBtn k="ark_banner_type" />
+          </div>
+        </div>
+
+        {settings['ark_banner_type'] === 'video' && (
+          <div>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+              Poster Image URL <span className="text-gray-600 font-normal normal-case">(shown while video loads)</span>
+            </label>
+            <div className="flex gap-2">
+              <input type="url"
+                value={settings['ark_banner_poster'] ?? ''}
+                onChange={(e) => set('ark_banner_poster', e.target.value)}
+                placeholder="https://..."
+                disabled={loading}
+                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
+              />
+              <SaveBtn k="ark_banner_poster" />
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = fully visible · 1 = solid black · default 0)</span>
+          </label>
+          <div className="flex gap-3 items-center">
+            <input type="range" min="0" max="1" step="0.05"
+              value={settings['ark_banner_overlay'] ?? '0'}
+              onChange={(e) => set('ark_banner_overlay', e.target.value)}
+              disabled={loading}
+              className="flex-1 accent-brand-500"
+            />
+            <span className="text-white text-sm w-10 text-center font-mono tabular-nums">
+              {parseFloat(settings['ark_banner_overlay'] ?? '0').toFixed(2)}
+            </span>
+            <SaveBtn k="ark_banner_overlay" />
           </div>
         </div>
       </div>

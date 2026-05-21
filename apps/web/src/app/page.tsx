@@ -265,13 +265,6 @@ export default function HomePage() {
           {cinematicOverlay > 0 && (
             <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
           )}
-          <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-surface-900 to-transparent" />
-          <div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
-            style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}
-          >
-            ↓
-          </div>
         </section>
       )}
 

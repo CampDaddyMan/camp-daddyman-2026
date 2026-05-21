@@ -214,14 +214,28 @@ export default function ShopPage() {
         return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
       })()}
 
-      {/* ── Hero: Ark poster — full width, natural height, no cropping ──────── */}
-      <section className="w-full bg-black">
-        <img
-          src={siteSettings.ark_banner_url || "https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"}
-          alt="The Ark — Camp DaddyMan"
-          className="w-full h-auto block"
-        />
-      </section>
+      {/* ── Hero: Ark banner — full width, natural height, no cropping ────── */}
+      {(() => {
+        const arkUrl     = siteSettings.ark_banner_url || 'https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg';
+        const arkType    = siteSettings.ark_banner_type || 'image';
+        const arkOverlay = parseFloat(siteSettings.ark_banner_overlay || '0');
+        return (
+          <section className="w-full bg-black relative">
+            {arkType === 'video' ? (
+              <video autoPlay muted loop playsInline
+                poster={siteSettings.ark_banner_poster || undefined}
+                className="w-full h-auto block">
+                <source src={arkUrl} />
+              </video>
+            ) : (
+              <img src={arkUrl} alt="The Ark — Camp DaddyMan" className="w-full h-auto block" />
+            )}
+            {arkOverlay > 0 && (
+              <div className="absolute inset-0 bg-black" style={{ opacity: arkOverlay }} />
+            )}
+          </section>
+        );
+      })()}
 
       {/* ── Shop intro — stacked editorial block ────────────────────────────── */}
       {(() => {

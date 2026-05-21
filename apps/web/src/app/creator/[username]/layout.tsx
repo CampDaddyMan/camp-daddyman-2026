@@ -22,7 +22,7 @@ export async function generateMetadata(
   const title = `${name} (@${creator.username})`;
   const description = creator.bio
     || `${creator._count?.content ?? 0} pieces · ${creator._count?.followers ?? 0} followers on Camp DaddyMan`;
-  const image = creator.avatar || `${SITE_URL}/og-default.png`;
+  const image = creator.avatar || `${SITE_URL}/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png`;
 
   return {
     title,

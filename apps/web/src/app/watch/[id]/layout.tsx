@@ -25,7 +25,7 @@ export async function generateMetadata(
   const title = content.title;
   const description = content.description
     || `${typeLabel} by ${creator} on Camp DaddyMan`;
-  const image = content.thumbnailUrl || `${SITE_URL}/og-default.png`;
+  const image = content.thumbnailUrl || `${SITE_URL}/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png`;
 
   return {
     title,

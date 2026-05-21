@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import MiniPlayer from '@/components/layout/MiniPlayer';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://campdaddyman.com';
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+const DEFAULT_OG_IMAGE = `${SITE_URL}/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

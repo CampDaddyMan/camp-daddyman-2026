@@ -4092,47 +4092,6 @@ function CinematicBannerAdmin() {
         </div>
       </div>
 
-      <div>
-        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-          Banner Height <span className="text-gray-600 font-normal normal-case">(in vh — 100 = full screen · 160 = 1.6× screen height · default 100)</span>
-        </label>
-        <div className="flex gap-3 items-center">
-          <input
-            type="range" min="60" max="200" step="5"
-            value={settings['home_cinematic_height'] ?? '100'}
-            onChange={(e) => set('home_cinematic_height', e.target.value)}
-            disabled={loading}
-            className="flex-1 accent-brand-500"
-          />
-          <span className="text-white text-sm w-14 text-center font-mono tabular-nums">
-            {settings['home_cinematic_height'] ?? '100'}vh
-          </span>
-          <SaveBtn k="home_cinematic_height" />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-          Image Focus <span className="text-gray-600 font-normal normal-case">(which part of the image stays in frame)</span>
-        </label>
-        <div className="flex gap-2 items-center flex-wrap">
-          {(['top', 'center', 'bottom'] as const).map((val) => (
-            <button
-              key={val}
-              disabled={loading}
-              onClick={() => set('home_cinematic_position', val)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 ${
-                (settings['home_cinematic_position'] || 'center') === val
-                  ? 'bg-brand-500 text-black border-brand-500'
-                  : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
-              }`}
-            >
-              {val === 'top' ? '⬆ Top' : val === 'center' ? '⬛ Center' : '⬇ Bottom'}
-            </button>
-          ))}
-          <SaveBtn k="home_cinematic_position" />
-        </div>
-      </div>
     </div>
   );
 }

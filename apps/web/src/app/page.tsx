@@ -241,41 +241,31 @@ export default function HomePage() {
   }
 
 
-  const cinematicUrl      = siteSettings.home_cinematic_url;
-  const cinematicType     = siteSettings.home_cinematic_type || 'image';
-  const cinematicOverlay  = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
-  const cinematicHeight   = `${Math.min(200, Math.max(60, parseInt(siteSettings.home_cinematic_height || '100', 10)))}vh`;
-  const cinematicPosition = siteSettings.home_cinematic_position || 'center';
+  const cinematicUrl     = siteSettings.home_cinematic_url;
+  const cinematicType    = siteSettings.home_cinematic_type || 'image';
+  const cinematicOverlay = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
 
   return (
     <div>
 
-      {/* ── Cinematic Banner — standalone full-screen section above hero ── */}
+      {/* ── Cinematic Banner — full natural height, no cropping (Ark style) ── */}
       {cinematicUrl && (
-        <section className="relative w-full overflow-hidden" style={{ minHeight: cinematicHeight }}>
+        <section className="w-full bg-black relative">
           {cinematicType === 'video' ? (
             <video
               autoPlay muted loop playsInline
               poster={siteSettings.home_cinematic_poster || undefined}
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: cinematicPosition }}
+              className="w-full h-auto block"
             >
               <source src={cinematicUrl} />
             </video>
           ) : (
-            <img
-              src={cinematicUrl}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: cinematicPosition }}
-            />
+            <img src={cinematicUrl} alt="" className="w-full h-auto block" />
           )}
           {cinematicOverlay > 0 && (
             <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
           )}
-          {/* Cinematic bottom fade into hero below */}
           <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-surface-900 to-transparent" />
-          {/* Scroll cue */}
           <div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
             style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}

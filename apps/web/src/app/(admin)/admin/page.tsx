@@ -1659,8 +1659,14 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
       ) : (
         <div className="space-y-3">
           {polls.map((p) => (
-            <div key={p.id} className="bg-surface-800 border border-surface-700 rounded-xl px-5 py-4">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div key={p.id} className="bg-surface-800 border border-surface-700 rounded-xl overflow-hidden">
+              <div className="flex items-stretch">
+                {p.imageUrl && (
+                  <div className="flex-shrink-0 w-20 bg-surface-700 overflow-hidden">
+                    <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
+              <div className="flex-1 px-5 py-4 flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.status === 'ACTIVE' ? 'bg-brand-500/20 text-brand-400' : 'bg-surface-600 text-gray-400'}`}>
@@ -1699,6 +1705,7 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
                     {acting === p.id ? '…' : 'Delete'}
                   </button>
                 </div>
+              </div>
               </div>
             </div>
           ))}
@@ -4082,6 +4089,48 @@ function CinematicBannerAdmin() {
             {parseFloat(settings['home_cinematic_overlay'] ?? '0.55').toFixed(2)}
           </span>
           <SaveBtn k="home_cinematic_overlay" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+          Banner Height <span className="text-gray-600 font-normal normal-case">(in vh — 100 = full screen · 160 = 1.6× screen height · default 100)</span>
+        </label>
+        <div className="flex gap-3 items-center">
+          <input
+            type="range" min="60" max="200" step="5"
+            value={settings['home_cinematic_height'] ?? '100'}
+            onChange={(e) => set('home_cinematic_height', e.target.value)}
+            disabled={loading}
+            className="flex-1 accent-brand-500"
+          />
+          <span className="text-white text-sm w-14 text-center font-mono tabular-nums">
+            {settings['home_cinematic_height'] ?? '100'}vh
+          </span>
+          <SaveBtn k="home_cinematic_height" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+          Image Focus <span className="text-gray-600 font-normal normal-case">(which part of the image stays in frame)</span>
+        </label>
+        <div className="flex gap-2 items-center flex-wrap">
+          {(['top', 'center', 'bottom'] as const).map((val) => (
+            <button
+              key={val}
+              disabled={loading}
+              onClick={() => set('home_cinematic_position', val)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 ${
+                (settings['home_cinematic_position'] || 'center') === val
+                  ? 'bg-brand-500 text-black border-brand-500'
+                  : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
+              }`}
+            >
+              {val === 'top' ? '⬆ Top' : val === 'center' ? '⬛ Center' : '⬇ Bottom'}
+            </button>
+          ))}
+          <SaveBtn k="home_cinematic_position" />
         </div>
       </div>
     </div>

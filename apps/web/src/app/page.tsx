@@ -241,21 +241,24 @@ export default function HomePage() {
   }
 
 
-  const cinematicUrl     = siteSettings.home_cinematic_url;
-  const cinematicType    = siteSettings.home_cinematic_type || 'image';
-  const cinematicOverlay = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
+  const cinematicUrl      = siteSettings.home_cinematic_url;
+  const cinematicType     = siteSettings.home_cinematic_type || 'image';
+  const cinematicOverlay  = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
+  const cinematicHeight   = `${Math.min(200, Math.max(60, parseInt(siteSettings.home_cinematic_height || '100', 10)))}vh`;
+  const cinematicPosition = siteSettings.home_cinematic_position || 'center';
 
   return (
     <div>
 
       {/* ── Cinematic Banner — standalone full-screen section above hero ── */}
       {cinematicUrl && (
-        <section className="relative w-full min-h-screen overflow-hidden">
+        <section className="relative w-full overflow-hidden" style={{ minHeight: cinematicHeight }}>
           {cinematicType === 'video' ? (
             <video
               autoPlay muted loop playsInline
               poster={siteSettings.home_cinematic_poster || undefined}
               className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: cinematicPosition }}
             >
               <source src={cinematicUrl} />
             </video>
@@ -264,6 +267,7 @@ export default function HomePage() {
               src={cinematicUrl}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: cinematicPosition }}
             />
           )}
           {cinematicOverlay > 0 && (

@@ -177,6 +177,13 @@ export default function Navbar() {
           </div>
 
           <Link
+            href="/live"
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname?.startsWith('/live') ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            Live
+          </Link>
+          <Link
             href="/series"
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname?.startsWith('/series') ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
           >
@@ -364,6 +371,7 @@ export default function Navbar() {
 
           {/* Community */}
           <MobileSection label="Community">
+            <MobileLink href="/live" onClick={() => setMobileOpen(false)}>📡 Live</MobileLink>
             <MobileLink href="/series" onClick={() => setMobileOpen(false)}>Series</MobileLink>
             <MobileLink href="/albums" onClick={() => setMobileOpen(false)}>Albums</MobileLink>
             <MobileLink href="/polls" onClick={() => setMobileOpen(false)}>Polls</MobileLink>

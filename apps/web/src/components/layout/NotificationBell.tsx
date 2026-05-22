@@ -37,6 +37,15 @@ function notificationHref(n: NotificationItem) {
   return '/notifications';
 }
 
+const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
 export default function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -44,6 +53,46 @@ export default function NotificationBell() {
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    if (!VAPID_KEY || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    setPushSupported(true);
+    navigator.serviceWorker.ready.then((reg) =>
+      reg.pushManager.getSubscription().then((sub) => setPushEnabled(!!sub))
+    ).catch(() => {});
+  }, []);
+
+  async function togglePush() {
+    if (!VAPID_KEY || pushLoading) return;
+    setPushLoading(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (pushEnabled) {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await api.post('/push/unsubscribe', { endpoint: sub.endpoint }).catch(() => {});
+          await sub.unsubscribe();
+        }
+        setPushEnabled(false);
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
+        });
+        await api.post('/push/subscribe', sub.toJSON());
+        setPushEnabled(true);
+      }
+    } catch {
+      // permission denied or subscription error — silent fail
+    } finally {
+      setPushLoading(false);
+    }
+  }
 
   const fetchUnread = useCallback(() => {
     api.get('/notifications/unread-count')
@@ -155,6 +204,21 @@ export default function NotificationBell() {
               ))
             )}
           </div>
+
+          {pushSupported && (
+            <div className="border-t border-surface-700 px-4 py-2.5 flex items-center justify-between">
+              <span className="text-xs text-gray-500">Push notifications</span>
+              <button
+                onClick={togglePush}
+                disabled={pushLoading}
+                className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                  pushEnabled ? 'bg-brand-500' : 'bg-surface-600'
+                } ${pushLoading ? 'opacity-50' : ''}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${pushEnabled ? 'translate-x-4' : ''}`} />
+              </button>
+            </div>
+          )}
 
           <div className="border-t border-surface-700 px-4 py-2.5">
             <Link

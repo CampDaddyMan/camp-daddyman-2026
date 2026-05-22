@@ -6,6 +6,7 @@ import { PlayerProvider } from '@/context/PlayerContext';
 import Navbar from '@/components/layout/Navbar';
 import MiniPlayer from '@/components/layout/MiniPlayer';
 import ConditionalFooter from '@/components/layout/ConditionalFooter';
+import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://campdaddyman.com';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png`;
@@ -17,6 +18,12 @@ export const metadata: Metadata = {
     template: '%s — Camp DaddyMan',
   },
   description: 'Music, film, teachings, and community content rooted in the DaddyMan philosophy.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Camp DaddyMan',
+  },
   openGraph: {
     siteName: 'Camp DaddyMan',
     title: 'Camp DaddyMan',
@@ -55,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {customCss && (
           <style dangerouslySetInnerHTML={{ __html: customCss }} />
         )}
+        <ServiceWorkerRegistrar />
         <AuthProvider>
           <CartProvider>
             <PlayerProvider>

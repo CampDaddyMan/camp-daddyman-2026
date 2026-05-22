@@ -55,6 +55,9 @@ model User {
   playlists              Playlist[]
   productReviews         ProductReview[]
   series                 Series[]
+  seriesComments         SeriesComment[]
+  pushSubscriptions      PushSubscription[]
+  liveStreams            LiveStream[]
 }
 
 model Token {
@@ -760,23 +763,42 @@ model PlaylistItem {
 // ── Series / Seasons / Episodes ───────────────────────────────────────────────
 
 model Series {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   title       String
   description String?
   coverUrl    String?
   bannerUrl   String?
   genre       String?
   tags        String[]
-  status      String   @default("ACTIVE") // ACTIVE | ARCHIVED
-  privacy     Privacy  @default(PUBLIC)
+  status      String          @default("ACTIVE") // ACTIVE | ARCHIVED
+  privacy     Privacy         @default(PUBLIC)
   creatorId   String
-  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator     User            @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   seasons     Season[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  comments    SeriesComment[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   @@index([creatorId])
   @@index([privacy, status])
+}
+
+model SeriesComment {
+  id        String          @id @default(cuid())
+  text      String
+  userId    String
+  seriesId  String
+  parentId  String?
+
+  user      User            @relation(fields: [userId],   references: [id], onDelete: Cascade)
+  series    Series          @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  parent    SeriesComment?  @relation("SeriesCommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   SeriesComment[] @relation("SeriesCommentReplies")
+
+  createdAt DateTime @default(now())
+
+  @@index([seriesId])
+  @@index([parentId])
 }
 
 model Season {
@@ -805,6 +827,42 @@ model Episode {
 
   @@unique([seasonId, episodeNumber])
   @@index([seasonId])
+}
+
+// ── Push Subscriptions ────────────────────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ── Live Streams ──────────────────────────────────────────────────────────────
+
+model LiveStream {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  status        String    @default("idle") // idle | live | ended
+  thumbnailUrl  String?
+  cfStreamId    String    @unique
+  cfStreamKey   String
+  cfPlaybackUrl String
+  scheduledAt   DateTime?
+  startedAt     DateTime?
+  endedAt       DateTime?
+  creatorId     String
+  creator       User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+
+  @@index([status])
+  @@index([creatorId])
 }
 
 // ── Site Settings ─────────────────────────────────────────────────────────────

@@ -810,3 +810,99 @@ export async function unreportContent(req: AuthRequest, res: Response) {
   });
   res.json({ reported: false });
 }
+
+// ── Personalised Recommendations ──────────────────────────────────────────────
+
+const CONTENT_LIGHT = {
+  id: true, title: true, type: true, status: true, privacy: true,
+  thumbnailUrl: true, duration: true, views: true, tags: true,
+  createdAt: true, hlsUrl: true,
+  creator: { select: { username: true, displayName: true, avatar: true } },
+  _count: { select: { likes: true, comments: true } },
+};
+
+export async function getRecommended(req: AuthRequest, res: Response) {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    // Guest: return trending
+    const items = await prisma.content.findMany({
+      where: { status: 'ACTIVE', privacy: 'PUBLIC' },
+      orderBy: { views: 'desc' },
+      take: 20,
+      select: CONTENT_LIGHT,
+    });
+    const signed = await Promise.all(items.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+    return res.json({ items: signed });
+  }
+
+  // Get last 30 items from watch history, extract their tags + types
+  const history = await prisma.watchHistory.findMany({
+    where: { userId },
+    orderBy: { watchedAt: 'desc' },
+    take: 30,
+    include: { content: { select: { id: true, type: true, tags: true } } },
+  });
+
+  const watchedIds = history.map((h) => h.contentId);
+  const tagFreq: Record<string, number> = {};
+  const typeFreq: Record<string, number> = {};
+
+  for (const h of history) {
+    for (const tag of h.content.tags) {
+      tagFreq[tag] = (tagFreq[tag] ?? 0) + 1;
+    }
+    typeFreq[h.content.type] = (typeFreq[h.content.type] ?? 0) + 1;
+  }
+
+  const topTags  = Object.entries(tagFreq).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([t]) => t);
+  const topTypes = Object.entries(typeFreq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
+
+  // Fetch candidate pool: match tags or type, not already watched
+  const [byTags, byType] = await Promise.all([
+    topTags.length > 0
+      ? prisma.content.findMany({
+          where: {
+            status: 'ACTIVE',
+            privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] },
+            id: { notIn: watchedIds },
+            tags: { hasSome: topTags },
+          },
+          orderBy: { views: 'desc' },
+          take: 40,
+          select: CONTENT_LIGHT,
+        })
+      : Promise.resolve([]),
+    topTypes.length > 0
+      ? prisma.content.findMany({
+          where: {
+            status: 'ACTIVE',
+            privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] },
+            id: { notIn: watchedIds },
+            type: { in: topTypes as any[] },
+          },
+          orderBy: { views: 'desc' },
+          take: 20,
+          select: CONTENT_LIGHT,
+        })
+      : Promise.resolve([]),
+  ]);
+
+  // Score: tag overlap * 3 + type match * 2, deduplicate
+  const seen = new Set<string>();
+  const scored: Array<{ item: typeof byTags[0]; score: number }> = [];
+
+  for (const item of [...byTags, ...byType]) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    const tagScore  = item.tags.filter((t) => topTags.includes(t)).length * 3;
+    const typeScore = topTypes.includes(item.type) ? 2 : 0;
+    scored.push({ item, score: tagScore + typeScore });
+  }
+
+  scored.sort((a, b) => b.score - a.score || b.item.views - a.item.views);
+  const items = scored.slice(0, 20).map((s) => s.item);
+
+  const signed = await Promise.all(items.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+  res.json({ items: signed });
+}

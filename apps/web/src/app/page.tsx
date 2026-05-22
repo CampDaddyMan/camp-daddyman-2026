@@ -85,6 +85,35 @@ interface DiscoveryData {
   creators: Creator[];
 }
 
+interface LiveStreamItem {
+  id: string;
+  title: string;
+  status: string;
+  thumbnailUrl: string | null;
+  cfPlaybackUrl: string;
+  scheduledAt: string | null;
+  creator: { username: string; displayName: string | null };
+}
+
+function LiveBanner({ stream }: { stream: LiveStreamItem }) {
+  return (
+    <Link
+      href={`/live/${stream.id}`}
+      className="group flex items-center gap-4 bg-red-950/40 border border-red-500/40 hover:border-red-400/70 rounded-2xl overflow-hidden transition-all px-5 py-3.5 mb-6"
+    >
+      <span className="flex-shrink-0 flex items-center gap-1.5">
+        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Live</span>
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-sm font-semibold truncate">{stream.title}</p>
+        <p className="text-gray-400 text-xs">{stream.creator.displayName || stream.creator.username}</p>
+      </div>
+      <span className="text-red-400 text-sm group-hover:translate-x-1 transition-transform flex-shrink-0">Watch →</span>
+    </Link>
+  );
+}
+
 function CreatorCard({ creator }: { creator: Creator }) {
   return (
     <Link
@@ -202,6 +231,8 @@ export default function HomePage() {
   const [activePoll, setActivePoll] = useState<ActivePoll | null>(null);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>([]);
+  const [recommended, setRecommended] = useState<Content[]>([]);
+  const [liveStreams, setLiveStreams] = useState<LiveStreamItem[]>([]);
 
   useEffect(() => {
     api.get('/content/discover')
@@ -217,6 +248,9 @@ export default function HomePage() {
     api.get('/banners', { params: { page: 'HOME' } })
       .then(({ data }) => setBannerSlides(data.slides ?? []))
       .catch(() => {});
+    api.get('/live')
+      .then(({ data }) => setLiveStreams((data.streams ?? []).filter((s: LiveStreamItem) => s.status === 'live')))
+      .catch(() => {});
   }, []);
 
   function s(key: string, fallback: string) {
@@ -227,6 +261,9 @@ export default function HomePage() {
     if (!user) return;
     api.get('/content/history')
       .then((r) => setHistory(r.data.items))
+      .catch(() => {});
+    api.get('/content/recommended')
+      .then((r) => setRecommended(r.data.items ?? []))
       .catch(() => {});
   }, [user]);
 
@@ -451,7 +488,13 @@ export default function HomePage() {
           </div>
         ) : (
           <>
+            {liveStreams.map((s) => <LiveBanner key={s.id} stream={s} />)}
+
             <ContinueWatchingRow items={history} />
+
+            {recommended.length > 0 && (
+              <ContentRow title="✨ For You" items={recommended} seeAllHref="/browse" emptyText="" />
+            )}
 
             {(data?.featured ?? []).length > 0 && (
               <ContentRow title="⭐ Featured" items={data!.featured} seeAllHref="/browse" emptyText="" />

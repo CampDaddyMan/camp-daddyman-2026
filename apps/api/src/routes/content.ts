@@ -25,6 +25,7 @@ import {
   unreportContent,
   downloadContent,
   toggleCommentLike,
+  getRecommended,
 } from '../controllers/content.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -56,6 +57,7 @@ const upload = multer({
 // Public
 router.get('/', optionalAuthMiddleware, readLimiter, listContent);
 router.get('/discover', optionalAuthMiddleware, readLimiter, getDiscovery);
+router.get('/recommended', optionalAuthMiddleware, readLimiter, getRecommended);
 router.get('/search', optionalAuthMiddleware, searchLimiter, searchContent);
 router.get('/history', authMiddleware, readLimiter, getWatchHistory);
 router.get('/liked', authMiddleware, readLimiter, getLikedContent);

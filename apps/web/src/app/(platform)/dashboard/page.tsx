@@ -137,6 +137,127 @@ function EngagementChart({ data }: { data: ActivityDay[] }) {
   );
 }
 
+// ── Onboarding checklist ──────────────────────────────────────────────────────
+
+function OnboardingChecklist({
+  user, contentCount, onEditProfile, onEditAvatar,
+}: {
+  user: any;
+  contentCount: number;
+  onEditProfile: () => void;
+  onEditAvatar: () => void;
+}) {
+  const storageKey = `onboarding_done_${user.id}`;
+  const [dismissed, setDismissed] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem(storageKey) === '1'
+  );
+  const [copied, setCopied] = useState(false);
+  const [allDone, setAllDone] = useState(false);
+
+  const steps = [
+    { label: 'Set your display name', done: !!user.displayName, action: onEditProfile },
+    { label: 'Add a bio',             done: !!user.bio,         action: onEditProfile },
+    { label: 'Add a profile photo',   done: !!user.avatar,      action: onEditAvatar  },
+    { label: 'Upload your first piece of content', done: contentCount > 0 || user.isCreator, href: '/upload' },
+    { label: 'Share your profile',    done: false, share: true, hidden: !user.isCreator },
+  ];
+
+  const visibleSteps = steps.filter((s) => !s.hidden);
+  const completedCount = visibleSteps.filter((s) => s.done).length;
+  const pct = Math.round((completedCount / visibleSteps.length) * 100);
+
+  useEffect(() => {
+    if (completedCount === visibleSteps.length && !dismissed) {
+      setAllDone(true);
+      const t = setTimeout(() => {
+        localStorage.setItem(storageKey, '1');
+        setDismissed(true);
+      }, 3000);
+      return () => clearTimeout(t);
+    }
+  }, [completedCount, visibleSteps.length, dismissed, storageKey]);
+
+  function dismiss() {
+    localStorage.setItem(storageKey, '1');
+    setDismissed(true);
+  }
+
+  async function handleShare() {
+    const url = `${window.location.origin}/creator/${user.username}`;
+    await navigator.clipboard.writeText(url).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (dismissed) return null;
+
+  if (allDone) {
+    return (
+      <div className="bg-brand-500/10 border border-brand-500/30 rounded-xl px-6 py-4 mb-8 flex items-center gap-4">
+        <span className="text-2xl">🎉</span>
+        <p className="text-brand-400 font-semibold text-sm flex-1">You're all set! Your creator profile is ready.</p>
+        <span className="text-xs text-gray-500">Closing in 3s…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 mb-8">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="text-base font-semibold text-white">🏕️ Creator Setup</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{completedCount} of {visibleSteps.length} complete</p>
+        </div>
+        <button onClick={dismiss} className="text-gray-600 hover:text-gray-400 text-lg leading-none transition-colors">×</button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-full h-1.5 bg-surface-700 rounded-full mb-5 overflow-hidden">
+        <div
+          className="h-full bg-brand-500 rounded-full transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      <div className="space-y-2">
+        {visibleSteps.map((step) => (
+          <div key={step.label} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+            step.done ? 'opacity-50' : 'hover:bg-surface-700 cursor-pointer'
+          }`}
+            onClick={!step.done ? (step.share ? handleShare : step.href ? undefined : step.action) : undefined}
+          >
+            <span className={`w-5 h-5 rounded-full border flex-shrink-0 flex items-center justify-center text-xs ${
+              step.done
+                ? 'bg-brand-500 border-brand-500 text-black'
+                : 'border-surface-500 text-transparent'
+            }`}>
+              {step.done && '✓'}
+            </span>
+            <span className={`text-sm flex-1 ${step.done ? 'text-gray-500 line-through' : 'text-white'}`}>
+              {step.label}
+            </span>
+            {!step.done && (
+              step.href ? (
+                <Link href={step.href} className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
+                  Go →
+                </Link>
+              ) : step.share ? (
+                <button onClick={handleShare} className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
+                  {copied ? 'Copied!' : 'Copy link'}
+                </button>
+              ) : (
+                <button onClick={step.action} className="text-xs text-brand-400 hover:text-brand-300 font-medium transition-colors">
+                  Edit →
+                </button>
+              )
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Monthly tips bar chart ────────────────────────────────────────────────────
 
 function TipsChart({ data }: { data: { label: string; cents: number }[] }) {
@@ -492,6 +613,14 @@ export default function DashboardPage() {
           </button>
         </div>
       )}
+
+      {/* ── Onboarding checklist ── */}
+      <OnboardingChecklist
+        user={user}
+        contentCount={data?.stats.totalContent ?? 0}
+        onEditProfile={() => setEditOpen(true)}
+        onEditAvatar={() => avatarInputRef.current?.click()}
+      />
 
       {fetching ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">

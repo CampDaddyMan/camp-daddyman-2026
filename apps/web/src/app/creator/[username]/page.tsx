@@ -42,7 +42,7 @@ const AUDIO_TYPES = ['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'];
 
 const RELEASE_COLORS: Record<string, string> = {
   SINGLE:      'bg-brand-500/20 text-brand-400',
-  EP:          'bg-camp-500/20 text-camp-400',
+  EP:          'bg-amber-500/20 text-amber-400',
   ALBUM:       'bg-surface-600 text-gray-300',
   COMPILATION: 'bg-purple-500/20 text-purple-400',
 };

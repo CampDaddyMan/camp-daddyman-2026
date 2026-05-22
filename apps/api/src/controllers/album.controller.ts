@@ -31,7 +31,7 @@ async function enrichTrack(track: any, locked: boolean) {
 // ── List albums ───────────────────────────────────────────────────────────────
 
 export async function listAlbums(req: AuthRequest, res: Response) {
-  const { creatorId, genre } = req.query;
+  const { creatorId, genre, limit } = req.query;
   const where: any = { privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } };
   if (creatorId) where.creatorId = String(creatorId);
   if (genre)     where.genre     = String(genre);
@@ -39,6 +39,7 @@ export async function listAlbums(req: AuthRequest, res: Response) {
   const albums = await prisma.album.findMany({
     where,
     orderBy: [{ releaseDate: 'desc' }, { createdAt: 'desc' }],
+    ...(limit ? { take: Number(limit) } : {}),
     include: {
       creator: { select: { id: true, username: true, displayName: true } },
       _count:  { select: { tracks: true } },

@@ -10,7 +10,12 @@ export async function getCreator(req: AuthRequest, res: Response) {
     select: {
       id: true, username: true, displayName: true, avatar: true, bio: true,
       isCreator: true, createdAt: true,
-      _count: { select: { content: true, followers: true } },
+      _count: {
+        select: {
+          content: { where: { status: 'ACTIVE', privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } } },
+          followers: true,
+        },
+      },
     },
   });
 
@@ -125,7 +130,7 @@ export async function getCreatorContent(req: Request, res: Response) {
 
   if (!creator) return res.status(404).json({ error: 'Creator not found' });
 
-  const where: any = { creatorId: creator.id, status: 'ACTIVE', privacy: 'PUBLIC' };
+  const where: any = { creatorId: creator.id, status: 'ACTIVE', privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } };
   if (type) {
     const types = String(type).split(',').map((t) => t.trim().toUpperCase()).filter(Boolean);
     where.type = types.length === 1 ? types[0] : { in: types };

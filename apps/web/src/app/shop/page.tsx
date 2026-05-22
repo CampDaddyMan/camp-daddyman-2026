@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import AdSlot from '@/components/ads/AdSlot';
+import RotatingBanner, { BannerSlide } from '@/components/ui/RotatingBanner';
 
 interface Product {
   id: string;
@@ -128,6 +129,7 @@ export default function ShopPage() {
   const [sort, setSort] = useState<'featured' | 'newest' | 'price_asc' | 'price_desc'>('featured');
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [perkItems, setPerkItems] = useState<PerkItem[]>([]);
+  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const cardIndexRef = useRef(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
@@ -142,6 +144,9 @@ export default function ShopPage() {
       .catch(() => {});
     api.get('/shop/perk-items')
       .then((r) => setPerkItems(r.data.items ?? []))
+      .catch(() => {});
+    api.get('/banners', { params: { page: 'ARK' } })
+      .then(({ data }) => setBannerSlides(data.slides ?? []))
       .catch(() => {});
   }, []);
 
@@ -214,33 +219,16 @@ export default function ShopPage() {
         return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
       })()}
 
-      {/* ── Hero: Ark banner — full width, natural height, no cropping ────── */}
-      {(() => {
-        const arkUrl      = siteSettings.ark_banner_url || 'https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg';
-        const arkType     = siteSettings.ark_banner_type || 'image';
-        const arkOverlay  = parseFloat(siteSettings.ark_banner_overlay || '0');
-        const arkGradient = Math.min(400, Math.max(0, parseInt(siteSettings.ark_banner_gradient || '0', 10)));
-        return (
-          <section className="w-full bg-black relative">
-            {arkType === 'video' ? (
-              <video autoPlay muted loop playsInline
-                poster={siteSettings.ark_banner_poster || undefined}
-                className="w-full h-auto block">
-                <source src={arkUrl} />
-              </video>
-            ) : (
-              <img src={arkUrl} alt="The Ark — Camp DaddyMan" className="w-full h-auto block" />
-            )}
-            {arkOverlay > 0 && (
-              <div className="absolute inset-0 bg-black" style={{ opacity: arkOverlay }} />
-            )}
-            {arkGradient > 0 && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
-                style={{ height: `${arkGradient}px` }} />
-            )}
-          </section>
-        );
-      })()}
+      {/* ── Rotating Banner ── */}
+      {bannerSlides.length > 0 && (
+        <RotatingBanner
+          slides={bannerSlides}
+          intervalMs={parseInt(siteSettings.ark_banner_interval || '15', 10) * 1000}
+          overlay={parseFloat(siteSettings.ark_banner_overlay || '0')}
+          gradient={Math.min(400, Math.max(0, parseInt(siteSettings.ark_banner_gradient || '0', 10)))}
+          aspectPct={parseFloat(siteSettings.ark_banner_aspect || '42.85')}
+        />
+      )}
 
       {/* ── Shop intro — stacked editorial block ────────────────────────────── */}
       {(() => {

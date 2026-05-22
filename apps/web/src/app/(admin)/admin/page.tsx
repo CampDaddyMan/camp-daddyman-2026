@@ -4008,6 +4008,321 @@ const HP_SNIP = [
   { tag: 'italic-off',css: 'font-style: normal;' },
 ];
 
+// ── Banner Slides Admin ───────────────────────────────────────────────────────
+
+interface AdminBannerSlide {
+  id: string;
+  page: string;
+  imageUrl: string;
+  linkUrl: string | null;
+  caption: string | null;
+  sortOrder: number;
+  active: boolean;
+}
+
+function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
+  const { settings, set, save } = useContext(SettingsCtx);
+  const [slides, setSlides] = useState<AdminBannerSlide[]>([]);
+  const [loadingSlides, setLoadingSlides] = useState(true);
+  const [addUrl, setAddUrl] = useState('');
+  const [addCaption, setAddCaption] = useState('');
+  const [addLink, setAddLink] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const intervalKey = page === 'HOME' ? 'home_banner_interval' : 'ark_banner_interval';
+  const aspectKey   = page === 'HOME' ? 'home_banner_aspect'   : 'ark_banner_aspect';
+  const overlayKey  = page === 'HOME' ? 'home_cinematic_overlay' : 'ark_banner_overlay';
+  const gradientKey = page === 'HOME' ? 'home_cinematic_gradient' : 'ark_banner_gradient';
+
+  useEffect(() => {
+    setLoadingSlides(true);
+    api.get('/admin/banners', { params: { page } })
+      .then((r) => setSlides(r.data.slides))
+      .catch(() => {})
+      .finally(() => setLoadingSlides(false));
+  }, [page]);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const { data } = await api.post('/admin/banners/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setAddUrl(data.url);
+    } catch {}
+    finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
+
+  async function handleAdd() {
+    if (!addUrl.trim()) return;
+    setAdding(true);
+    try {
+      const { data } = await api.post('/admin/banners', {
+        page,
+        imageUrl: addUrl.trim(),
+        linkUrl: addLink.trim() || null,
+        caption: addCaption.trim() || null,
+      });
+      setSlides((prev) => [...prev, data.slide]);
+      setAddUrl('');
+      setAddCaption('');
+      setAddLink('');
+    } catch {}
+    finally { setAdding(false); }
+  }
+
+  async function handleToggleActive(id: string, active: boolean) {
+    await api.patch(`/admin/banners/${id}`, { active: !active }).catch(() => {});
+    setSlides((prev) => prev.map((s) => s.id === id ? { ...s, active: !active } : s));
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this slide?')) return;
+    await api.delete(`/admin/banners/${id}`).catch(() => {});
+    setSlides((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  async function handleMove(id: string, dir: -1 | 1) {
+    const i = slides.findIndex((s) => s.id === id);
+    if (i < 0) return;
+    const j = i + dir;
+    if (j < 0 || j >= slides.length) return;
+    const next = [...slides];
+    [next[i], next[j]] = [next[j], next[i]];
+    const withOrder = next.map((s, k) => ({ ...s, sortOrder: k }));
+    setSlides(withOrder);
+    await Promise.all(
+      [withOrder[i], withOrder[j]].map((s) =>
+        api.patch(`/admin/banners/${s.id}`, { sortOrder: s.sortOrder }).catch(() => {})
+      )
+    );
+  }
+
+  async function handleUpdateField(id: string, field: 'caption' | 'linkUrl', value: string) {
+    setSaving(id);
+    await api.patch(`/admin/banners/${id}`, { [field]: value || null }).catch(() => {});
+    setSlides((prev) => prev.map((s) => s.id === id ? { ...s, [field]: value || null } : s));
+    setSaving(null);
+  }
+
+  return (
+    <div className="space-y-6">
+
+      {/* Playback settings */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Rotation Interval (seconds)
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="number" min="3" max="120" step="1"
+              value={settings[intervalKey] ?? '15'}
+              onChange={(e) => set(intervalKey, e.target.value)}
+              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+            />
+            <SaveBtn k={intervalKey} />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Aspect Ratio <span className="text-gray-600 font-normal normal-case">(height % of width)</span>
+          </label>
+          <div className="flex gap-2">
+            <select
+              value={settings[aspectKey] ?? '42.85'}
+              onChange={(e) => set(aspectKey, e.target.value)}
+              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+            >
+              <option value="25">25% — 4:1 ultra-wide</option>
+              <option value="33.33">33% — 3:1 panoramic</option>
+              <option value="42.85">43% — 21:9 cinematic</option>
+              <option value="56.25">56% — 16:9 standard</option>
+              <option value="66.67">67% — 3:2</option>
+              <option value="75">75% — 4:3</option>
+              <option value="100">100% — square</option>
+            </select>
+            <SaveBtn k={aspectKey} />
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay & gradient */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Dark Overlay <span className="text-gray-600 font-normal normal-case">(0 = none)</span>
+          </label>
+          <div className="flex gap-2 items-center">
+            <input type="range" min="0" max="1" step="0.05"
+              value={settings[overlayKey] ?? '0'}
+              onChange={(e) => set(overlayKey, e.target.value)}
+              className="flex-1 accent-brand-500"
+            />
+            <span className="text-white text-sm w-10 text-center font-mono tabular-nums">
+              {parseFloat(settings[overlayKey] ?? '0').toFixed(2)}
+            </span>
+            <SaveBtn k={overlayKey} />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
+            Bottom Gradient <span className="text-gray-600 font-normal normal-case">(px)</span>
+          </label>
+          <div className="flex gap-2 items-center">
+            <input type="range" min="0" max="400" step="8"
+              value={settings[gradientKey] ?? '0'}
+              onChange={(e) => set(gradientKey, e.target.value)}
+              className="flex-1 accent-brand-500"
+            />
+            <span className="text-white text-sm w-14 text-center font-mono tabular-nums">
+              {settings[gradientKey] ?? '0'}px
+            </span>
+            <SaveBtn k={gradientKey} />
+          </div>
+        </div>
+      </div>
+
+      {/* Slide list */}
+      <div>
+        <h3 className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">
+          Slides ({slides.length})
+        </h3>
+        {loadingSlides ? (
+          <div className="h-16 bg-surface-800 rounded-xl animate-pulse" />
+        ) : slides.length === 0 ? (
+          <p className="text-gray-600 text-sm py-4 text-center">No slides yet — add one below.</p>
+        ) : (
+          <div className="space-y-2">
+            {slides.map((slide, i) => (
+              <div
+                key={slide.id}
+                className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                  slide.active ? 'border-surface-600 bg-surface-800' : 'border-surface-700 bg-surface-900 opacity-50'
+                }`}
+              >
+                {/* Thumbnail */}
+                <div className="w-20 h-12 rounded-lg overflow-hidden bg-surface-700 flex-shrink-0">
+                  <img src={slide.imageUrl} alt="" className="w-full h-full object-cover" />
+                </div>
+
+                {/* Editable fields */}
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <input
+                    defaultValue={slide.caption || ''}
+                    onBlur={(e) => handleUpdateField(slide.id, 'caption', e.target.value)}
+                    placeholder="Caption (optional)"
+                    className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-400"
+                  />
+                  <input
+                    defaultValue={slide.linkUrl || ''}
+                    onBlur={(e) => handleUpdateField(slide.id, 'linkUrl', e.target.value)}
+                    placeholder="Link URL (optional)"
+                    className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-400"
+                  />
+                </div>
+
+                {/* Controls */}
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => handleMove(slide.id, -1)}
+                    disabled={i === 0}
+                    className="w-7 h-7 rounded-lg bg-surface-700 hover:bg-surface-600 text-gray-400 hover:text-white text-xs flex items-center justify-center disabled:opacity-30 transition-colors"
+                    title="Move up"
+                  >↑</button>
+                  <button
+                    onClick={() => handleMove(slide.id, 1)}
+                    disabled={i === slides.length - 1}
+                    className="w-7 h-7 rounded-lg bg-surface-700 hover:bg-surface-600 text-gray-400 hover:text-white text-xs flex items-center justify-center disabled:opacity-30 transition-colors"
+                    title="Move down"
+                  >↓</button>
+                </div>
+                <button
+                  onClick={() => handleToggleActive(slide.id, slide.active)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex-shrink-0 transition-colors ${
+                    slide.active ? 'bg-camp-500/20 text-camp-400 hover:bg-camp-500/30' : 'bg-surface-700 text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  {slide.active ? 'On' : 'Off'}
+                </button>
+                <button
+                  onClick={() => handleDelete(slide.id)}
+                  className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm flex items-center justify-center flex-shrink-0 transition-colors"
+                  title="Delete slide"
+                >×</button>
+                {saving === slide.id && <span className="text-xs text-brand-400 flex-shrink-0">Saving…</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add slide */}
+      <div className="border border-surface-700 rounded-xl p-4 space-y-3">
+        <h3 className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Add Slide</h3>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={addUrl}
+            onChange={(e) => setAddUrl(e.target.value)}
+            placeholder="Image URL or upload below"
+            className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+          />
+          <label className={`px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-colors flex items-center gap-1.5 ${
+            uploading ? 'bg-surface-700 text-gray-500' : 'bg-surface-700 hover:bg-surface-600 text-gray-300'
+          }`}>
+            {uploading ? 'Uploading…' : '↑ Upload'}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleUpload}
+              disabled={uploading}
+            />
+          </label>
+        </div>
+        {addUrl && (
+          <div className="w-full h-28 rounded-xl overflow-hidden bg-surface-900">
+            <img src={addUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            value={addCaption}
+            onChange={(e) => setAddCaption(e.target.value)}
+            placeholder="Caption (optional)"
+            className="bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+          />
+          <input
+            value={addLink}
+            onChange={(e) => setAddLink(e.target.value)}
+            placeholder="Link URL (optional)"
+            className="bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+          />
+        </div>
+        <button
+          onClick={handleAdd}
+          disabled={adding || !addUrl.trim()}
+          className="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-black font-bold text-sm transition-colors disabled:opacity-50"
+        >
+          {adding ? 'Adding…' : '+ Add Slide'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CinematicBannerAdmin() {
   const { settings, set, loading } = useContext(SettingsCtx);
   return (
@@ -4125,8 +4440,8 @@ function HomepageContentSection() {
       </div>
       <div className="space-y-3">
 
-        <HpSection title="🎬 Cinematic Banner">
-          <CinematicBannerAdmin />
+        <HpSection title="🎞 Rotating Banner Slides">
+          <BannerSlidesAdmin page="HOME" />
         </HpSection>
 
         <HpSection title="🎯 Hero">
@@ -4954,102 +5269,13 @@ function SettingsTab() {
       {/* ── Homepage Content ── */}
       <HomepageContentSection />
 
-      {/* ── Ark Cinematic Banner ── */}
+      {/* ── Ark Rotating Banner ── */}
       <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40 space-y-5">
         <div>
-          <h2 className="text-lg font-bold text-white mb-1">The Ark — Cinematic Banner</h2>
-          <p className="text-gray-500 text-sm">The full-width banner at the top of The Ark shop page. Leave blank to use the default image.</p>
+          <h2 className="text-lg font-bold text-white mb-1">The Ark — Rotating Banner Slides</h2>
+          <p className="text-gray-500 text-sm">Upload and manage the rotating banner carousel at the top of The Ark shop page.</p>
         </div>
-
-        <div>
-          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-            Media URL <span className="text-gray-600 font-normal normal-case">(direct link to .jpg, .png, .mp4, etc.)</span>
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={settings['ark_banner_url'] ?? ''}
-              onChange={(e) => set('ark_banner_url', e.target.value)}
-              placeholder="https://daddymanpublishing.com/images/2026/05/campdaddyman_the_ark_streaming_platform-v3.jpg"
-              disabled={loading}
-              className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-            />
-            <UploadBannerBtn settingKey="ark_banner_url" />
-            <SaveBtn k="ark_banner_url" />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Media Type</label>
-          <div className="flex gap-2 items-center">
-            {(['image', 'video'] as const).map((val) => (
-              <button key={val} disabled={loading}
-                onClick={() => set('ark_banner_type', val)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 ${
-                  (settings['ark_banner_type'] || 'image') === val
-                    ? 'bg-brand-500 text-black border-brand-500'
-                    : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
-                }`}>
-                {val === 'image' ? '🖼 Image' : '🎬 Video'}
-              </button>
-            ))}
-            <SaveBtn k="ark_banner_type" />
-          </div>
-        </div>
-
-        {settings['ark_banner_type'] === 'video' && (
-          <div>
-            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-              Poster Image URL <span className="text-gray-600 font-normal normal-case">(shown while video loads)</span>
-            </label>
-            <div className="flex gap-2">
-              <input type="url"
-                value={settings['ark_banner_poster'] ?? ''}
-                onChange={(e) => set('ark_banner_poster', e.target.value)}
-                placeholder="https://..."
-                disabled={loading}
-                className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
-              />
-              <SaveBtn k="ark_banner_poster" />
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-            Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = fully visible · 1 = solid black · default 0)</span>
-          </label>
-          <div className="flex gap-3 items-center">
-            <input type="range" min="0" max="1" step="0.05"
-              value={settings['ark_banner_overlay'] ?? '0'}
-              onChange={(e) => set('ark_banner_overlay', e.target.value)}
-              disabled={loading}
-              className="flex-1 accent-brand-500"
-            />
-            <span className="text-white text-sm w-10 text-center font-mono tabular-nums">
-              {parseFloat(settings['ark_banner_overlay'] ?? '0').toFixed(2)}
-            </span>
-            <SaveBtn k="ark_banner_overlay" />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-            Bottom Gradient Height <span className="text-gray-600 font-normal normal-case">(0 = none · 400 = 400px fade into page · default 0)</span>
-          </label>
-          <div className="flex gap-3 items-center">
-            <input type="range" min="0" max="400" step="8"
-              value={settings['ark_banner_gradient'] ?? '0'}
-              onChange={(e) => set('ark_banner_gradient', e.target.value)}
-              disabled={loading}
-              className="flex-1 accent-brand-500"
-            />
-            <span className="text-white text-sm w-14 text-center font-mono tabular-nums">
-              {settings['ark_banner_gradient'] ?? '0'}px
-            </span>
-            <SaveBtn k="ark_banner_gradient" />
-          </div>
-        </div>
+        <BannerSlidesAdmin page="ARK" />
       </div>
 
       {/* ── Shop Page Content ── */}

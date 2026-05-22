@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { Content } from '@/types';
 import ContentRow from '@/components/content/ContentRow';
 import AdSlot from '@/components/ads/AdSlot';
+import RotatingBanner, { BannerSlide } from '@/components/ui/RotatingBanner';
 import { useAuth } from '@/context/AuthContext';
 
 // ── Mini poll widget ───────────────────────────────────────────────────────────
@@ -199,6 +200,7 @@ export default function HomePage() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [activePoll, setActivePoll] = useState<ActivePoll | null>(null);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>([]);
 
   useEffect(() => {
     api.get('/content/discover')
@@ -210,6 +212,9 @@ export default function HomePage() {
       .catch(() => {});
     api.get('/site-settings/public')
       .then(({ data }) => setSiteSettings(data.settings ?? {}))
+      .catch(() => {});
+    api.get('/banners', { params: { page: 'HOME' } })
+      .then(({ data }) => setBannerSlides(data.slides ?? []))
       .catch(() => {});
   }, []);
 
@@ -241,36 +246,21 @@ export default function HomePage() {
   }
 
 
-  const cinematicUrl      = siteSettings.home_cinematic_url;
-  const cinematicType     = siteSettings.home_cinematic_type || 'image';
-  const cinematicOverlay  = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0.2')));
+  const cinematicOverlay  = Math.min(1, Math.max(0, parseFloat(siteSettings.home_cinematic_overlay || '0')));
   const cinematicGradient = Math.min(400, Math.max(0, parseInt(siteSettings.home_cinematic_gradient || '0', 10)));
 
   return (
     <div>
 
-      {/* ── Cinematic Banner — full natural height, no cropping (Ark style) ── */}
-      {cinematicUrl && (
-        <section className="w-full bg-black relative">
-          {cinematicType === 'video' ? (
-            <video
-              autoPlay muted loop playsInline
-              poster={siteSettings.home_cinematic_poster || undefined}
-              className="w-full h-auto block"
-            >
-              <source src={cinematicUrl} />
-            </video>
-          ) : (
-            <img src={cinematicUrl} alt="" className="w-full h-auto block" />
-          )}
-          {cinematicOverlay > 0 && (
-            <div className="absolute inset-0 bg-black" style={{ opacity: cinematicOverlay }} />
-          )}
-          {cinematicGradient > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-surface-900 to-transparent pointer-events-none"
-              style={{ height: `${cinematicGradient}px` }} />
-          )}
-        </section>
+      {/* ── Rotating Banner ── */}
+      {bannerSlides.length > 0 && (
+        <RotatingBanner
+          slides={bannerSlides}
+          intervalMs={parseInt(siteSettings.home_banner_interval || '15', 10) * 1000}
+          overlay={cinematicOverlay}
+          gradient={cinematicGradient}
+          aspectPct={parseFloat(siteSettings.home_banner_aspect || '42.85')}
+        />
       )}
 
       {/* ── Hero ── */}
@@ -349,8 +339,8 @@ export default function HomePage() {
 
         </div>
 
-        {/* Scroll cue — only when no cinematic banner above */}
-        {!cinematicUrl && (
+        {/* Scroll cue — only when no banner above */}
+        {bannerSlides.length === 0 && (
           <div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
             style={{ color: '#f8c202', fontSize: '1.75rem', lineHeight: 1, textShadow: '0 0 12px rgba(248,194,2,0.5)' }}

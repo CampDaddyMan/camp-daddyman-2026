@@ -12,8 +12,9 @@ import shopRoutes from './shop';
 import albumRoutes from './albums';
 import internalRoutes from './internal';
 import { getPublicCss, getPublicSettings } from '../controllers/settings.controller';
+import { listPublicBanners } from '../controllers/banner.controller';
 import { unifiedSearch } from '../controllers/search.controller';
-import { searchLimiter } from '../middleware/rateLimiter';
+import { searchLimiter, readLimiter } from '../middleware/rateLimiter';
 import { optionalAuthMiddleware } from '../middleware/auth';
 
 export const router = Router();
@@ -33,3 +34,4 @@ router.use('/internal', internalRoutes);
 router.get('/search', optionalAuthMiddleware, searchLimiter, unifiedSearch);
 router.get('/site-settings/css', getPublicCss);
 router.get('/site-settings/public', getPublicSettings);
+router.get('/banners', readLimiter, listPublicBanners);

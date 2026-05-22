@@ -13,6 +13,7 @@ import {
   resolveReport,
 } from '../controllers/admin.controller';
 import { adminGetSettings, adminUpdateSetting, adminUploadSettingsImage } from '../controllers/settings.controller';
+import { adminListBanners, createBanner, updateBanner, deleteBanner, uploadBannerImage } from '../controllers/banner.controller';
 import {
   adminUploadProductImage,
   adminCreateProduct,
@@ -70,5 +71,12 @@ router.delete('/coupons/:id',            writeLimiter, adminDeleteCoupon);
 router.get('/settings',                  readLimiter,  adminGetSettings);
 router.put('/settings',                  writeLimiter, adminUpdateSetting);
 router.post('/settings/upload',          writeLimiter, imageUpload.single('image'), adminUploadSettingsImage);
+
+// Banner slides admin
+router.get('/banners',                   readLimiter,  adminListBanners);
+router.post('/banners/upload',           writeLimiter, imageUpload.single('image'), uploadBannerImage);
+router.post('/banners',                  writeLimiter, createBanner);
+router.patch('/banners/:id',             writeLimiter, updateBanner);
+router.delete('/banners/:id',            writeLimiter, deleteBanner);
 
 export default router;

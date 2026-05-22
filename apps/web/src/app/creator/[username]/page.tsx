@@ -35,7 +35,7 @@ function TipModal({ username, creatorName, onClose }: { username: string; creato
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={onClose}>
       <div className="bg-surface-800 border border-surface-600 rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-white font-bold text-lg">Tip {creatorName}</h2>
+          <h2 className="text-white font-bold text-lg">Send A Strength to {creatorName}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl leading-none">×</button>
         </div>
 
@@ -87,7 +87,7 @@ function TipModal({ username, creatorName, onClose }: { username: string; creato
             disabled={loading || !amount}
             className="w-full bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black font-bold py-3 rounded-xl text-sm transition-colors"
           >
-            {loading ? 'Redirecting...' : `Send $${amount || '—'} tip`}
+            {loading ? 'Redirecting...' : `Send $${amount || '—'} Strength`}
           </button>
         </form>
       </div>
@@ -301,7 +301,7 @@ export default function CreatorPage() {
                   onClick={() => setTipOpen(true)}
                   className="px-4 py-2 rounded-full text-sm font-semibold border border-surface-500 text-gray-300 hover:border-brand-400 hover:text-brand-400 transition-colors"
                 >
-                  💛 Tip
+                  💛 Send A Strength
                 </button>
                 <button
                   onClick={handleFollow}
@@ -413,7 +413,7 @@ export default function CreatorPage() {
       {tipped && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-surface-800 border border-brand-500/40 text-white px-6 py-3 rounded-2xl shadow-2xl z-50 flex items-center gap-3 text-sm">
           <span className="text-xl">💛</span>
-          <span>Tip sent! Thank you for supporting {creator?.displayName || creator?.username}.</span>
+          <span>Strength sent! Thank you for supporting {creator?.displayName || creator?.username}.</span>
           <button onClick={() => setTipped(false)} className="text-gray-400 hover:text-white ml-2">×</button>
         </div>
       )}

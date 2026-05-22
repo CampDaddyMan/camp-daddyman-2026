@@ -52,10 +52,10 @@ export default function TipsSentPage() {
         <Link href="/dashboard" className="text-gray-500 hover:text-brand-400 text-sm transition-colors">
           ← Dashboard
         </Link>
-        <h1 className="text-2xl font-bold text-white mt-3">Tips Sent</h1>
+        <h1 className="text-2xl font-bold text-white mt-3">Strengths Sent</h1>
         {total > 0 && (
           <p className="text-gray-400 text-sm mt-1">
-            {total} tip{total !== 1 ? 's' : ''} · <span className="text-brand-400 font-semibold">${(totalCents / 100).toFixed(2)} total</span>
+            {total} strength{total !== 1 ? 's' : ''} sent · <span className="text-brand-400 font-semibold">${(totalCents / 100).toFixed(2)} total</span>
           </p>
         )}
       </div>
@@ -69,8 +69,8 @@ export default function TipsSentPage() {
       ) : tips.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-4xl mb-4">💸</p>
-          <p className="text-white font-semibold text-lg mb-2">No tips sent yet</p>
-          <p className="text-gray-500 text-sm">Support a creator by sending them a tip.</p>
+          <p className="text-white font-semibold text-lg mb-2">No strengths sent yet</p>
+          <p className="text-gray-500 text-sm">Support a creator by sending them a strength.</p>
           <Link href="/browse" className="inline-block mt-6 bg-brand-500 hover:bg-brand-600 text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors">
             Browse Creators →
           </Link>

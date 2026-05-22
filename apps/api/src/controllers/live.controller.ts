@@ -51,10 +51,7 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
 
   const cfRes = await cfFetch('', {
     method: 'POST',
-    body: JSON.stringify({
-      meta: { name: title.trim() },
-      recording: { mode: 'automatic', requireSignedURLs: false },
-    }),
+    body: JSON.stringify({ meta: { name: title.trim() } }),
   });
 
   if (!cfRes.ok) {
@@ -63,10 +60,15 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
   }
 
   const cf = await cfRes.json() as any;
-  const uid        = cf.result.uid as string;
-  const streamKey  = cf.result.rtmps.streamKey as string;
-  const rtmpUrl    = (cf.result.rtmps.url as string) + streamKey;
-  const playbackUrl = `https://customer-${uid}.cloudflarestream.com/${uid}/manifest/video.m3u8`;
+  const uid       = cf.result.uid as string;
+  const streamKey = cf.result.rtmps.streamKey as string;
+  const rtmpUrl   = (cf.result.rtmps.url as string) + streamKey;
+
+  // Derive customer subdomain from webRTCPlayback URL
+  const webRTCUrl     = (cf.result.webRTCPlayback?.url as string) || '';
+  const customerMatch = webRTCUrl.match(/customer-([^.]+)\.cloudflarestream\.com/);
+  const customerCode  = customerMatch?.[1] || uid;
+  const playbackUrl   = `https://customer-${customerCode}.cloudflarestream.com/${uid}/manifest/video.m3u8`;
 
   const stream = await prisma.liveStream.create({
     data: {

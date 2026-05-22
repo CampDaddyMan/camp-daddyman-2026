@@ -76,3 +76,52 @@ export async function getDashboard(req: AuthRequest, res: Response) {
 function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10);
 }
+
+export async function getEarnings(req: AuthRequest, res: Response) {
+  const userId = req.user!.id;
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+  const [recentTips, chartTips, aggregate] = await Promise.all([
+    prisma.tip.findMany({
+      where: { recipientId: userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        amountCents: true,
+        message: true,
+        createdAt: true,
+        sender: { select: { username: true, displayName: true, avatar: true } },
+      },
+    }),
+    prisma.tip.findMany({
+      where: { recipientId: userId, createdAt: { gte: sixMonthsAgo } },
+      select: { amountCents: true, createdAt: true },
+    }),
+    prisma.tip.aggregate({
+      where: { recipientId: userId },
+      _sum: { amountCents: true },
+      _count: { id: true },
+    }),
+  ]);
+
+  // Build 6-month buckets
+  const monthlyTotals: { label: string; cents: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end   = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+    const label = start.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    const cents = chartTips
+      .filter((t) => { const d = new Date(t.createdAt); return d >= start && d < end; })
+      .reduce((s, t) => s + t.amountCents, 0);
+    monthlyTotals.push({ label, cents });
+  }
+
+  res.json({
+    totalCents:    aggregate._sum.amountCents ?? 0,
+    tipCount:      aggregate._count.id,
+    recentTips,
+    monthlyTotals,
+  });
+}

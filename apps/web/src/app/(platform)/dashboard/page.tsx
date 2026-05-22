@@ -19,6 +19,21 @@ interface DashboardContent {
 
 interface ActivityDay { date: string; views: number; likes: number; comments: number }
 
+interface TipItem {
+  id: string;
+  amountCents: number;
+  message: string | null;
+  createdAt: string;
+  sender: { username: string; displayName?: string; avatar?: string } | null;
+}
+
+interface EarningsData {
+  totalCents: number;
+  tipCount: number;
+  recentTips: TipItem[];
+  monthlyTotals: { label: string; cents: number }[];
+}
+
 interface DashboardData {
   stats: {
     totalViews: number; totalLikes: number;
@@ -118,6 +133,32 @@ function EngagementChart({ data }: { data: ActivityDay[] }) {
         <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#f8c202', opacity: 0.85 }} />Likes</span>
         <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#7c3aed', opacity: 0.5 }} />Comments</span>
       </div>
+    </div>
+  );
+}
+
+// ── Monthly tips bar chart ────────────────────────────────────────────────────
+
+function TipsChart({ data }: { data: { label: string; cents: number }[] }) {
+  const W = 400, H = 60, PAD = 6;
+  const n = data.length;
+  const barW = Math.floor((W - PAD * (n - 1)) / n);
+  const maxVal = Math.max(...data.map((d) => d.cents), 1);
+
+  return (
+    <div className="w-full">
+      <svg viewBox={`0 0 ${W} ${H + 22}`} className="w-full" preserveAspectRatio="none" style={{ minWidth: 240 }}>
+        {data.map((d, i) => {
+          const barH = Math.max(2, Math.round((d.cents / maxVal) * H));
+          const x = i * (barW + PAD);
+          return (
+            <g key={d.label}>
+              <rect x={x} y={H - barH} width={barW} height={barH} fill="#f8c202" opacity={0.85} rx={2} />
+              <text x={x + barW / 2} y={H + 15} textAnchor="middle" fill="#6b7280" fontSize={9}>{d.label}</text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }
@@ -257,6 +298,7 @@ export default function DashboardPage() {
   const [verifyDismissed, setVerifyDismissed] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [earnings, setEarnings]           = useState<EarningsData | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -275,6 +317,11 @@ export default function DashboardPage() {
     api.get('/notifications/preferences')
       .then((r) => setPrefs(r.data))
       .catch(() => {});
+    if ((user as any).isCreator || user.isAdmin) {
+      api.get('/dashboard/earnings')
+        .then((r) => setEarnings(r.data))
+        .catch(() => {});
+    }
   }, [user, days]);
 
   async function handleDelete(id: string, title: string) {
@@ -462,6 +509,72 @@ export default function DashboardPage() {
             <StatCard label="Comments"         value={data.stats.totalComments} emoji="💬" />
             <StatCard label="Pieces Published" value={data.stats.totalContent}  emoji="🎵" />
           </div>
+
+          {/* ── Earnings section (creators only) ── */}
+          {earnings && (
+            <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 mb-8">
+              <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
+                <div>
+                  <h2 className="text-base font-semibold text-white">Earnings</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Gross tip income — Stripe fees deducted at payout</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-brand-400">${(earnings.totalCents / 100).toFixed(2)}</p>
+                  <p className="text-xs text-gray-500">{earnings.tipCount} tip{earnings.tipCount !== 1 ? 's' : ''} all time</p>
+                </div>
+              </div>
+
+              {/* Monthly chart */}
+              {earnings.monthlyTotals.some((m) => m.cents > 0) ? (
+                <div className="mb-6">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Monthly Tips</p>
+                  <TipsChart data={earnings.monthlyTotals} />
+                </div>
+              ) : null}
+
+              {/* Recent tips list */}
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Recent Tips</p>
+                {earnings.recentTips.length === 0 ? (
+                  <p className="text-sm text-gray-600 text-center py-6">No tips received yet — share your profile to get started.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {earnings.recentTips.map((tip) => {
+                      const name = tip.sender?.displayName || tip.sender?.username || 'Anonymous';
+                      const secs = Math.floor((Date.now() - new Date(tip.createdAt).getTime()) / 1000);
+                      const ago = secs < 3600 ? `${Math.floor(secs / 60)}m ago`
+                                : secs < 86400 ? `${Math.floor(secs / 3600)}h ago`
+                                : new Date(tip.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                      return (
+                        <div key={tip.id} className="flex items-start gap-3 px-3 py-3 rounded-lg hover:bg-surface-700 transition-colors">
+                          <div className="w-8 h-8 rounded-full bg-surface-600 flex items-center justify-center text-sm font-semibold text-white flex-shrink-0">
+                            {tip.sender?.avatar
+                              ? <img src={tip.sender.avatar} alt="" className="w-full h-full object-cover rounded-full" />
+                              : name[0].toUpperCase()
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white font-medium">
+                              {tip.sender ? (
+                                <Link href={`/creator/${tip.sender.username}`} className="hover:text-brand-400 transition-colors">
+                                  {name}
+                                </Link>
+                              ) : name}
+                            </p>
+                            {tip.message && <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">&ldquo;{tip.message}&rdquo;</p>}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-bold text-brand-400">${(tip.amountCents / 100).toFixed(2)}</p>
+                            <p className="text-xs text-gray-500">{ago}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── Analytics charts ── */}
           <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 mb-8">

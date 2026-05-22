@@ -3,6 +3,7 @@ import {
   getPlans,
   getMySubscription,
   createCheckoutSession,
+  createGiftCheckout,
   createPortalSession,
   cancelSubscription,
   createSupporterCheckout,
@@ -19,6 +20,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhook
 router.get('/plans', getPlans);
 router.get('/me', authMiddleware, getMySubscription);
 router.post('/checkout', authMiddleware, createCheckoutSession);
+router.post('/gift', authMiddleware, createGiftCheckout);
 router.post('/checkout/supporter', authMiddleware, createSupporterCheckout);
 router.post('/tip/:username', authMiddleware, createTipCheckout);
 router.post('/portal', authMiddleware, createPortalSession);

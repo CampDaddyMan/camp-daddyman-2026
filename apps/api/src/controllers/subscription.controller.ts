@@ -120,6 +120,59 @@ export async function createTipCheckout(req: AuthRequest, res: Response) {
   res.json({ url: session.url });
 }
 
+export async function createGiftCheckout(req: AuthRequest, res: Response) {
+  const { recipientEmail, plan } = req.body as { recipientEmail: string; plan: string };
+
+  if (!['PRO', 'PREMIUM'].includes(plan)) {
+    return res.status(400).json({ error: 'Invalid plan. Choose PRO or PREMIUM.' });
+  }
+
+  const planConfig = PLANS[plan as 'PRO' | 'PREMIUM'];
+
+  const recipient = await prisma.user.findUnique({
+    where: { email: recipientEmail.toLowerCase().trim() },
+    select: { id: true, username: true, displayName: true },
+  });
+
+  if (!recipient) {
+    return res.status(404).json({ error: 'No Camp DaddyMan account found for that email. They need to sign up first.' });
+  }
+
+  if (recipient.id === req.user!.id) {
+    return res.status(400).json({ error: 'You cannot gift a subscription to yourself.' });
+  }
+
+  const recipientName = recipient.displayName || recipient.username;
+  const label = plan === 'PRO' ? 'Monthly Membership' : 'Annual Membership';
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `Camp DaddyMan ${label} — Gift for ${recipientName}`,
+          description: `A gift subscription for ${recipientEmail}`,
+        },
+        unit_amount: Math.round(planConfig.price * 100),
+      },
+    }],
+    success_url: `${process.env.FRONTEND_URL}/gift/success?plan=${plan}&for=${encodeURIComponent(recipientEmail)}`,
+    cancel_url:  `${process.env.FRONTEND_URL}/gift`,
+    metadata: {
+      type:          'GIFT',
+      plan,
+      recipientId:   recipient.id,
+      buyerId:       req.user!.id,
+      recipientEmail,
+    },
+  });
+
+  res.json({ url: session.url });
+}
+
 export async function createSupporterCheckout(req: AuthRequest, res: Response) {
   const { amount, recurring } = req.body as { amount: number; recurring: boolean };
 
@@ -177,6 +230,23 @@ export async function stripeWebhook(req: Request, res: Response) {
       case 'checkout.session.completed': {
         const session = event.data.object as any;
         const meta = session.metadata ?? {};
+
+        // Gift subscription
+        if (meta.type === 'GIFT') {
+          const { plan, recipientId } = meta;
+          if (plan && recipientId) {
+            const now = new Date();
+            const end = new Date(now);
+            if (plan === 'PRO') end.setMonth(end.getMonth() + 1);
+            else end.setFullYear(end.getFullYear() + 1);
+            await prisma.subscription.upsert({
+              where:  { userId: recipientId },
+              update: { plan, status: 'ACTIVE', currentPeriodStart: now, currentPeriodEnd: end },
+              create: { userId: recipientId, plan, status: 'ACTIVE', currentPeriodStart: now, currentPeriodEnd: end },
+            }).catch(() => {});
+          }
+          break;
+        }
 
         // Creator tip
         if (meta.type === 'TIP') {

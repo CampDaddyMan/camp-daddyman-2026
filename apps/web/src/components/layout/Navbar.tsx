@@ -218,6 +218,15 @@ export default function Navbar() {
 
           <div className="w-px h-5 bg-surface-600 mx-0.5" />
 
+          {/* Gift pill */}
+          <Link
+            href="/gift"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-surface-700 text-gray-300 border border-surface-600 hover:bg-surface-600 hover:text-white transition-all whitespace-nowrap"
+          >
+            <span className="text-[12px]">🎁</span>
+            Gift
+          </Link>
+
           {/* Membership pill */}
           <Link
             href="/membership"
@@ -361,6 +370,7 @@ export default function Navbar() {
 
           {/* Store */}
           <MobileSection label="Store">
+            <MobileLink href="/gift" onClick={() => setMobileOpen(false)}>🎁 Gift a Membership</MobileLink>
             <MobileLink href="/shop" onClick={() => setMobileOpen(false)}>The Ark — Merch</MobileLink>
             <MobileLink href="/shop/cart" onClick={() => setMobileOpen(false)}>
               <span className="flex items-center justify-between">

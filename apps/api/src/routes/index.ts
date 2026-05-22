@@ -11,6 +11,9 @@ import partnerRoutes from './partners';
 import shopRoutes from './shop';
 import albumRoutes from './albums';
 import { getPublicCss, getPublicSettings } from '../controllers/settings.controller';
+import { unifiedSearch } from '../controllers/search.controller';
+import { searchLimiter } from '../middleware/rateLimiter';
+import { optionalAuthMiddleware } from '../middleware/auth';
 
 export const router = Router();
 
@@ -25,5 +28,6 @@ router.use('/polls', pollRoutes);
 router.use('/partners', partnerRoutes);
 router.use('/shop', shopRoutes);
 router.use('/albums', albumRoutes);
+router.get('/search', optionalAuthMiddleware, searchLimiter, unifiedSearch);
 router.get('/site-settings/css', getPublicCss);
 router.get('/site-settings/public', getPublicSettings);

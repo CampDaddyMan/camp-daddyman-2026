@@ -195,6 +195,15 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+function timeAgo(iso: string) {
+  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (secs < 60)    return 'just now';
+  if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  if (secs < 604800) return `${Math.floor(secs / 86400)}d ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function formatTime(seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -536,7 +545,10 @@ export default function WatchPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
+      {/* ── Left column ── */}
+      <div>
       {/* Player */}
       <div className={`${content.type === 'BOOK' ? 'min-h-[75vh]' : 'aspect-video'} bg-black rounded-2xl overflow-hidden mb-3 relative`}>
         {content.status === 'PROCESSING' ? (
@@ -749,67 +761,102 @@ export default function WatchPage() {
         </div>
       )}
 
-      {/* Related content */}
-      {(related.fromCreator.length > 0 || related.sameType.length > 0) && (
-        <div className="mb-8">
-          {related.fromCreator.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">
-                More from {content.creator.displayName || content.creator.username}
-              </h3>
-              <div className="space-y-2">
-                {related.fromCreator.map((item) => <MiniContentCard key={item.id} item={item} />)}
-              </div>
-            </div>
-          )}
-          {related.sameType.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">
-                More {content.type.replace('_', ' ').toLowerCase()}
-              </h3>
-              <div className="space-y-2">
-                {related.sameType.slice(0, 4).map((item) => <MiniContentCard key={item.id} item={item} />)}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Comments */}
       <div>
-        <h3 className="font-semibold text-white mb-4">Comments ({comments.length})</h3>
+        <h3 className="font-semibold text-white mb-4">
+          Comments {comments.length > 0 && <span className="text-gray-500 font-normal text-sm ml-1">({comments.length})</span>}
+        </h3>
 
-        {user && (
+        {user ? (
           <form onSubmit={handleComment} className="flex gap-3 mb-6">
-            <input
-              value={commentText} onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors"
-            />
-            <Button type="submit" size="sm" disabled={!commentText.trim()}>Post</Button>
+            <div className="w-8 h-8 rounded-full bg-surface-600 flex-shrink-0 flex items-center justify-center text-sm font-semibold text-white overflow-hidden">
+              {user.avatar
+                ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                : (user.displayName || user.username)[0].toUpperCase()
+              }
+            </div>
+            <div className="flex-1 flex gap-2">
+              <input
+                value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+              />
+              <Button type="submit" size="sm" disabled={!commentText.trim()}>Post</Button>
+            </div>
           </form>
+        ) : (
+          <p className="text-sm text-gray-500 mb-6">
+            <Link href="/login" className="text-brand-400 hover:underline">Sign in</Link> to leave a comment.
+          </p>
         )}
 
-        <div className="space-y-4">
-          {comments.map((c) => (
-            <div key={c.id} className="bg-surface-800 rounded-xl px-4 py-3">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium text-white">{c.user.displayName || c.user.username}</span>
-                <span className="text-xs text-gray-500">{formatDate(c.createdAt)}</span>
-                {user && (user.id === c.user.id || user.isAdmin) && (
-                  <button
-                    onClick={() => handleDeleteComment(c.id)}
-                    className="ml-auto text-xs text-gray-500 hover:text-red-400 transition-colors"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              <p className="text-sm text-gray-300">{c.text}</p>
-            </div>
-          ))}
-        </div>
+        {comments.length === 0 ? (
+          <p className="text-gray-600 text-sm py-4">No comments yet — be the first.</p>
+        ) : (
+          <div className="space-y-3">
+            {comments.map((c) => {
+              const name = c.user.displayName || c.user.username;
+              return (
+                <div key={c.id} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-surface-600 flex-shrink-0 flex items-center justify-center text-sm font-semibold text-white overflow-hidden mt-0.5">
+                    {c.user.avatar
+                      ? <img src={c.user.avatar} alt="" className="w-full h-full object-cover" />
+                      : name[0].toUpperCase()
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className="text-sm font-medium text-white">{name}</span>
+                      <span className="text-xs text-gray-500">{timeAgo(c.createdAt)}</span>
+                      {user && (user.id === c.user.id || user.isAdmin) && (
+                        <button
+                          onClick={() => handleDeleteComment(c.id)}
+                          className="ml-auto text-xs text-gray-600 hover:text-red-400 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-300 leading-relaxed">{c.text}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+      </div>{/* end left column */}
+
+      {/* ── Right sidebar ── */}
+      <div className="hidden lg:block space-y-6 sticky top-6">
+        {related.fromCreator.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-300">
+                More from {content.creator.displayName || content.creator.username}
+              </h3>
+              <Link href={`/creator/${content.creator.username}`} className="text-xs text-brand-400 hover:text-brand-300 transition-colors">
+                View all
+              </Link>
+            </div>
+            <div className="space-y-1">
+              {related.fromCreator.map((item) => <MiniContentCard key={item.id} item={item} />)}
+            </div>
+          </div>
+        )}
+        {related.sameType.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">
+              More {content.type.replace(/_/g, ' ').toLowerCase()}
+            </h3>
+            <div className="space-y-1">
+              {related.sameType.slice(0, 5).map((item) => <MiniContentCard key={item.id} item={item} />)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      </div>{/* end grid */}
     </div>
   );
 }

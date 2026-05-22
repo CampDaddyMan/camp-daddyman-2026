@@ -90,7 +90,7 @@ interface PreviewContent {
 
 const GATE_FEATURES = [
   { plan: 'Pro — $9.99/mo', href: '/subscribe', features: ['Members-only content', '100GB storage', 'HD quality', 'No ads'] },
-  { plan: 'Premium — $24.99/mo', href: '/subscribe', features: ['Everything in Pro', '4K quality', 'Download for offline', '500GB storage'] },
+  { plan: 'Premium — $24.99/mo', href: '/subscribe', features: ['Everything in Pro', '4K quality', '500GB storage'] },
 ];
 
 function SubscriberGate({ preview, user }: { preview: PreviewContent | null; user: any }) {
@@ -330,7 +330,6 @@ export default function WatchPage() {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
   const [subRequired, setSubRequired] = useState(false);
   const [preview, setPreview] = useState<PreviewContent | null>(null);
@@ -431,26 +430,6 @@ export default function WatchPage() {
     if (!user) return;
     const { data } = await api.post(`/content/${id}/save`);
     setSaved(data.saved);
-  }
-
-  async function handleDownload() {
-    if (!user || downloading) return;
-    setDownloading(true);
-    try {
-      const { data } = await api.get(`/content/${id}/download`);
-      const a = document.createElement('a');
-      a.href = data.url;
-      a.download = '';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch (err: any) {
-      if (err.response?.status === 403) {
-        window.location.href = '/subscribe';
-      }
-    } finally {
-      setDownloading(false);
-    }
   }
 
   async function handleShare() {
@@ -757,20 +736,6 @@ export default function WatchPage() {
         <Button variant="secondary" size="sm" onClick={handleShare}>
           {copied ? '✓ Copied!' : '↗ Share'}
         </Button>
-        {content.mediaUrl && (
-          user?.subscription?.plan === 'PREMIUM' || user?.subscription?.plan === 'CREATOR' || user?.isAdmin
-            ? (
-              <Button variant="secondary" size="sm" onClick={handleDownload} disabled={downloading}>
-                {downloading ? '⏳' : '⬇ Download'}
-              </Button>
-            ) : (
-              <Link href="/subscribe">
-                <Button variant="ghost" size="sm" className="opacity-60 hover:opacity-100">
-                  ⬇ Download
-                </Button>
-              </Link>
-            )
-        )}
         <Link href={`/creator/${content.creator.username}`}>
           <Button variant="ghost" size="sm">
             {content.creator.displayName || content.creator.username}

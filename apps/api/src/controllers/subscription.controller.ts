@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { stripe, PLANS } from '../config/stripe';
 import { AuthRequest } from '../middleware/auth';
+import { notifyTip } from '../utils/notifications';
 
 export function getPlans(_req: Request, res: Response) {
   res.json({ plans: PLANS });
@@ -181,15 +182,17 @@ export async function stripeWebhook(req: Request, res: Response) {
         if (meta.type === 'TIP') {
           const { senderId, recipientId, message } = meta;
           if (senderId && recipientId) {
+            const amountCents = session.amount_total ?? 0;
             await prisma.tip.create({
               data: {
-                amountCents:     session.amount_total ?? 0,
+                amountCents,
                 message:         message || null,
                 stripeSessionId: session.id,
                 senderId,
                 recipientId,
               },
             }).catch(() => {}); // ignore duplicate webhook replays
+            notifyTip(recipientId, senderId, amountCents, message || null);
           }
           break;
         }

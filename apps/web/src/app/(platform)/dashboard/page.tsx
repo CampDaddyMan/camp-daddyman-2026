@@ -284,7 +284,7 @@ export default function DashboardPage() {
   const [data, setData]             = useState<DashboardData | null>(null);
   const [fetching, setFetching]     = useState(true);
   const [days, setDays]             = useState<7 | 30 | 90>(30);
-  const [prefs, setPrefs]           = useState({ emailNewFollower: true, emailNewContent: true });
+  const [prefs, setPrefs]           = useState({ emailNewFollower: true, emailNewContent: true, emailNewComment: true, emailNewTip: true });
   const [prefSaving, setPrefSaving] = useState(false);
   const [deleting, setDeleting]     = useState<string | null>(null);
   const [editOpen, setEditOpen]     = useState(false);
@@ -385,7 +385,7 @@ export default function DashboardPage() {
     }
   }
 
-  async function handlePrefToggle(key: 'emailNewFollower' | 'emailNewContent') {
+  async function handlePrefToggle(key: 'emailNewFollower' | 'emailNewContent' | 'emailNewComment' | 'emailNewTip') {
     const updated = { ...prefs, [key]: !prefs[key] };
     setPrefs(updated);
     setPrefSaving(true);
@@ -753,8 +753,10 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-4">
               {[
-                { key: 'emailNewFollower' as const, label: 'New follower', desc: 'Email when someone follows you' },
+                { key: 'emailNewFollower' as const, label: 'New follower',               desc: 'Email when someone follows you' },
                 { key: 'emailNewContent'  as const, label: 'New content from creators',  desc: 'Email when someone you follow posts something new' },
+                { key: 'emailNewComment'  as const, label: 'New comment on your content', desc: 'Email when someone comments on your post' },
+                { key: 'emailNewTip'      as const, label: 'Tip received',               desc: 'Email when someone sends you a tip' },
               ].map(({ key, label, desc }) => (
                 <div key={key} className="flex items-center justify-between gap-4">
                   <div>

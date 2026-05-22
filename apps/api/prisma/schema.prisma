@@ -25,6 +25,8 @@ model User {
 
   emailNewFollower Boolean @default(true)
   emailNewContent  Boolean @default(true)
+  emailNewComment  Boolean @default(true)
+  emailNewTip      Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -311,6 +313,7 @@ enum NotificationType {
   NEW_LIKE      // someone liked your content
   NEW_COMMENT   // someone commented on your content
   NEW_FOLLOWER  // someone followed you
+  NEW_TIP       // someone tipped you
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────

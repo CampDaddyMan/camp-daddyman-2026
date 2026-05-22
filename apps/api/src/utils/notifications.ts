@@ -1,6 +1,6 @@
 import { prisma } from '../config/database';
 import { NotificationType } from '@prisma/client';
-import { sendNewFollowerEmail, sendNewContentEmail } from './email';
+import { sendNewFollowerEmail, sendNewContentEmail, sendNewCommentEmail, sendTipReceivedEmail } from './email';
 
 interface CreateNotificationArgs {
   userId: string;       // recipient
@@ -19,6 +19,9 @@ export function notify(args: CreateNotificationArgs) {
   // Send email for high-signal events
   if (args.type === 'NEW_FOLLOWER' && args.actorId) {
     sendFollowerEmail(args.userId, args.actorId).catch(() => {});
+  }
+  if (args.type === 'NEW_COMMENT' && args.actorId && args.contentId) {
+    sendCommentEmail(args.userId, args.actorId, args.contentId).catch(() => {});
   }
 }
 
@@ -67,6 +70,56 @@ async function sendFollowerEmail(recipientId: string, actorId: string) {
     recipient.username,
     actor.username,
     actor.displayName || actor.username,
+  );
+}
+
+async function sendCommentEmail(recipientId: string, actorId: string, contentId: string) {
+  const [recipient, actor, content] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: recipientId },
+      select: { email: true, username: true, emailVerified: true, emailNewComment: true },
+    }),
+    prisma.user.findUnique({ where: { id: actorId }, select: { username: true, displayName: true } }),
+    prisma.content.findUnique({ where: { id: contentId }, select: { title: true } }),
+  ]);
+  if (!recipient?.emailVerified || !recipient.emailNewComment || !actor || !content) return;
+  await sendNewCommentEmail(
+    recipient.email,
+    recipient.username,
+    actor.displayName || actor.username,
+    actor.username,
+    content.title,
+    contentId,
+  );
+}
+
+/** Fire-and-forget tip notification + email */
+export function notifyTip(recipientId: string, senderId: string, amountCents: number, message?: string | null) {
+  if (recipientId === senderId) return;
+
+  prisma.notification.create({
+    data: { userId: recipientId, type: NotificationType.NEW_TIP, actorId: senderId },
+  }).catch(() => {});
+
+  sendTipEmail(recipientId, senderId, amountCents, message).catch(() => {});
+}
+
+async function sendTipEmail(recipientId: string, senderId: string, amountCents: number, message?: string | null) {
+  const [recipient, sender] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: recipientId },
+      select: { email: true, username: true, emailVerified: true, emailNewTip: true },
+    }),
+    prisma.user.findUnique({ where: { id: senderId }, select: { username: true, displayName: true } }),
+  ]);
+  if (!recipient?.emailVerified || !recipient.emailNewTip || !sender) return;
+  await sendTipReceivedEmail(
+    recipient.email,
+    recipient.username,
+    sender.displayName || sender.username,
+    sender.username,
+    (amountCents / 100).toFixed(2),
+    message,
   );
 }
 

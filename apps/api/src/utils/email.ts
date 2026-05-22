@@ -230,6 +230,53 @@ export async function sendNewDeviceLoginEmail(to: string, username: string, devi
   });
 }
 
+export async function sendNewCommentEmail(
+  to: string,
+  recipientUsername: string,
+  actorDisplay: string,
+  actorUsername: string,
+  contentTitle: string,
+  contentId: string,
+) {
+  const url = `${APP_URL}/watch/${contentId}`;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `${actorDisplay} commented on your post`,
+    html: base('New comment', `
+      ${h2('Someone commented on your post 💬')}
+      ${p(`Hey ${recipientUsername}, <strong style="color:#fff;">${actorDisplay}</strong> (@${actorUsername}) left a comment on <em style="color:#d0d0e0;">${contentTitle}</em>.`)}
+      ${btn(url, 'View the comment')}
+    `),
+  });
+}
+
+export async function sendTipReceivedEmail(
+  to: string,
+  recipientUsername: string,
+  senderDisplay: string,
+  senderUsername: string,
+  amountDollars: string,
+  message?: string | null,
+) {
+  const url = `${APP_URL}/dashboard`;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `${senderDisplay} sent you a tip — $${amountDollars}`,
+    html: base('Tip received', `
+      ${h2(`You received a tip! 💛`)}
+      ${p(`Hey ${recipientUsername}, <strong style="color:#fff;">${senderDisplay}</strong> (@${senderUsername}) sent you <strong style="color:#f8c202;">$${amountDollars}</strong>.`)}
+      ${message ? `<div style="background:#0f0f17;border:1px solid #2e2e3e;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+        <p style="margin:0 0 4px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Message</p>
+        <p style="margin:0;color:#d0d0e0;font-size:14px;line-height:1.6;">${message}</p>
+      </div>` : ''}
+      ${btn(url, 'View your earnings')}
+      ${p(`<span style="font-size:13px;color:#555;">Gross amount shown — Stripe processing fees apply at payout.</span>`)}
+    `),
+  });
+}
+
 export async function sendNewContentEmail(
   to: string,
   recipientUsername: string,

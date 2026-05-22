@@ -71,6 +71,54 @@ export async function cancelSubscription(req: AuthRequest, res: Response) {
   res.json({ message: 'Subscription cancelled' });
 }
 
+export async function createTipCheckout(req: AuthRequest, res: Response) {
+  const { username } = req.params as { username: string };
+  const { amount, message } = req.body as { amount: number; message?: string };
+
+  if (!amount || amount < 1 || amount > 500) {
+    return res.status(400).json({ error: 'Tip amount must be between $1 and $500' });
+  }
+
+  const creator = await prisma.user.findUnique({
+    where: { username },
+    select: { id: true, username: true, displayName: true, isCreator: true },
+  });
+
+  if (!creator || !creator.isCreator) {
+    return res.status(404).json({ error: 'Creator not found' });
+  }
+
+  if (creator.id === req.user!.id) {
+    return res.status(400).json({ error: 'Cannot tip yourself' });
+  }
+
+  const unitAmount = Math.round(amount * 100);
+  const creatorName = creator.displayName || creator.username;
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: 'usd',
+        product_data: { name: `Tip for ${creatorName} — Camp DaddyMan` },
+        unit_amount: unitAmount,
+      },
+    }],
+    success_url: `${process.env.FRONTEND_URL}/creator/${username}?tipped=true`,
+    cancel_url:  `${process.env.FRONTEND_URL}/creator/${username}`,
+    metadata: {
+      type:        'TIP',
+      senderId:    req.user!.id,
+      recipientId: creator.id,
+      message:     message?.slice(0, 200) ?? '',
+    },
+  });
+
+  res.json({ url: session.url });
+}
+
 export async function createSupporterCheckout(req: AuthRequest, res: Response) {
   const { amount, recurring } = req.body as { amount: number; recurring: boolean };
 
@@ -127,7 +175,27 @@ export async function stripeWebhook(req: Request, res: Response) {
       // Payment succeeded — activate / upgrade the subscription
       case 'checkout.session.completed': {
         const session = event.data.object as any;
-        const { userId, plan } = session.metadata ?? {};
+        const meta = session.metadata ?? {};
+
+        // Creator tip
+        if (meta.type === 'TIP') {
+          const { senderId, recipientId, message } = meta;
+          if (senderId && recipientId) {
+            await prisma.tip.create({
+              data: {
+                amountCents:     session.amount_total ?? 0,
+                message:         message || null,
+                stripeSessionId: session.id,
+                senderId,
+                recipientId,
+              },
+            }).catch(() => {}); // ignore duplicate webhook replays
+          }
+          break;
+        }
+
+        // Subscription checkout
+        const { userId, plan } = meta;
         if (!userId || !plan) break;
 
         await prisma.subscription.upsert({

@@ -8,6 +8,93 @@ import { usePlayer } from '@/context/PlayerContext';
 import { Content, ContentType } from '@/types';
 import ContentCard from '@/components/content/ContentCard';
 
+const TIP_PRESETS = [5, 10, 25, 50];
+
+function TipModal({ username, creatorName, onClose }: { username: string; creatorName: string; onClose: () => void }) {
+  const [amount, setAmount] = useState<number | ''>(10);
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!amount || Number(amount) < 1) { setError('Minimum tip is $1'); return; }
+    if (Number(amount) > 500) { setError('Maximum tip is $500'); return; }
+    setLoading(true);
+    setError('');
+    try {
+      const { data } = await api.post(`/subscriptions/tip/${username}`, { amount: Number(amount), message });
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Something went wrong');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={onClose}>
+      <div className="bg-surface-800 border border-surface-600 rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-white font-bold text-lg">Tip {creatorName}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl leading-none">×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Presets */}
+          <div className="grid grid-cols-4 gap-2">
+            {TIP_PRESETS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setAmount(p)}
+                className={`py-2 rounded-xl text-sm font-semibold transition-colors ${
+                  amount === p ? 'bg-brand-500 text-black' : 'bg-surface-700 text-gray-300 hover:bg-surface-600 hover:text-white'
+                }`}
+              >
+                ${p}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom amount */}
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+            <input
+              type="number"
+              min={1}
+              max={500}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+              placeholder="Custom amount"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl pl-7 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+            />
+          </div>
+
+          {/* Message */}
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Add a message (optional)"
+            rows={2}
+            maxLength={200}
+            className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors resize-none placeholder:text-gray-500"
+          />
+
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading || !amount}
+            className="w-full bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black font-bold py-3 rounded-xl text-sm transition-colors"
+          >
+            {loading ? 'Redirecting...' : `Send $${amount || '—'} tip`}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 interface Creator {
   id: string;
   username: string;
@@ -80,6 +167,14 @@ export default function CreatorPage() {
   const [following, setFollowing]           = useState(false);
   const [followerCount, setFollowerCount]   = useState(0);
   const [followLoading, setFollowLoading]   = useState(false);
+  const [tipOpen, setTipOpen]               = useState(false);
+  const [tipped, setTipped]                 = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('tipped=true')) {
+      setTipped(true);
+    }
+  }, []);
 
   useEffect(() => {
     setCreatorLoading(true);
@@ -201,17 +296,25 @@ export default function CreatorPage() {
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             {user && !isOwnProfile && (
-              <button
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  following
-                    ? 'bg-surface-600 hover:bg-surface-500 text-white border border-surface-500'
-                    : 'bg-brand-500 hover:bg-brand-600 text-black'
-                } disabled:opacity-50`}
-              >
-                {followLoading ? '...' : following ? 'Following' : 'Follow'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTipOpen(true)}
+                  className="px-4 py-2 rounded-full text-sm font-semibold border border-surface-500 text-gray-300 hover:border-brand-400 hover:text-brand-400 transition-colors"
+                >
+                  💛 Tip
+                </button>
+                <button
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    following
+                      ? 'bg-surface-600 hover:bg-surface-500 text-white border border-surface-500'
+                      : 'bg-brand-500 hover:bg-brand-600 text-black'
+                  } disabled:opacity-50`}
+                >
+                  {followLoading ? '...' : following ? 'Following' : 'Follow'}
+                </button>
+              </div>
             )}
             {isOwnProfile && (
               <Link
@@ -304,6 +407,24 @@ export default function CreatorPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── Tip success toast ── */}
+      {tipped && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-surface-800 border border-brand-500/40 text-white px-6 py-3 rounded-2xl shadow-2xl z-50 flex items-center gap-3 text-sm">
+          <span className="text-xl">💛</span>
+          <span>Tip sent! Thank you for supporting {creator?.displayName || creator?.username}.</span>
+          <button onClick={() => setTipped(false)} className="text-gray-400 hover:text-white ml-2">×</button>
+        </div>
+      )}
+
+      {/* ── Tip modal ── */}
+      {tipOpen && creator && (
+        <TipModal
+          username={creator.username}
+          creatorName={creator.displayName || creator.username}
+          onClose={() => setTipOpen(false)}
+        />
       )}
 
       {/* ── Type filter + sort ── */}

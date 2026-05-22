@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -45,7 +46,7 @@ function notificationHref(n: NotificationItem) {
 }
 
 export default function NotificationsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
@@ -54,9 +55,10 @@ export default function NotificationsPage() {
   const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
+    if (authLoading) return;
+    if (!user) { router.replace('/login'); return; }
     loadPage(1);
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function loadPage(p: number) {
     setLoading(true);
@@ -86,10 +88,6 @@ export default function NotificationsPage() {
     setUnread(0);
   }
 
-  if (!user) return (
-    <div className="text-center py-20 text-gray-400">Sign in to see your notifications.</div>
-  );
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-6">
@@ -111,10 +109,13 @@ export default function NotificationsPage() {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-4xl mb-4">🔔</p>
-          <p className="text-gray-400">No notifications yet</p>
-          <p className="text-gray-500 text-sm mt-1">When people like, comment, or follow you — it'll show up here</p>
+        <div className="text-center py-24">
+          <p className="text-5xl mb-4">🔔</p>
+          <p className="text-white font-semibold text-lg mb-2">No notifications yet</p>
+          <p className="text-gray-500 text-sm mb-8">When people like, comment, or follow you — it shows up here.</p>
+          <Link href="/browse" className="px-6 py-3 bg-brand-500 hover:bg-brand-400 text-black font-semibold rounded-xl text-sm transition-colors">
+            Browse content
+          </Link>
         </div>
       ) : (
         <>

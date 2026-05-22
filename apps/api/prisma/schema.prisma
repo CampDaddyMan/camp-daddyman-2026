@@ -47,6 +47,8 @@ model User {
   pollOptionsAsArtist    PollOption[] @relation("PollOptionArtist")
   orders                 Order[]
   albums                 Album[]
+  tipsSent               Tip[]          @relation("TipSender")
+  tipsReceived           Tip[]          @relation("TipRecipient")
 }
 
 model Token {
@@ -188,6 +190,23 @@ enum SubscriptionStatus {
   CANCELLED
   PAST_DUE
   TRIALING
+}
+
+// ── Tips ─────────────────────────────────────────────────────────────────────
+
+model Tip {
+  id              String   @id @default(cuid())
+  amountCents     Int
+  message         String?
+  stripeSessionId String   @unique
+  senderId        String
+  sender          User     @relation("TipSender",    fields: [senderId],    references: [id], onDelete: Cascade)
+  recipientId     String
+  recipient       User     @relation("TipRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@index([recipientId])
+  @@index([senderId])
 }
 
 // ── Engagement ────────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import {
   createPortalSession,
   cancelSubscription,
   createSupporterCheckout,
+  createTipCheckout,
   stripeWebhook,
 } from '../controllers/subscription.controller';
 import { authMiddleware } from '../middleware/auth';
@@ -19,6 +20,7 @@ router.get('/plans', getPlans);
 router.get('/me', authMiddleware, getMySubscription);
 router.post('/checkout', authMiddleware, createCheckoutSession);
 router.post('/checkout/supporter', authMiddleware, createSupporterCheckout);
+router.post('/tip/:username', authMiddleware, createTipCheckout);
 router.post('/portal', authMiddleware, createPortalSession);
 router.post('/cancel', authMiddleware, cancelSubscription);
 

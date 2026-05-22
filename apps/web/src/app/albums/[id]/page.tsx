@@ -19,6 +19,7 @@ interface Track {
     mediaUrl: string | null;
     hlsUrl: string | null;
     views: number;
+    locked?: boolean;
     creator: { id: string; username: string; displayName: string | null };
   };
 }
@@ -31,6 +32,7 @@ interface Album {
   releaseDate: string | null;
   genre: string | null;
   releaseType: string;
+  locked?: boolean;
   creator: { id: string; username: string; displayName: string | null };
   _count: { tracks: number };
   tracks: Track[];
@@ -74,9 +76,10 @@ export default function AlbumPage() {
   const currentTrack = album && currentTrackIdx !== null ? album.tracks[currentTrackIdx] : null;
 
   const playTrack = useCallback((idx: number) => {
+    if (album?.tracks[idx]?.content.locked) return;
     setCurrentTrackIdx(idx);
     setProgress(0);
-  }, []);
+  }, [album]);
 
   const playAll = () => playTrack(0);
 
@@ -188,12 +191,14 @@ export default function AlbumPage() {
         </div>
 
         <div className="flex-1 flex flex-col justify-end">
-          <p className="text-xs font-bold text-camp-400 uppercase tracking-widest mb-2">
+          <p className="text-xs font-bold text-brand-400 uppercase tracking-widest mb-2">
             {album.releaseType === 'SINGLE' ? 'Single' : album.releaseType === 'EP' ? 'EP' : album.releaseType === 'COMPILATION' ? 'Compilation' : 'Album'}
           </p>
           <h1 className="text-3xl font-bold text-white mb-2">{album.title}</h1>
           <p className="text-gray-400 text-sm mb-1">
-            {album.creator.displayName || album.creator.username}
+            <Link href={`/creator/${album.creator.username}`} className="hover:text-white transition-colors">
+              {album.creator.displayName || album.creator.username}
+            </Link>
             {year && <span className="text-gray-600"> · {year}</span>}
             {album.genre && <span className="text-gray-600"> · {album.genre}</span>}
           </p>
@@ -223,6 +228,21 @@ export default function AlbumPage() {
         </div>
       </div>
 
+      {/* Subscriber gate banner */}
+      {album.locked && (
+        <div className="bg-surface-800 border border-brand-500/30 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="text-3xl">🔒</div>
+          <div className="flex-1">
+            <p className="text-white font-semibold mb-0.5">Members-only album</p>
+            <p className="text-gray-400 text-sm">Subscribe to Pro or Premium to stream all tracks.</p>
+          </div>
+          <Link href="/subscribe"
+            className="flex-shrink-0 px-5 py-2.5 bg-brand-500 hover:bg-brand-400 text-black font-bold rounded-xl text-sm transition-colors">
+            See plans
+          </Link>
+        </div>
+      )}
+
       {/* Tracklist */}
       <div className="space-y-0.5">
         <div className="grid grid-cols-[2rem_1fr_auto] gap-4 px-4 pb-2 text-xs text-gray-600 font-semibold uppercase tracking-wider border-b border-surface-700/50 mb-1">
@@ -233,20 +253,23 @@ export default function AlbumPage() {
 
         {album.tracks.map((track, idx) => {
           const isActive = currentTrackIdx === idx;
-          return (
-            <div key={track.contentId}
-              onClick={() => playTrack(idx)}
-              className={`grid grid-cols-[2rem_1fr_auto] gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors group
-                ${isActive ? 'bg-brand-500/10 border border-brand-500/20' : 'hover:bg-surface-800'}`}>
+          const locked = track.content.locked;
+
+          const rowContent = (
+            <>
               <div className="flex items-center justify-center text-sm">
-                {isActive && playing ? (
+                {locked ? (
+                  <span className="text-gray-600 text-xs">🔒</span>
+                ) : isActive && playing ? (
                   <span className="text-brand-400 text-xs">♫</span>
                 ) : (
-                  <span className={`${isActive ? 'text-brand-400' : 'text-gray-600 group-hover:hidden'}`}>
-                    {track.trackNumber}
-                  </span>
+                  <>
+                    <span className={`${isActive ? 'text-brand-400' : 'text-gray-600'} group-hover:hidden`}>
+                      {track.trackNumber}
+                    </span>
+                    <span className="hidden group-hover:block text-gray-400 text-xs">▶</span>
+                  </>
                 )}
-                <span className="hidden group-hover:block text-gray-400 text-xs">▶</span>
               </div>
 
               <div className="flex items-center gap-3 min-w-0">
@@ -256,7 +279,7 @@ export default function AlbumPage() {
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className={`text-sm font-medium truncate ${isActive ? 'text-brand-400' : 'text-white'}`}>
+                  <p className={`text-sm font-medium truncate ${isActive ? 'text-brand-400' : locked ? 'text-gray-500' : 'text-white'}`}>
                     {track.content.title}
                   </p>
                   <p className="text-xs text-gray-600 truncate">
@@ -268,6 +291,19 @@ export default function AlbumPage() {
               <div className="flex items-center text-xs text-gray-600">
                 {formatDuration(track.content.duration)}
               </div>
+            </>
+          );
+
+          const rowClass = `grid grid-cols-[2rem_1fr_auto] gap-4 px-4 py-3 rounded-xl transition-colors group
+            ${isActive ? 'bg-brand-500/10 border border-brand-500/20' : locked ? 'opacity-60 hover:opacity-80' : 'hover:bg-surface-800'}`;
+
+          return locked ? (
+            <Link key={track.contentId} href={`/watch/${track.content.id}`} className={`${rowClass} cursor-pointer`}>
+              {rowContent}
+            </Link>
+          ) : (
+            <div key={track.contentId} onClick={() => playTrack(idx)} className={`${rowClass} cursor-pointer`}>
+              {rowContent}
             </div>
           );
         })}

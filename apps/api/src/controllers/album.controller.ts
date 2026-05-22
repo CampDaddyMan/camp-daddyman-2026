@@ -14,15 +14,16 @@ const trackInclude = {
   },
 };
 
-async function enrichTrack(track: any) {
+async function enrichTrack(track: any, locked: boolean) {
   const c = track.content;
   return {
     ...track,
     content: {
       ...c,
       thumbnailUrl: await signR2Url(c.thumbnailUrl),
-      mediaUrl:     c.mediaUrl ? await signR2Url(c.mediaUrl, 4 * 3600) : null,
-      hlsUrl:       c.hlsUrl   ? await signR2Url(c.hlsUrl,   4 * 3600) : null,
+      mediaUrl: locked ? null : (c.mediaUrl ? await signR2Url(c.mediaUrl, 4 * 3600) : null),
+      hlsUrl:   locked ? null : (c.hlsUrl   ? await signR2Url(c.hlsUrl,   4 * 3600) : null),
+      locked,
     },
   };
 }
@@ -31,7 +32,7 @@ async function enrichTrack(track: any) {
 
 export async function listAlbums(req: AuthRequest, res: Response) {
   const { creatorId, genre } = req.query;
-  const where: any = { privacy: 'PUBLIC' };
+  const where: any = { privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } };
   if (creatorId) where.creatorId = String(creatorId);
   if (genre)     where.genre     = String(genre);
 
@@ -68,13 +69,27 @@ export async function getAlbum(req: AuthRequest, res: Response) {
   });
   if (!album) return res.status(404).json({ error: 'Album not found' });
 
-  const signedTracks = await Promise.all(album.tracks.map(enrichTrack));
+  const isAdmin      = req.user?.isAdmin || false;
+  const isSubscriber = !!(req.user?.subscription?.plan && req.user.subscription.plan !== 'FREE' && req.user.subscription.status === 'ACTIVE');
+  const hasAccess    = isAdmin || isSubscriber;
+
+  if (album.privacy === 'PRIVATE' && !isAdmin) {
+    return res.status(404).json({ error: 'Album not found' });
+  }
+
+  const albumLocked = album.privacy === 'SUBSCRIBERS_ONLY' && !hasAccess;
+
+  const signedTracks = await Promise.all(album.tracks.map((t) => {
+    const trackLocked = albumLocked || (t.content.privacy === 'SUBSCRIBERS_ONLY' && !hasAccess);
+    return enrichTrack(t, trackLocked);
+  }));
 
   res.json({
     album: {
       ...album,
       coverUrl: await signR2Url(album.coverUrl),
       tracks: signedTracks,
+      locked: albumLocked,
     },
   });
 }
@@ -166,7 +181,7 @@ export async function addTrack(req: AuthRequest, res: Response) {
     include: trackInclude,
   });
 
-  res.json({ track: await enrichTrack(track) });
+  res.json({ track: await enrichTrack(track, false) });
 }
 
 // ── Remove track (admin only) ─────────────────────────────────────────────────

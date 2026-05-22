@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -32,6 +32,21 @@ interface Season {
   episodes: Episode[];
 }
 
+interface CommentUser {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatar: string | null;
+}
+
+interface SeriesComment {
+  id: string;
+  text: string;
+  createdAt: string;
+  user: CommentUser;
+  replies: Array<Omit<SeriesComment, 'replies'>>;
+}
+
 interface SeriesDetail {
   id: string;
   title: string;
@@ -61,13 +76,31 @@ function typeEmoji(type: string) {
   return map[type] ?? '🎬';
 }
 
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
 export default function SeriesDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [series, setSeries]         = useState<SeriesDetail | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState('');
-  const [activeSeason, setActiveSeason] = useState(0);
+  const [series, setSeries]               = useState<SeriesDetail | null>(null);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState('');
+  const [activeSeason, setActiveSeason]   = useState(0);
+
+  // Comments
+  const [comments, setComments]           = useState<SeriesComment[]>([]);
+  const [commentText, setCommentText]     = useState('');
+  const [replyTo, setReplyTo]             = useState<{ id: string; username: string } | null>(null);
+  const [replyText, setReplyText]         = useState('');
+  const [submitting, setSubmitting]       = useState(false);
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     api.get(`/series/${id}`)
@@ -81,6 +114,56 @@ export default function SeriesDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    api.get(`/series/${id}/comments`)
+      .then((r) => setComments(r.data.comments))
+      .catch(() => {});
+  }, [id]);
+
+  async function submitComment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!commentText.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const r = await api.post(`/series/${id}/comments`, { text: commentText.trim() });
+      setComments((prev) => [r.data.comment, ...prev]);
+      setCommentText('');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function submitReply(e: React.FormEvent) {
+    e.preventDefault();
+    if (!replyText.trim() || !replyTo || submitting) return;
+    setSubmitting(true);
+    try {
+      const r = await api.post(`/series/${id}/comments`, { text: replyText.trim(), parentId: replyTo.id });
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === replyTo.id ? { ...c, replies: [...c.replies, r.data.comment] } : c
+        )
+      );
+      setReplyText('');
+      setReplyTo(null);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function deleteComment(commentId: string, parentId?: string) {
+    await api.delete(`/series/${id}/comments/${commentId}`);
+    if (parentId) {
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === parentId ? { ...c, replies: c.replies.filter((r) => r.id !== commentId) } : c
+        )
+      );
+    } else {
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    }
+  }
 
   if (loading) return (
     <div className="max-w-5xl mx-auto px-4 py-10 animate-pulse">
@@ -252,6 +335,139 @@ export default function SeriesDetailPage() {
 
       <div className="mt-10 pt-6 border-t border-surface-700">
         <Link href="/series" className="text-sm text-gray-500 hover:text-brand-400 transition-colors">← All Series</Link>
+      </div>
+
+      {/* Comments */}
+      <div className="mt-10">
+        <h3 className="text-white font-semibold text-lg mb-5">
+          Comments <span className="text-gray-500 font-normal text-sm">({comments.length})</span>
+        </h3>
+
+        {/* New comment form */}
+        {user ? (
+          <form onSubmit={submitComment} className="mb-8">
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Share your thoughts on this series…"
+              rows={3}
+              className="w-full bg-surface-800 border border-surface-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+            />
+            <div className="flex justify-end mt-2">
+              <button
+                type="submit"
+                disabled={!commentText.trim() || submitting}
+                className="px-4 py-1.5 bg-brand-500 hover:bg-brand-400 disabled:opacity-40 text-black text-sm font-semibold rounded-lg transition-colors"
+              >
+                {submitting ? 'Posting…' : 'Post'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <p className="text-gray-500 text-sm mb-8">
+            <Link href="/auth" className="text-brand-400 hover:underline">Sign in</Link> to leave a comment.
+          </p>
+        )}
+
+        {/* Comment list */}
+        <div className="space-y-6">
+          {comments.length === 0 && (
+            <p className="text-gray-600 text-sm text-center py-8">No comments yet. Be the first!</p>
+          )}
+          {comments.map((c) => (
+            <div key={c.id}>
+              {/* Top-level comment */}
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-surface-700 overflow-hidden flex-shrink-0">
+                  {c.user.avatar
+                    ? <img src={c.user.avatar} alt="" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{(c.user.displayName || c.user.username)[0].toUpperCase()}</div>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-white">{c.user.displayName || c.user.username}</span>
+                    <span className="text-xs text-gray-600">{timeAgo(c.createdAt)}</span>
+                  </div>
+                  <p className="text-sm text-gray-300 mt-0.5 leading-relaxed">{c.text}</p>
+                  <div className="flex gap-4 mt-1.5">
+                    {user && (
+                      <button
+                        onClick={() => { setReplyTo({ id: c.id, username: c.user.username }); setTimeout(() => replyInputRef.current?.focus(), 50); }}
+                        className="text-xs text-gray-600 hover:text-brand-400 transition-colors"
+                      >
+                        Reply
+                      </button>
+                    )}
+                    {(user?.id === c.user.id || (user as any)?.role === 'ADMIN') && (
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        className="text-xs text-gray-600 hover:text-red-400 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Reply form */}
+                  {replyTo?.id === c.id && (
+                    <form onSubmit={submitReply} className="mt-3">
+                      <textarea
+                        ref={replyInputRef}
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder={`Replying to @${replyTo.username}…`}
+                        rows={2}
+                        className="w-full bg-surface-800 border border-surface-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+                      />
+                      <div className="flex gap-2 justify-end mt-1.5">
+                        <button type="button" onClick={() => { setReplyTo(null); setReplyText(''); }} className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1">Cancel</button>
+                        <button
+                          type="submit"
+                          disabled={!replyText.trim() || submitting}
+                          className="px-3 py-1 bg-brand-500 hover:bg-brand-400 disabled:opacity-40 text-black text-xs font-semibold rounded-lg transition-colors"
+                        >
+                          Reply
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Replies */}
+                  {c.replies.length > 0 && (
+                    <div className="mt-4 space-y-3 pl-4 border-l border-surface-700">
+                      {c.replies.map((r) => (
+                        <div key={r.id} className="flex gap-3">
+                          <div className="w-6 h-6 rounded-full bg-surface-700 overflow-hidden flex-shrink-0">
+                            {r.user.avatar
+                              ? <img src={r.user.avatar} alt="" className="w-full h-full object-cover" />
+                              : <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">{(r.user.displayName || r.user.username)[0].toUpperCase()}</div>
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                              <span className="text-sm font-semibold text-white">{r.user.displayName || r.user.username}</span>
+                              <span className="text-xs text-gray-600">{timeAgo(r.createdAt)}</span>
+                            </div>
+                            <p className="text-sm text-gray-300 mt-0.5 leading-relaxed">{r.text}</p>
+                            {(user?.id === r.user.id || (user as any)?.role === 'ADMIN') && (
+                              <button
+                                onClick={() => deleteComment(r.id, c.id)}
+                                className="text-xs text-gray-600 hover:text-red-400 transition-colors mt-1"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import {
   createSeries, updateSeries, deleteSeries,
   addSeason, updateSeason, deleteSeason,
   addEpisode, removeEpisode, reorderEpisodes,
+  getSeriesComments, addSeriesComment, deleteSeriesComment,
 } from '../controllers/series.controller';
 import { authMiddleware, adminMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -21,6 +22,11 @@ const imgUpload = multer({
 // Public
 router.get('/',    optionalAuthMiddleware, readLimiter, listSeries);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getSeries);
+
+// Comments (auth required for write, optional for read)
+router.get('/:id/comments',                optionalAuthMiddleware, readLimiter,  getSeriesComments);
+router.post('/:id/comments',               authMiddleware,         writeLimiter, addSeriesComment);
+router.delete('/:id/comments/:commentId',  authMiddleware,         writeLimiter, deleteSeriesComment);
 
 // Admin only
 router.use(authMiddleware, adminMiddleware);

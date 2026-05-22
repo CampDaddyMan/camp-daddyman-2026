@@ -220,3 +220,53 @@ export async function reorderEpisodes(req: Request, res: Response) {
   );
   res.json({ ok: true });
 }
+
+// ── Series Comments ───────────────────────────────────────────────────────────
+
+export async function getSeriesComments(req: AuthRequest, res: Response) {
+  const comments = await prisma.seriesComment.findMany({
+    where: { seriesId: req.params.id, parentId: null },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      replies: {
+        orderBy: { createdAt: 'asc' },
+        include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } },
+      },
+    },
+  });
+  res.json({ comments });
+}
+
+export async function addSeriesComment(req: AuthRequest, res: Response) {
+  const { text, parentId } = req.body;
+  if (!text?.trim()) return res.status(400).json({ error: 'Text required' });
+
+  if (parentId) {
+    const parent = await prisma.seriesComment.findUnique({ where: { id: parentId } });
+    if (!parent || parent.seriesId !== req.params.id) {
+      return res.status(400).json({ error: 'Invalid parent comment' });
+    }
+  }
+
+  const comment = await prisma.seriesComment.create({
+    data: { text: text.trim(), userId: req.user!.id, seriesId: req.params.id, parentId: parentId || null },
+    include: {
+      user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      replies: { include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } } },
+    },
+  });
+  res.status(201).json({ comment });
+}
+
+export async function deleteSeriesComment(req: AuthRequest, res: Response) {
+  const comment = await prisma.seriesComment.findUnique({ where: { id: req.params.commentId } });
+  if (!comment) return res.status(404).json({ error: 'Comment not found' });
+
+  const isOwner = comment.userId === req.user!.id;
+  const isAdmin = (req.user as any)?.role === 'ADMIN';
+  if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden' });
+
+  await prisma.seriesComment.delete({ where: { id: req.params.commentId } });
+  res.json({ ok: true });
+}

@@ -43,5 +43,9 @@ export interface Comment {
   id: string;
   text: string;
   createdAt: string;
+  parentId?: string | null;
+  isLiked: boolean;
+  _count: { likes: number; replies: number };
   user: { id: string; username: string; displayName?: string; avatar?: string };
+  replies?: Comment[];
 }

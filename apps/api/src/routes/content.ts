@@ -24,6 +24,7 @@ import {
   reportContent,
   unreportContent,
   downloadContent,
+  toggleCommentLike,
 } from '../controllers/content.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -60,7 +61,7 @@ router.get('/history', authMiddleware, readLimiter, getWatchHistory);
 router.get('/liked', authMiddleware, readLimiter, getLikedContent);
 router.get('/saved', authMiddleware, readLimiter, getSavedContent);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getContent);
-router.get('/:id/comments', readLimiter, getComments);
+router.get('/:id/comments', optionalAuthMiddleware, readLimiter, getComments);
 router.get('/:id/related', optionalAuthMiddleware, readLimiter, getRelatedContent);
 
 // Authenticated
@@ -78,6 +79,7 @@ router.delete('/:id', authMiddleware, writeLimiter, deleteContent);
 router.post('/:id/like', authMiddleware, writeLimiter, likeContent);
 router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);
 router.delete('/:id/comment/:commentId', authMiddleware, writeLimiter, deleteComment);
+router.post('/:id/comment/:commentId/like', authMiddleware, writeLimiter, toggleCommentLike);
 router.post('/:id/progress', authMiddleware, saveProgress);
 router.get('/:id/progress', authMiddleware, getProgress);
 router.post('/:id/save', authMiddleware, writeLimiter, toggleSaved);

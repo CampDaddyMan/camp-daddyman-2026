@@ -51,6 +51,7 @@ model User {
   albums                 Album[]
   tipsSent               Tip[]          @relation("TipSender")
   tipsReceived           Tip[]          @relation("TipRecipient")
+  commentLikes           CommentLike[]
 }
 
 model Token {
@@ -251,12 +252,30 @@ model Comment {
   text      String
   userId    String
   contentId String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  parentId  String?
+
+  user      User     @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  likes     CommentLike[]
 
   createdAt DateTime @default(now())
 
   @@index([contentId])
+  @@index([parentId])
+}
+
+model CommentLike {
+  id        String  @id @default(cuid())
+  userId    String
+  commentId String
+  user      User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, commentId])
 }
 
 model Follow {

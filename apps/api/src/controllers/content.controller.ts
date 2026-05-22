@@ -275,22 +275,31 @@ export async function likeContent(req: AuthRequest, res: Response) {
 }
 
 export async function commentOnContent(req: AuthRequest, res: Response) {
-  const { text } = req.body;
+  const { text, parentId } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'Comment text required' });
+
+  if (parentId) {
+    const parent = await prisma.comment.findFirst({
+      where: { id: parentId, contentId: req.params.id, parentId: null },
+    });
+    if (!parent) return res.status(400).json({ error: 'Parent comment not found' });
+  }
 
   const [comment, content] = await Promise.all([
     prisma.comment.create({
-      data: { text: text.trim(), userId: req.user!.id, contentId: req.params.id },
+      data: { text: text.trim(), userId: req.user!.id, contentId: req.params.id, parentId: parentId ?? null },
       include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } },
     }),
     prisma.content.findUnique({ where: { id: req.params.id }, select: { creatorId: true } }),
   ]);
 
-  if (content) {
+  if (content && !parentId) {
     notify({ userId: content.creatorId, type: 'NEW_COMMENT', actorId: req.user!.id, contentId: req.params.id });
   }
 
-  res.status(201).json({ comment });
+  res.status(201).json({
+    comment: { ...comment, isLiked: false, _count: { likes: 0, replies: 0 }, replies: [] },
+  });
 }
 
 export async function deleteComment(req: AuthRequest, res: Response) {
@@ -384,14 +393,56 @@ export async function searchContent(req: AuthRequest, res: Response) {
 }
 
 export async function getComments(req: Request, res: Response) {
+  const userId = (req as AuthRequest).user?.id;
+
   const comments = await prisma.comment.findMany({
-    where: { contentId: req.params.id },
+    where: { contentId: req.params.id, parentId: null },
     orderBy: { createdAt: 'desc' },
     take: 50,
-    include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } },
+    include: {
+      user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      _count: { select: { likes: true, replies: true } },
+      ...(userId && { likes: { where: { userId }, select: { id: true } } }),
+      replies: {
+        orderBy: { createdAt: 'asc' },
+        take: 20,
+        include: {
+          user: { select: { id: true, username: true, displayName: true, avatar: true } },
+          _count: { select: { likes: true } },
+          ...(userId && { likes: { where: { userId }, select: { id: true } } }),
+        },
+      },
+    },
   });
 
-  res.json({ comments });
+  const shaped = comments.map((c: any) => ({
+    ...c,
+    isLiked: userId ? (c.likes?.length ?? 0) > 0 : false,
+    likes: undefined,
+    replies: c.replies.map((r: any) => ({
+      ...r,
+      isLiked: userId ? (r.likes?.length ?? 0) > 0 : false,
+      likes: undefined,
+    })),
+  }));
+
+  res.json({ comments: shaped });
+}
+
+export async function toggleCommentLike(req: AuthRequest, res: Response) {
+  const { commentId } = req.params;
+
+  const existing = await prisma.commentLike.findUnique({
+    where: { userId_commentId: { userId: req.user!.id, commentId } },
+  });
+
+  if (existing) {
+    await prisma.commentLike.delete({ where: { id: existing.id } });
+    return res.json({ liked: false });
+  }
+
+  await prisma.commentLike.create({ data: { userId: req.user!.id, commentId } });
+  res.json({ liked: true });
 }
 
 export async function updateContent(req: AuthRequest, res: Response) {

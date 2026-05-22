@@ -41,7 +41,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -6183,6 +6183,250 @@ function SettingsTab() {
   );
 }
 
+// ── Live Tab ──────────────────────────────────────────────────────────────────
+
+interface AdminLiveStream {
+  id: string; title: string; description: string | null; status: string;
+  thumbnailUrl: string | null; cfStreamId: string; cfStreamKey: string;
+  cfPlaybackUrl: string; scheduledAt: string | null; startedAt: string | null; endedAt: string | null;
+  creator: { username: string; displayName: string | null };
+}
+
+function LiveTab() {
+  const [streams, setStreams]     = useState<AdminLiveStream[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [creating, setCreating]   = useState(false);
+  const [form, setForm]           = useState({ title: '', description: '', scheduledAt: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]         = useState('');
+  const [rtmpUrl, setRtmpUrl]     = useState<string | null>(null);
+  const [keyVisible, setKeyVisible] = useState<string | null>(null);
+
+  function load() {
+    api.get('/live').then((r) => setStreams(r.data.streams ?? [])).catch(() => {}).finally(() => setLoading(false));
+  }
+  useEffect(load, []);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.title.trim() || submitting) return;
+    setSubmitting(true); setError('');
+    try {
+      const r = await api.post('/live', {
+        title: form.title.trim(),
+        description: form.description || null,
+        scheduledAt: form.scheduledAt || null,
+      });
+      setStreams((prev) => [r.data.stream, ...prev]);
+      setRtmpUrl(r.data.rtmpUrl);
+      setForm({ title: '', description: '', scheduledAt: '' });
+      setCreating(false);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to create stream');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function setStatus(id: string, status: string) {
+    await api.patch(`/live/${id}`, { status });
+    setStreams((prev) => prev.map((s) => s.id === id ? { ...s, status } : s));
+  }
+
+  async function deleteStream(id: string) {
+    if (!confirm('Delete this stream?')) return;
+    await api.delete(`/live/${id}`);
+    setStreams((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  const STATUS_COLOR: Record<string, string> = {
+    idle: 'text-gray-400 bg-surface-700',
+    live: 'text-red-400 bg-red-900/30',
+    ended: 'text-gray-600 bg-surface-800',
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-white">Live Streams</h2>
+        <button
+          onClick={() => setCreating(!creating)}
+          className="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-black text-sm font-semibold rounded-lg transition-colors"
+        >
+          + New Stream
+        </button>
+      </div>
+
+      {rtmpUrl && (
+        <div className="mb-6 p-4 bg-green-900/30 border border-green-600/40 rounded-xl">
+          <p className="text-green-400 font-semibold text-sm mb-1">Stream created! Use this RTMP URL in OBS / streaming software:</p>
+          <code className="text-xs text-green-300 break-all">{rtmpUrl}</code>
+          <button onClick={() => setRtmpUrl(null)} className="ml-3 text-xs text-gray-500 hover:text-gray-300">dismiss</button>
+        </div>
+      )}
+
+      {creating && (
+        <form onSubmit={handleCreate} className="mb-6 p-5 bg-surface-800 border border-surface-700 rounded-xl space-y-3">
+          <h3 className="text-white font-semibold text-sm">New Live Stream</h3>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <input
+            value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="Stream title *" required
+            className="w-full bg-surface-700 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500"
+          />
+          <textarea
+            value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Description (optional)" rows={2}
+            className="w-full bg-surface-700 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+          />
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Schedule (optional)</label>
+            <input
+              type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
+              className="bg-surface-700 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" disabled={submitting} className="px-4 py-2 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black text-sm font-semibold rounded-lg transition-colors">
+              {submitting ? 'Creating…' : 'Create Stream'}
+            </button>
+            <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+          </div>
+          <p className="text-xs text-gray-600">Requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_STREAM_TOKEN env vars.</p>
+        </form>
+      )}
+
+      {loading ? (
+        <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-16 bg-surface-700 rounded-xl animate-pulse" />)}</div>
+      ) : streams.length === 0 ? (
+        <p className="text-gray-500 text-sm text-center py-12">No streams yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {streams.map((s) => (
+            <div key={s.id} className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STATUS_COLOR[s.status] ?? STATUS_COLOR.idle}`}>
+                      {s.status.toUpperCase()}
+                    </span>
+                    <span className="text-white font-medium text-sm">{s.title}</span>
+                  </div>
+                  <p className="text-gray-500 text-xs">by {s.creator.displayName || s.creator.username}</p>
+                  {s.scheduledAt && s.status === 'idle' && (
+                    <p className="text-gray-600 text-xs mt-0.5">Scheduled: {new Date(s.scheduledAt).toLocaleString()}</p>
+                  )}
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      onClick={() => setKeyVisible(keyVisible === s.id ? null : s.id)}
+                      className="text-xs text-gray-500 hover:text-brand-400 transition-colors"
+                    >
+                      {keyVisible === s.id ? 'Hide stream key' : 'Show stream key'}
+                    </button>
+                    <a href={`/live/${s.id}`} target="_blank" rel="noopener" className="text-xs text-brand-400 hover:underline">View page ↗</a>
+                  </div>
+                  {keyVisible === s.id && (
+                    <code className="mt-1 block text-xs text-green-300 break-all">{s.cfStreamKey}</code>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                  {s.status === 'idle'  && <button onClick={() => setStatus(s.id, 'live')}  className="text-xs px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg transition-colors">Go Live</button>}
+                  {s.status === 'live'  && <button onClick={() => setStatus(s.id, 'ended')} className="text-xs px-3 py-1.5 bg-surface-600 hover:bg-surface-500 text-white rounded-lg transition-colors">End Stream</button>}
+                  <button onClick={() => deleteStream(s.id)} className="text-xs px-3 py-1.5 text-red-400 hover:text-red-300 border border-red-900/50 rounded-lg transition-colors">Delete</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Push Tab ──────────────────────────────────────────────────────────────────
+
+function PushTab() {
+  const [form, setForm]       = useState({ title: '', body: '', url: '' });
+  const [sending, setSending] = useState(false);
+  const [result, setResult]   = useState<{ sent: number; total: number } | null>(null);
+  const [error, setError]     = useState('');
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.title.trim() || !form.body.trim() || sending) return;
+    setSending(true); setError(''); setResult(null);
+    try {
+      const r = await api.post('/push/broadcast', {
+        title: form.title.trim(),
+        body:  form.body.trim(),
+        url:   form.url.trim() || '/',
+      });
+      setResult(r.data);
+      setForm({ title: '', body: '', url: '' });
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to send notification');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="max-w-lg">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white">Push Notifications</h2>
+        <p className="text-gray-500 text-sm mt-1">Broadcast a push notification to all subscribed users.</p>
+      </div>
+
+      {result && (
+        <div className="mb-4 p-3 bg-green-900/30 border border-green-600/40 rounded-xl text-green-400 text-sm">
+          Sent to {result.sent} of {result.total} subscribers.
+        </div>
+      )}
+      {error && <p className="mb-4 text-red-400 text-sm">{error}</p>}
+
+      <form onSubmit={handleSend} className="space-y-4">
+        <div>
+          <label className="text-xs text-gray-500 mb-1.5 block">Notification title *</label>
+          <input
+            value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="e.g. New Drop: Father Figures" required
+            className="w-full bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1.5 block">Message body *</label>
+          <textarea
+            value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })}
+            placeholder="A new episode just dropped — tap to watch." required rows={3}
+            className="w-full bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1.5 block">Deep link URL (optional)</label>
+          <input
+            value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })}
+            placeholder="/watch/abc123 or /series/xyz"
+            className="w-full bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500"
+          />
+        </div>
+        <button
+          type="submit" disabled={sending}
+          className="w-full py-3 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black font-bold rounded-xl text-sm transition-colors"
+        >
+          {sending ? 'Sending…' : 'Send Push Notification'}
+        </button>
+      </form>
+
+      <div className="mt-6 p-4 bg-surface-800 border border-surface-700 rounded-xl text-xs text-gray-500 space-y-1">
+        <p className="font-semibold text-gray-400">Setup required</p>
+        <p>Set <code className="text-brand-300">VAPID_PUBLIC_KEY</code>, <code className="text-brand-300">VAPID_PRIVATE_KEY</code>, and <code className="text-brand-300">VAPID_EMAIL</code> on Cloud Run.</p>
+        <p>Set <code className="text-brand-300">NEXT_PUBLIC_VAPID_PUBLIC_KEY</code> on Vercel.</p>
+        <p>Users must opt in via the bell icon in the navbar.</p>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function AdminInner() {
@@ -6218,6 +6462,8 @@ function AdminInner() {
     { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
     { key: 'albums',    label: 'Albums',    emoji: '💿' },
     { key: 'series',    label: 'Series',    emoji: '📺' },
+    { key: 'live',      label: 'Live',      emoji: '📡' },
+    { key: 'push',      label: 'Push',      emoji: '🔔' },
     { key: 'settings',  label: 'Settings',   emoji: '🎨' },
   ];
 
@@ -6257,6 +6503,8 @@ function AdminInner() {
       {tab === 'shop'      && <ShopTab />}
       {tab === 'albums'    && <AlbumsTab />}
       {tab === 'series'    && <SeriesTab />}
+      {tab === 'live'      && <LiveTab />}
+      {tab === 'push'      && <PushTab />}
       {tab === 'settings'  && <SettingsTab />}
     </div>
   );

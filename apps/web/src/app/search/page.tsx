@@ -96,29 +96,34 @@ function SearchContent() {
 
   const query     = searchParams.get('q') || '';
   const typeParam = (searchParams.get('type') || '') as ContentType | '';
+  const sortParam = (searchParams.get('sort') || 'popular') as 'popular' | 'latest';
 
   const [activeType,  setActiveType]  = useState<ContentType | ''>(typeParam);
+  const [activeSort,  setActiveSort]  = useState<'popular' | 'latest'>(sortParam);
   const [results,     setResults]     = useState<SearchResults | null>(null);
   const [loading,     setLoading]     = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page,        setPage]        = useState(1);
   const [searched,    setSearched]    = useState(false);
+  const [refineQ,     setRefineQ]     = useState(query);
 
   useEffect(() => {
     setActiveType(typeParam);
+    setActiveSort(sortParam);
     setResults(null);
     setPage(1);
     setSearched(false);
-  }, [query, typeParam]);
+    setRefineQ(query);
+  }, [query, typeParam, sortParam]);
 
   const fetchPage = useCallback(async (
-    q: string, type: ContentType | '', pageNum: number, append: boolean,
+    q: string, type: ContentType | '', pageNum: number, append: boolean, sort: 'popular' | 'latest' = 'popular',
   ) => {
     if (!q || q.trim().length < 2) return;
     if (append) setLoadingMore(true);
     else { setLoading(true); setResults(null); }
 
-    const params: Record<string, string | number> = { q, page: pageNum, limit: PAGE_SIZE };
+    const params: Record<string, string | number> = { q, page: pageNum, limit: PAGE_SIZE, sort };
     if (type) params.type = type;
 
     try {
@@ -141,21 +146,38 @@ function SearchContent() {
   }, []);
 
   useEffect(() => {
-    fetchPage(query, activeType, 1, false);
+    fetchPage(query, activeType, 1, false, activeSort);
     setPage(1);
-  }, [query, activeType, fetchPage]);
+  }, [query, activeType, activeSort, fetchPage]);
+
+  function buildUrl(overrides: { q?: string; type?: ContentType | ''; sort?: 'popular' | 'latest' }) {
+    const p = new URLSearchParams();
+    const q    = overrides.q    !== undefined ? overrides.q    : query;
+    const type = overrides.type !== undefined ? overrides.type : activeType;
+    const sort = overrides.sort !== undefined ? overrides.sort : activeSort;
+    if (q)    p.set('q', q);
+    if (type) p.set('type', type);
+    if (sort && sort !== 'popular') p.set('sort', sort);
+    return `/search?${p.toString()}`;
+  }
 
   function handleTypeChange(type: ContentType | '') {
-    const p = new URLSearchParams();
-    if (query) p.set('q', query);
-    if (type) p.set('type', type);
-    router.push(`/search?${p.toString()}`);
+    router.push(buildUrl({ type }));
+  }
+
+  function handleSortChange(sort: 'popular' | 'latest') {
+    router.push(buildUrl({ sort }));
+  }
+
+  function handleRefineSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (refineQ.trim().length >= 2) router.push(buildUrl({ q: refineQ.trim(), type: '' }));
   }
 
   function handleLoadMore() {
     const next = page + 1;
     setPage(next);
-    fetchPage(query, activeType, next, true);
+    fetchPage(query, activeType, next, true, activeSort);
   }
 
   const hasMore = results ? results.content.items.length < results.content.total : false;
@@ -190,17 +212,47 @@ function SearchContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
+      {/* Inline refinement bar */}
+      <form onSubmit={handleRefineSearch} className="flex gap-2 mb-6">
+        <input
+          value={refineQ}
+          onChange={(e) => setRefineQ(e.target.value)}
+          placeholder="Refine your search..."
+          className="flex-1 bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-500"
+        />
+        <button
+          type="submit"
+          disabled={refineQ.trim().length < 2}
+          className="bg-brand-500 hover:bg-brand-400 disabled:opacity-40 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
+        >
+          Search
+        </button>
+      </form>
+
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-1">
-          Results for <span className="text-brand-400">&ldquo;{query}&rdquo;</span>
-        </h1>
-        {searched && !loading && (
-          <p className="text-gray-500 text-sm">
-            {totalResults.toLocaleString()} {totalResults === 1 ? 'result' : 'results'}
-            {activeType ? ` in ${TYPES.find((t) => t.value === activeType)?.label}` : ''}
-          </p>
-        )}
+      <div className="flex items-end justify-between gap-4 mb-5 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-white">
+            Results for <span className="text-brand-400">&ldquo;{query}&rdquo;</span>
+          </h1>
+          {searched && !loading && (
+            <p className="text-gray-500 text-sm mt-0.5">
+              {totalResults.toLocaleString()} {totalResults === 1 ? 'result' : 'results'}
+              {activeType ? ` in ${TYPES.find((t) => t.value === activeType)?.label}` : ''}
+            </p>
+          )}
+        </div>
+        {/* Sort toggle */}
+        <div className="flex gap-1 bg-surface-800 border border-surface-700 rounded-lg p-0.5">
+          {(['popular', 'latest'] as const).map((s) => (
+            <button key={s} onClick={() => handleSortChange(s)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
+                activeSort === s ? 'bg-brand-500 text-black' : 'text-gray-400 hover:text-white'
+              }`}>
+              {s === 'popular' ? '🔥 Popular' : '🕐 Latest'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Type filter */}

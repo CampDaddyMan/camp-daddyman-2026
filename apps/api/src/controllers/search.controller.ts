@@ -4,7 +4,7 @@ import { signR2Url } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 
 export async function unifiedSearch(req: Request, res: Response) {
-  const { q, type, page = '1', limit = '12' } = req.query;
+  const { q, type, page = '1', limit = '12', sort = 'popular' } = req.query;
   const userId = (req as AuthRequest).user?.id;
 
   if (!q || String(q).trim().length < 2) {
@@ -36,7 +36,7 @@ export async function unifiedSearch(req: Request, res: Response) {
   const [rawContent, contentTotal, rawCreators, rawAlbums] = await Promise.all([
     prisma.content.findMany({
       where: contentWhere,
-      orderBy: { views: 'desc' },
+      orderBy: sort === 'latest' ? { createdAt: 'desc' as const } : { views: 'desc' as const },
       skip,
       take,
       select: {

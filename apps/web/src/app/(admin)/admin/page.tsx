@@ -41,7 +41,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -4872,6 +4872,411 @@ function FieldBlock({
   );
 }
 
+// ── Series Tab ────────────────────────────────────────────────────────────────
+
+interface SeriesRow {
+  id: string; title: string; description: string | null; coverUrl: string | null;
+  genre: string | null; tags: string[]; status: string; privacy: string; createdAt: string;
+  creator: { username: string; displayName: string | null };
+  _count: { seasons: number };
+  seasons?: SeasonRow[];
+}
+
+interface SeasonRow {
+  id: string; number: number; title: string | null; description: string | null;
+  _count?: { episodes: number };
+  episodes?: EpisodeRow[];
+}
+
+interface EpisodeRow {
+  episodeNumber: number;
+  contentId: string;
+  content: { id: string; title: string; type: string; duration: number | null; thumbnailUrl: string | null };
+}
+
+interface AnyContent {
+  id: string; title: string; type: string; duration: number | null;
+  creator: { username: string; displayName: string | null };
+}
+
+function SeriesTab() {
+  const [seriesList, setSeriesList]       = useState<SeriesRow[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [editSeries, setEditSeries]       = useState<SeriesRow | null>(null);
+  const [expandedSeason, setExpandedSeason] = useState<string | null>(null);
+  const [showCreate, setShowCreate]       = useState(false);
+  const [saving, setSaving]               = useState(false);
+  const [contentSearch, setContentSearch] = useState('');
+  const [contentResults, setContentResults] = useState<AnyContent[]>([]);
+  const [addingEpTo, setAddingEpTo]       = useState<string | null>(null); // seasonId
+  const [newSeasonNum, setNewSeasonNum]   = useState('');
+  const [newSeasonTitle, setNewSeasonTitle] = useState('');
+  const [addingSeasonTo, setAddingSeasonTo] = useState<string | null>(null); // seriesId
+
+  const [form, setForm] = useState({
+    title: '', description: '', genre: '', tags: '', status: 'ACTIVE', privacy: 'PUBLIC',
+  });
+
+  function resetForm() {
+    setForm({ title: '', description: '', genre: '', tags: '', status: 'ACTIVE', privacy: 'PUBLIC' });
+  }
+
+  useEffect(() => {
+    api.get('/series').then((r) => setSeriesList(r.data.series)).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!contentSearch.trim()) { setContentResults([]); return; }
+    const t = setTimeout(() => {
+      api.get('/content', { params: { search: contentSearch, limit: 10 } })
+        .then((r) => setContentResults(r.data.items || []))
+        .catch(() => {});
+    }, 350);
+    return () => clearTimeout(t);
+  }, [contentSearch]);
+
+  async function handleCreate() {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    try {
+      const r = await api.post('/series', {
+        title: form.title, description: form.description || null, genre: form.genre || null,
+        tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+        status: form.status, privacy: form.privacy,
+      });
+      setSeriesList((prev) => [r.data.series, ...prev]);
+      setShowCreate(false); resetForm();
+    } catch { } finally { setSaving(false); }
+  }
+
+  async function handleUpdate() {
+    if (!editSeries) return;
+    setSaving(true);
+    try {
+      await api.patch(`/series/${editSeries.id}`, {
+        title: form.title, description: form.description || null, genre: form.genre || null,
+        tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+        status: form.status, privacy: form.privacy,
+      });
+      const r = await api.get('/series');
+      setSeriesList(r.data.series);
+      setEditSeries(null); resetForm();
+    } catch { } finally { setSaving(false); }
+  }
+
+  async function handleDeleteSeries(id: string) {
+    if (!confirm('Delete this series? Seasons and episode links will also be removed.')) return;
+    await api.delete(`/series/${id}`).catch(() => {});
+    setSeriesList((prev) => prev.filter((s) => s.id !== id));
+    if (editSeries?.id === id) setEditSeries(null);
+  }
+
+  function openEdit(s: SeriesRow) {
+    setEditSeries(s);
+    setForm({
+      title: s.title, description: s.description || '', genre: s.genre || '',
+      tags: s.tags?.join(', ') || '', status: s.status, privacy: s.privacy,
+    });
+    setShowCreate(false);
+    loadSeriesDetail(s.id);
+  }
+
+  async function loadSeriesDetail(seriesId: string) {
+    const r = await api.get(`/series/${seriesId}`).catch(() => null);
+    if (!r) return;
+    setSeriesList((prev) => prev.map((s) => s.id === seriesId ? { ...s, seasons: r.data.series.seasons } : s));
+    setEditSeries((prev) => prev?.id === seriesId ? { ...prev, seasons: r.data.series.seasons } : prev);
+  }
+
+  async function handleAddSeason(seriesId: string) {
+    if (!newSeasonNum.trim()) return;
+    try {
+      await api.post(`/series/${seriesId}/seasons`, {
+        number: Number(newSeasonNum), title: newSeasonTitle || null,
+      });
+      setNewSeasonNum(''); setNewSeasonTitle(''); setAddingSeasonTo(null);
+      await loadSeriesDetail(seriesId);
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Failed to add season');
+    }
+  }
+
+  async function handleDeleteSeason(seriesId: string, seasonId: string) {
+    if (!confirm('Delete this season and all its episode links?')) return;
+    await api.delete(`/series/${seriesId}/seasons/${seasonId}`).catch(() => {});
+    await loadSeriesDetail(seriesId);
+  }
+
+  async function handleAddEpisode(seriesId: string, seasonId: string, content: AnyContent) {
+    const season = editSeries?.seasons?.find((s) => s.id === seasonId);
+    const nextNum = (season?.episodes?.length ?? 0) + 1;
+    try {
+      await api.post(`/series/${seriesId}/seasons/${seasonId}/episodes`, { contentId: content.id, episodeNumber: nextNum });
+      setContentSearch(''); setContentResults([]); setAddingEpTo(null);
+      await loadSeriesDetail(seriesId);
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Failed to add episode');
+    }
+  }
+
+  async function handleRemoveEpisode(seriesId: string, seasonId: string, contentId: string) {
+    await api.delete(`/series/${seriesId}/seasons/${seasonId}/episodes/${contentId}`).catch(() => {});
+    await loadSeriesDetail(seriesId);
+  }
+
+  function fmtDur(s: number | null) {
+    if (!s) return '';
+    const m = Math.floor(s / 60); const sec = s % 60;
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  }
+
+  const SeriesForm = () => (
+    <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
+      <h3 className="text-white font-semibold text-sm">{editSeries ? 'Edit Series' : 'New Series'}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Title *</label>
+          <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Series title"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Status</label>
+          <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+            <option value="ACTIVE">Ongoing</option>
+            <option value="ENDED">Complete</option>
+            <option value="HIATUS">On Hiatus</option>
+            <option value="UPCOMING">Upcoming</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Visibility</label>
+          <select value={form.privacy} onChange={(e) => setForm((f) => ({ ...f, privacy: e.target.value }))}
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400">
+            <option value="PUBLIC">Public</option>
+            <option value="SUBSCRIBERS_ONLY">Members Only</option>
+            <option value="PRIVATE">Private (Admin only)</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Genre</label>
+          <input value={form.genre} onChange={(e) => setForm((f) => ({ ...f, genre: e.target.value }))} placeholder="e.g. Drama, Documentary"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Tags (comma-separated)</label>
+          <input value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} placeholder="reggae, motivation"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Description</label>
+          <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} placeholder="Optional description"
+            className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+        </div>
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button onClick={editSeries ? handleUpdate : handleCreate} disabled={saving || !form.title.trim()}
+          className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
+          {saving ? 'Saving…' : editSeries ? 'Save Changes' : 'Create Series'}
+        </button>
+        <button onClick={() => { setShowCreate(false); setEditSeries(null); resetForm(); }}
+          className="px-5 py-2 bg-surface-700 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-white">Series</h2>
+          <p className="text-gray-500 text-sm">{seriesList.length} series · manage seasons &amp; episodes</p>
+        </div>
+        <button onClick={() => { setShowCreate(true); setEditSeries(null); resetForm(); }}
+          className="px-4 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 transition-colors">
+          + New Series
+        </button>
+      </div>
+
+      {showCreate && !editSeries && <SeriesForm />}
+
+      {editSeries && (
+        <div className="space-y-4">
+          <SeriesForm />
+
+          {/* Season management */}
+          <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-semibold text-sm">Seasons — {editSeries.title}</h3>
+              <button
+                onClick={() => setAddingSeasonTo(addingSeasonTo === editSeries.id ? null : editSeries.id)}
+                className="text-xs px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors"
+              >
+                + Add Season
+              </button>
+            </div>
+
+            {addingSeasonTo === editSeries.id && (
+              <div className="flex gap-2 items-end">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Season #</label>
+                  <input type="number" min="1" value={newSeasonNum} onChange={(e) => setNewSeasonNum(e.target.value)} placeholder="1"
+                    className="w-20 bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 block mb-1">Title (optional)</label>
+                  <input value={newSeasonTitle} onChange={(e) => setNewSeasonTitle(e.target.value)} placeholder="e.g. The Beginning"
+                    className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                </div>
+                <button onClick={() => handleAddSeason(editSeries.id)}
+                  className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 transition-colors">
+                  Add
+                </button>
+                <button onClick={() => { setAddingSeasonTo(null); setNewSeasonNum(''); setNewSeasonTitle(''); }}
+                  className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {!editSeries.seasons ? (
+              <p className="text-gray-600 text-sm text-center py-4 animate-pulse">Loading seasons…</p>
+            ) : editSeries.seasons.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-4">No seasons yet. Add one above.</p>
+            ) : (
+              <div className="space-y-3">
+                {editSeries.seasons.map((season) => (
+                  <div key={season.id} className="border border-surface-700 rounded-xl overflow-hidden">
+                    {/* Season header */}
+                    <div className="flex items-center gap-3 px-4 py-3 bg-surface-800 cursor-pointer"
+                      onClick={() => setExpandedSeason(expandedSeason === season.id ? null : season.id)}>
+                      <span className="text-gray-500 text-xs font-mono w-5">S{season.number}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium">{season.title || `Season ${season.number}`}</p>
+                        <p className="text-gray-600 text-xs">{season.episodes?.length ?? season._count?.episodes ?? 0} episodes</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setAddingEpTo(addingEpTo === season.id ? null : season.id); setContentSearch(''); setContentResults([]); }}
+                        className="text-xs px-2 py-1 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors"
+                      >
+                        + Ep
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteSeason(editSeries.id, season.id); }}
+                        className="text-xs px-2 py-1 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
+                      >
+                        Del
+                      </button>
+                      <span className="text-gray-600 text-xs">{expandedSeason === season.id ? '▲' : '▼'}</span>
+                    </div>
+
+                    {/* Add episode search */}
+                    {addingEpTo === season.id && (
+                      <div className="px-4 py-3 bg-surface-850 border-t border-surface-700 relative">
+                        <input value={contentSearch} onChange={(e) => setContentSearch(e.target.value)}
+                          placeholder="Search content to add as episode…" autoFocus
+                          className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                        {contentResults.length > 0 && (
+                          <div className="absolute left-4 right-4 z-10 mt-1 bg-surface-800 border border-surface-600 rounded-xl overflow-hidden shadow-xl">
+                            {contentResults.map((c) => (
+                              <button key={c.id} onClick={() => handleAddEpisode(editSeries.id, season.id, c)}
+                                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-700 transition-colors text-left">
+                                <span className="text-sm text-white truncate">{c.title}</span>
+                                <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                                  {c.type} · {fmtDur(c.duration)} · {c.creator.displayName || c.creator.username}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Episode list */}
+                    {expandedSeason === season.id && (
+                      <div className="border-t border-surface-700">
+                        {!season.episodes || season.episodes.length === 0 ? (
+                          <p className="text-gray-600 text-xs text-center py-4">No episodes yet.</p>
+                        ) : (
+                          <div>
+                            {season.episodes.map((ep) => (
+                              <div key={ep.contentId} className="flex items-center gap-3 px-4 py-2.5 border-b border-surface-700/50 last:border-0 group">
+                                <span className="text-gray-600 text-xs w-5 text-center">{ep.episodeNumber}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-white truncate">{ep.content.title}</p>
+                                  <p className="text-xs text-gray-500">{ep.content.type} {fmtDur(ep.content.duration) && `· ${fmtDur(ep.content.duration)}`}</p>
+                                </div>
+                                <a href={`/watch/${ep.contentId}`} target="_blank" rel="noreferrer"
+                                  className="opacity-0 group-hover:opacity-100 text-xs text-brand-400 hover:underline transition-opacity">
+                                  View
+                                </a>
+                                <button onClick={() => handleRemoveEpisode(editSeries.id, season.id, ep.contentId)}
+                                  className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-300 transition-all">
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Series list */}
+      {loading ? (
+        <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-800 rounded-2xl animate-pulse" />)}</div>
+      ) : seriesList.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-4xl mb-3">📺</p>
+          <p>No series yet. Create your first one.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {seriesList.map((s) => (
+            <div key={s.id} className="flex items-center gap-4 bg-surface-800 border border-surface-700 rounded-2xl p-4">
+              <div className="w-12 h-16 bg-surface-700 rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl">
+                {s.coverUrl ? <img src={s.coverUrl} alt={s.title} className="w-full h-full object-cover" /> : '📺'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm truncate">{s.title}</p>
+                <p className="text-gray-500 text-xs">
+                  {s._count.seasons} season{s._count.seasons !== 1 ? 's' : ''}
+                  {s.genre && ` · ${s.genre}`}
+                  {' · '}
+                  <span className={s.status === 'ACTIVE' ? 'text-brand-400' : 'text-gray-600'}>{s.status.toLowerCase()}</span>
+                  {s.privacy !== 'PUBLIC' && <span className="ml-1 text-yellow-600">· {s.privacy.replace('_', ' ').toLowerCase()}</span>}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a href={`/series/${s.id}`} target="_blank" rel="noreferrer"
+                  className="text-xs px-3 py-1.5 bg-surface-700 text-gray-400 rounded-lg hover:bg-surface-600 transition-colors">
+                  View
+                </a>
+                <button onClick={() => openEdit(s)}
+                  className="text-xs px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors">
+                  Edit
+                </button>
+                <button onClick={() => handleDeleteSeries(s.id)}
+                  className="text-xs px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors">
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Albums Tab ────────────────────────────────────────────────────────────────
 
 interface AlbumRow {
@@ -5812,6 +6217,7 @@ function AdminInner() {
     { key: 'partners',  label: 'Partners',  emoji: '🤝' },
     { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
     { key: 'albums',    label: 'Albums',    emoji: '💿' },
+    { key: 'series',    label: 'Series',    emoji: '📺' },
     { key: 'settings',  label: 'Settings',   emoji: '🎨' },
   ];
 
@@ -5850,6 +6256,7 @@ function AdminInner() {
       {tab === 'partners'  && <PartnersTab />}
       {tab === 'shop'      && <ShopTab />}
       {tab === 'albums'    && <AlbumsTab />}
+      {tab === 'series'    && <SeriesTab />}
       {tab === 'settings'  && <SettingsTab />}
     </div>
   );

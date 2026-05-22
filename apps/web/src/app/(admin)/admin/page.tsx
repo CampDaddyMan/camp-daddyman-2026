@@ -4259,6 +4259,7 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
                     >
                       <option value="cover">Fit: Cover (crop)</option>
                       <option value="contain">Fit: Contain (letterbox)</option>
+                      <option value="fill">Fit: Stretch (no crop)</option>
                     </select>
                   </div>
                 </div>
@@ -4361,6 +4362,7 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
           >
             <option value="cover">Fit: Cover (crop to fill)</option>
             <option value="contain">Fit: Contain (show full image)</option>
+            <option value="fill">Fit: Stretch (no crop)</option>
           </select>
         </div>
         <button

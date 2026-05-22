@@ -9,7 +9,7 @@ const CONTENT_SELECT = {
   id: true, title: true, description: true, type: true,
   status: true, thumbnailUrl: true, hlsUrl: true,
   duration: true, views: true, tags: true,
-  privacy: true, createdAt: true, featured: true,
+  privacy: true, createdAt: true, featured: true, rating: true,
   creator: { select: { username: true, displayName: true, avatar: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -198,7 +198,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     return res.status(400).json({ error: 'Media file required' });
   }
 
-  const { title, description, type, privacy, tags, publishAt } = req.body;
+  const { title, description, type, privacy, tags, publishAt, rating } = req.body;
 
   const validTypes = ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS', 'BOOK'];
   if (!validTypes.includes(type)) {
@@ -226,6 +226,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
       creatorId: req.user!.id,
       status: isScheduled ? 'SCHEDULED' : 'ACTIVE',
       publishAt: isScheduled ? scheduledAt : null,
+      rating: rating || null,
     },
   });
 
@@ -460,10 +461,11 @@ export async function updateContent(req: AuthRequest, res: Response) {
     return res.status(403).json({ error: 'Not authorized' });
   }
 
-  const { title, description, privacy, tags, thumbnailUrl, type } = req.body;
+  const { title, description, privacy, tags, thumbnailUrl, type, rating } = req.body;
 
   const data: any = {};
   if (title !== undefined)        data.title = String(title).trim();
+  if (rating !== undefined)       data.rating = rating || null;
   if (description !== undefined)  data.description = String(description).trim() || null;
   if (thumbnailUrl !== undefined) data.thumbnailUrl = thumbnailUrl ? String(thumbnailUrl).trim() : null;
   if (privacy !== undefined && ['PUBLIC', 'PRIVATE', 'SUBSCRIBERS_ONLY'].includes(privacy)) {

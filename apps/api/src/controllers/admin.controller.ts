@@ -243,9 +243,10 @@ export async function setContentStatus(req: Request, res: Response) {
 
 export async function updateContent(req: Request, res: Response) {
   try {
-    const { featured, title, description, type, privacy, tags, thumbnailUrl } = req.body;
+    const { featured, title, description, type, privacy, tags, thumbnailUrl, rating } = req.body;
     const data: any = {};
     if (featured !== undefined)     data.featured     = Boolean(featured);
+    if (rating !== undefined)       data.rating       = rating || null;
     if (title !== undefined)        data.title        = title;
     if (description !== undefined)  data.description  = description || null;
     if (type !== undefined)         data.type         = type;

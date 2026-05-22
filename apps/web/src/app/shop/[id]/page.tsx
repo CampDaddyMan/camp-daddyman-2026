@@ -1,11 +1,39 @@
 'use client';
-import { useEffect, useState, useMemo, type MouseEvent } from 'react';
+import { useEffect, useState, useMemo, useCallback, type MouseEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+
+interface Review {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  createdAt: string;
+  user: { username: string; displayName: string | null; avatar: string | null };
+}
+
+function StarRating({ value, onChange, size = 'md' }: { value: number; onChange?: (v: number) => void; size?: 'sm' | 'md' }) {
+  const s = size === 'sm' ? 'text-sm' : 'text-xl';
+  return (
+    <div className={`flex gap-0.5 ${s}`}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange?.(star)}
+          className={`${onChange ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform leading-none`}
+          aria-label={`${star} star`}
+        >
+          <span className={star <= value ? 'text-brand-400' : 'text-gray-600'}>★</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface Variant {
   id: string;
@@ -50,6 +78,16 @@ export default function ProductDetailPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null);
 
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewAvg, setReviewAvg] = useState<number | null>(null);
+  const [reviewTotal, setReviewTotal] = useState(0);
+  const [myRating, setMyRating] = useState(0);
+  const [myTitle, setMyTitle] = useState('');
+  const [myBody, setMyBody] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [myReviewId, setMyReviewId] = useState<string | null>(null);
+
   function handleImageMouseMove(e: MouseEvent<HTMLDivElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
     setZoomPos({
@@ -57,6 +95,16 @@ export default function ProductDetailPage() {
       y: ((e.clientY - rect.top) / rect.height) * 100,
     });
   }
+
+  const loadReviews = useCallback(() => {
+    api.get(`/shop/products/${id}/reviews`).then((r) => {
+      setReviews(r.data.reviews);
+      setReviewAvg(r.data.avg);
+      setReviewTotal(r.data.total);
+      const mine = r.data.reviews.find((rv: Review) => rv.user.username === user?.username);
+      if (mine) setMyReviewId(mine.id);
+    }).catch(() => {});
+  }, [id, user]);
 
   useEffect(() => {
     api.get(`/shop/products/${id}`)
@@ -67,7 +115,8 @@ export default function ProductDetailPage() {
       })
       .catch(() => router.push('/shop'))
       .finally(() => setLoading(false));
-  }, [id, router]);
+    loadReviews();
+  }, [id, router, loadReviews]);
 
   // Option groups from product (set in admin) drive independent selectors
   const optionGroups = product?.optionGroups ?? [];
@@ -131,6 +180,29 @@ export default function ProductDetailPage() {
   const outOfStock = !isMultiOption && activeVariant
     ? activeVariant.inventory <= 0
     : !isMultiOption && product.variants.length > 0 && product.variants.every((v) => v.inventory <= 0);
+
+  async function handleSubmitReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (!myRating) { setReviewError('Please select a star rating'); return; }
+    setSubmittingReview(true);
+    setReviewError('');
+    try {
+      await api.post(`/shop/products/${id}/reviews`, { rating: myRating, title: myTitle || undefined, body: myBody || undefined });
+      setMyRating(0); setMyTitle(''); setMyBody('');
+      loadReviews();
+    } catch (err: any) {
+      setReviewError(err.response?.data?.error || 'Could not submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
+  async function handleDeleteReview() {
+    if (!myReviewId) return;
+    await api.delete(`/shop/products/${id}/reviews/${myReviewId}`);
+    setMyReviewId(null);
+    loadReviews();
+  }
 
   function handleAddToCart() {
     if (!product) return;
@@ -370,6 +442,86 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Reviews */}
+      <div className="mt-16 border-t border-surface-700 pt-10">
+        <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Customer Reviews</h2>
+            {reviewTotal > 0 && (
+              <div className="flex items-center gap-3">
+                <StarRating value={Math.round(reviewAvg ?? 0)} size="sm" />
+                <span className="text-brand-400 font-bold">{reviewAvg}</span>
+                <span className="text-gray-500 text-sm">({reviewTotal} review{reviewTotal !== 1 ? 's' : ''})</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Write a review */}
+        {user && !myReviewId && (
+          <form onSubmit={handleSubmitReview} className="bg-surface-800 border border-surface-700 rounded-2xl p-6 mb-8">
+            <h3 className="text-white font-semibold mb-4">Write a Review</h3>
+            <div className="mb-4">
+              <p className="text-sm text-gray-400 mb-2">Your rating</p>
+              <StarRating value={myRating} onChange={setMyRating} />
+            </div>
+            <input
+              value={myTitle}
+              onChange={(e) => setMyTitle(e.target.value)}
+              placeholder="Review title (optional)"
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:border-brand-500"
+            />
+            <textarea
+              value={myBody}
+              onChange={(e) => setMyBody(e.target.value)}
+              placeholder="Share your experience..."
+              rows={3}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:border-brand-500 resize-none"
+            />
+            {reviewError && <p className="text-red-400 text-sm mb-3">{reviewError}</p>}
+            <button
+              type="submit"
+              disabled={submittingReview}
+              className="px-6 py-2.5 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black font-bold rounded-xl text-sm transition-colors"
+            >
+              {submittingReview ? 'Submitting...' : 'Submit Review'}
+            </button>
+          </form>
+        )}
+
+        {!user && (
+          <p className="text-gray-500 text-sm mb-8">
+            <Link href="/login" className="text-brand-400 hover:underline">Sign in</Link> to leave a review.
+          </p>
+        )}
+
+        {/* Review list */}
+        {reviews.length === 0 ? (
+          <p className="text-gray-500 text-sm py-8 text-center">No reviews yet — be the first.</p>
+        ) : (
+          <div className="space-y-6">
+            {reviews.map((r) => (
+              <div key={r.id} className="border-b border-surface-700 pb-6 last:border-0">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <StarRating value={r.rating} size="sm" />
+                    {r.title && <p className="text-white font-semibold text-sm mt-1">{r.title}</p>}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-gray-400 text-xs">{r.user.displayName || r.user.username}</p>
+                    <p className="text-gray-600 text-xs">{new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                </div>
+                {r.body && <p className="text-gray-400 text-sm leading-relaxed">{r.body}</p>}
+                {r.id === myReviewId && (
+                  <button onClick={handleDeleteReview} className="text-xs text-gray-600 hover:text-red-400 mt-2 transition-colors">Delete my review</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

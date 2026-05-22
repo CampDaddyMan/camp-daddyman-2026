@@ -53,6 +53,7 @@ model User {
   tipsReceived           Tip[]          @relation("TipRecipient")
   commentLikes           CommentLike[]
   playlists              Playlist[]
+  productReviews         ProductReview[]
 }
 
 model Token {
@@ -120,6 +121,7 @@ model Content {
   cardAspect String? @default("video")
 
   featured  Boolean @default(false)
+  rating    String? // "G" | "PG" | "PG-13" | "R" | "EXPLICIT" — null means NR
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -540,6 +542,7 @@ model Product {
 
   variants   ProductVariant[]
   orderItems OrderItem[]
+  reviews    ProductReview[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -703,6 +706,23 @@ model AlbumTrack {
   @@id([albumId, contentId])
   @@unique([albumId, discNumber, trackNumber])
   @@index([contentId])
+}
+
+// ── Product Reviews ───────────────────────────────────────────────────────────
+
+model ProductReview {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int     // 1–5
+  title     String?
+  body      String?
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+  @@index([productId])
 }
 
 // ── Playlists ─────────────────────────────────────────────────────────────────

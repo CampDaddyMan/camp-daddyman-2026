@@ -10,6 +10,7 @@ import {
   getOrder,
   getOrderBySession,
 } from '../controllers/shop.controller';
+import { listReviews, createReview, deleteReview } from '../controllers/review.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
 
@@ -28,6 +29,11 @@ router.post('/coupons/validate', writeLimiter, validateCoupon);
 
 // Checkout — optional auth (members get discount, guests can still checkout)
 router.post('/checkout', optionalAuthMiddleware, writeLimiter, createCheckoutSession);
+
+// Reviews
+router.get('/products/:id/reviews',              readLimiter,  listReviews);
+router.post('/products/:id/reviews',             authMiddleware, writeLimiter, createReview);
+router.delete('/products/:id/reviews/:reviewId', authMiddleware, writeLimiter, deleteReview);
 
 // Orders — auth required
 router.get('/orders',                  authMiddleware,         readLimiter, getMyOrders);

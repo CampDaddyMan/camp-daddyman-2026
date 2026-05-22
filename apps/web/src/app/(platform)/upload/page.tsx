@@ -32,6 +32,7 @@ export default function UploadPage() {
   const [error, setError] = useState('');
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [publishAt, setPublishAt] = useState('');
+  const [rating, setRating] = useState('');
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -83,6 +84,7 @@ export default function UploadPage() {
     fd.append('privacy', privacy);
     fd.append('tags', tags);
     if (scheduleEnabled && publishAt) fd.append('publishAt', publishAt);
+    if (rating) fd.append('rating', rating);
 
     try {
       const { data } = await api.post('/content/upload', fd, {
@@ -179,6 +181,20 @@ export default function UploadPage() {
             <option value="PUBLIC">Public — anyone can watch</option>
             <option value="SUBSCRIBERS_ONLY">Members Only — subscribers only</option>
             <option value="PRIVATE">Private — only you</option>
+          </select>
+        </div>
+
+        {/* Rating */}
+        <div>
+          <label className="block text-sm text-gray-300 mb-2">Content Rating</label>
+          <select value={rating} onChange={(e) => setRating(e.target.value)}
+            className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors">
+            <option value="">NR — Not Rated</option>
+            <option value="G">G — General Audiences</option>
+            <option value="PG">PG — Parental Guidance</option>
+            <option value="PG-13">PG-13 — Parents Strongly Cautioned</option>
+            <option value="R">R — Restricted (17+)</option>
+            <option value="EXPLICIT">EXPLICIT — Explicit Content</option>
           </select>
         </div>
 

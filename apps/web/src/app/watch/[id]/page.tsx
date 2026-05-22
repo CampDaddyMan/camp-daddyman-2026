@@ -741,6 +741,11 @@ export default function WatchPage() {
           <span>{content.views.toLocaleString()} views</span>
           <span>{formatDate(content.createdAt)}</span>
           <span className="text-brand-400">{content.type.replace('_', ' ')}</span>
+          {(content as any).rating && (
+            <span className="border border-gray-600 text-gray-400 text-xs font-bold px-2 py-0.5 rounded">
+              {(content as any).rating}
+            </span>
+          )}
           {content.tags.map((tag) => (
             <span key={tag} className="bg-surface-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">#{tag}</span>
           ))}

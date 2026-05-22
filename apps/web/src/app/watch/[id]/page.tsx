@@ -337,6 +337,10 @@ export default function WatchPage() {
   const [related, setRelated] = useState<{ fromCreator: RelatedContent[]; sameType: RelatedContent[] }>({ fromCreator: [], sameType: [] });
   const [reportOpen, setReportOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [playlistOpen, setPlaylistOpen] = useState(false);
+  const [playlists, setPlaylists] = useState<{ id: string; name: string; _count: { items: number } }[]>([]);
+  const [playlistsLoaded, setPlaylistsLoaded] = useState(false);
+  const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
@@ -441,6 +445,27 @@ export default function WatchPage() {
       await navigator.clipboard.writeText(url).catch(() => {});
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  async function openPlaylistModal() {
+    setPlaylistOpen(true);
+    if (!playlistsLoaded) {
+      const { data } = await api.get('/playlists');
+      setPlaylists(data.playlists);
+      setPlaylistsLoaded(true);
+    }
+  }
+
+  async function handleAddToPlaylist(playlistId: string) {
+    if (addingToPlaylist) return;
+    setAddingToPlaylist(playlistId);
+    try {
+      await api.post(`/playlists/${playlistId}/items`, { contentId: id });
+    } catch {}
+    finally {
+      setAddingToPlaylist(null);
+      setPlaylistOpen(false);
     }
   }
 
@@ -725,6 +750,45 @@ export default function WatchPage() {
       {/* Report modal */}
       {reportOpen && <ReportModal contentId={id} onClose={() => setReportOpen(false)} onReported={() => { setReportOpen(false); setHidden(true); }} />}
 
+      {/* Add to Playlist modal */}
+      {playlistOpen && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setPlaylistOpen(false)}>
+          <div className="bg-surface-800 border border-surface-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white font-bold">Add to Playlist</h2>
+              <button onClick={() => setPlaylistOpen(false)} className="text-gray-500 hover:text-white text-xl leading-none">✕</button>
+            </div>
+            {playlists.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-gray-400 text-sm mb-4">You don't have any playlists yet.</p>
+                <Link href="/playlists" className="text-brand-400 hover:underline text-sm font-semibold">Create a playlist →</Link>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {playlists.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleAddToPlaylist(p.id)}
+                    disabled={addingToPlaylist === p.id}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-surface-700 hover:bg-surface-600 rounded-xl transition-colors text-left disabled:opacity-50"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-surface-600 flex items-center justify-center text-lg flex-shrink-0">🎵</div>
+                    <div className="min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{p.name}</p>
+                      <p className="text-gray-500 text-xs">{p._count.items} tracks</p>
+                    </div>
+                    {addingToPlaylist === p.id && <span className="ml-auto text-brand-400 text-xs">Adding...</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="mt-4 pt-4 border-t border-surface-700">
+              <Link href="/playlists" className="text-sm text-brand-400 hover:underline">Manage playlists →</Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex items-center gap-3 mb-8 pb-8 border-b border-surface-700 flex-wrap">
         <Button variant={liked ? 'primary' : 'secondary'} size="sm" onClick={handleLike} disabled={!user}>
@@ -736,6 +800,11 @@ export default function WatchPage() {
         <Button variant="secondary" size="sm" onClick={handleShare}>
           {copied ? '✓ Copied!' : '↗ Share'}
         </Button>
+        {user && (
+          <Button variant="secondary" size="sm" onClick={openPlaylistModal}>
+            + Playlist
+          </Button>
+        )}
         <Link href={`/creator/${content.creator.username}`}>
           <Button variant="ghost" size="sm">
             {content.creator.displayName || content.creator.username}

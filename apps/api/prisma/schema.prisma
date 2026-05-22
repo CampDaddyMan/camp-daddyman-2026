@@ -52,6 +52,7 @@ model User {
   tipsSent               Tip[]          @relation("TipSender")
   tipsReceived           Tip[]          @relation("TipRecipient")
   commentLikes           CommentLike[]
+  playlists              Playlist[]
 }
 
 model Token {
@@ -131,7 +132,8 @@ model Content {
   notifications Notification[]
   reports       Report[]
   pollOptions   PollOption[]
-  albumTracks   AlbumTrack[]
+  albumTracks    AlbumTrack[]
+  playlistItems  PlaylistItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -701,6 +703,36 @@ model AlbumTrack {
   @@id([albumId, contentId])
   @@unique([albumId, discNumber, trackNumber])
   @@index([contentId])
+}
+
+// ── Playlists ─────────────────────────────────────────────────────────────────
+
+model Playlist {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  coverUrl    String?
+  isPublic    Boolean        @default(false)
+  items       PlaylistItem[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId])
+}
+
+model PlaylistItem {
+  id         String   @id @default(cuid())
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  contentId  String
+  content    Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  position   Int
+  addedAt    DateTime @default(now())
+
+  @@unique([playlistId, contentId])
+  @@index([playlistId, position])
 }
 
 // ── Site Settings ─────────────────────────────────────────────────────────────

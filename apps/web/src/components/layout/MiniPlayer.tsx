@@ -15,7 +15,7 @@ function fmt(s: number) {
 }
 
 export default function MiniPlayer() {
-  const { track, queue, playing, progress, duration, toggle, seek, dismiss, skipNext, skipPrev } = usePlayer();
+  const { track, queue, playing, progress, duration, toggle, seek, dismiss, skipNext, skipPrev, shuffle, repeat, toggleShuffle, toggleRepeat } = usePlayer();
   const [queueOpen, setQueueOpen] = useState(false);
 
   if (!track) return null;
@@ -87,6 +87,28 @@ export default function MiniPlayer() {
             aria-label="Skip to next track"
           >
             ⏭
+          </button>
+
+          {/* Shuffle */}
+          <button
+            onClick={toggleShuffle}
+            className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors text-xs ${
+              shuffle ? 'text-brand-400' : 'text-gray-600 hover:text-white'
+            }`}
+            aria-label="Shuffle"
+          >
+            ⇄
+          </button>
+
+          {/* Repeat */}
+          <button
+            onClick={toggleRepeat}
+            className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors text-xs ${
+              repeat ? 'text-brand-400' : 'text-gray-600 hover:text-white'
+            }`}
+            aria-label="Repeat"
+          >
+            ↺
           </button>
 
           {/* Queue toggle */}

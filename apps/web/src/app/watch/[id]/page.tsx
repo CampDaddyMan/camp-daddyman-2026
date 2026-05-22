@@ -734,6 +734,29 @@ export default function WatchPage() {
 
       <AdSlot location="watch-below-player" className="mb-4" />
 
+      {/* Series badge */}
+      {(content as any).episode && (
+        <div className="flex items-center gap-3 mb-3 flex-wrap">
+          <Link
+            href={`/series/${(content as any).episode.season.series.id}`}
+            className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors font-medium bg-brand-500/10 border border-brand-500/25 px-3 py-1.5 rounded-lg"
+          >
+            <span>📺</span>
+            {(content as any).episode.season.series.title}
+            <span className="text-gray-500">·</span>
+            <span className="text-gray-400">S{(content as any).episode.season.number} E{(content as any).episode.episodeNumber}</span>
+          </Link>
+          {(content as any).nextEpisodeContentId && (
+            <Link
+              href={`/watch/${(content as any).nextEpisodeContentId}`}
+              className="flex items-center gap-1.5 text-xs bg-brand-500 hover:bg-brand-400 text-black font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Next Episode ›
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Meta */}
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-white mb-2">{content.title}</h1>

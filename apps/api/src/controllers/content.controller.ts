@@ -109,6 +109,15 @@ export async function getContent(req: AuthRequest, res: Response) {
     include: {
       creator: { select: { username: true, displayName: true, avatar: true } },
       _count: { select: { likes: true, comments: true } },
+      episode: {
+        include: {
+          season: {
+            include: {
+              series: { select: { id: true, title: true } },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -179,16 +188,25 @@ export async function getContent(req: AuthRequest, res: Response) {
 
   let isLiked = false;
   let isSaved = false;
-  if (req.user) {
-    const [like, saved] = await Promise.all([
-      prisma.like.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }),
-      prisma.savedContent.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }),
-    ]);
-    isLiked = !!like;
-    isSaved = !!saved;
-  }
+  let nextEpisodeContentId: string | null = null;
 
-  res.json({ content: { ...content, mediaUrl, thumbnailUrl }, isLiked, isSaved });
+  const checks: Promise<any>[] = [
+    req.user ? prisma.like.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }) : Promise.resolve(null),
+    req.user ? prisma.savedContent.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }) : Promise.resolve(null),
+    content.episode
+      ? prisma.episode.findFirst({
+          where: { seasonId: content.episode.seasonId, episodeNumber: { gt: content.episode.episodeNumber } },
+          orderBy: { episodeNumber: 'asc' },
+          select: { contentId: true },
+        })
+      : Promise.resolve(null),
+  ];
+
+  const [like, saved, nextEp] = await Promise.all(checks);
+  if (req.user) { isLiked = !!like; isSaved = !!saved; }
+  if (nextEp) nextEpisodeContentId = nextEp.contentId;
+
+  res.json({ content: { ...content, mediaUrl, thumbnailUrl, nextEpisodeContentId }, isLiked, isSaved });
 }
 
 export async function uploadContent(req: AuthRequest, res: Response) {

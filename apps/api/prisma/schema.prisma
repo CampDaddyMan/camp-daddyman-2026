@@ -54,6 +54,7 @@ model User {
   commentLikes           CommentLike[]
   playlists              Playlist[]
   productReviews         ProductReview[]
+  series                 Series[]
 }
 
 model Token {
@@ -136,6 +137,7 @@ model Content {
   pollOptions   PollOption[]
   albumTracks    AlbumTrack[]
   playlistItems  PlaylistItem[]
+  episode        Episode?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -753,6 +755,56 @@ model PlaylistItem {
 
   @@unique([playlistId, contentId])
   @@index([playlistId, position])
+}
+
+// ── Series / Seasons / Episodes ───────────────────────────────────────────────
+
+model Series {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  coverUrl    String?
+  bannerUrl   String?
+  genre       String?
+  tags        String[]
+  status      String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  privacy     Privacy  @default(PUBLIC)
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  seasons     Season[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([privacy, status])
+}
+
+model Season {
+  id          String    @id @default(cuid())
+  seriesId    String
+  series      Series    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  number      Int
+  title       String?
+  description String?
+  coverUrl    String?
+  episodes    Episode[]
+  createdAt   DateTime  @default(now())
+
+  @@unique([seriesId, number])
+  @@index([seriesId])
+}
+
+model Episode {
+  id            String   @id @default(cuid())
+  seasonId      String
+  season        Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  contentId     String   @unique
+  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  episodeNumber Int
+  createdAt     DateTime @default(now())
+
+  @@unique([seasonId, episodeNumber])
+  @@index([seasonId])
 }
 
 // ── Site Settings ─────────────────────────────────────────────────────────────

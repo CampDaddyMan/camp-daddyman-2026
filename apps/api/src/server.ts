@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { router } from './routes';
 import { startTranscodeWorker } from './workers/transcoder';
+import { startScheduler } from './workers/scheduler';
 
 // Prevent unhandled async rejections from crashing the process (Express 4 doesn't catch these)
 process.on('unhandledRejection', (reason) => {
@@ -50,6 +51,7 @@ app.listen(PORT, () => {
   startTranscodeWorker().catch((err) => {
     console.error('[Transcoder] Failed to start worker:', err.message);
   });
+  startScheduler();
 });
 
 export default app;

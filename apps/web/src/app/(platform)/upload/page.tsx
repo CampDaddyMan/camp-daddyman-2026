@@ -30,6 +30,8 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [publishAt, setPublishAt] = useState('');
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -80,6 +82,7 @@ export default function UploadPage() {
     fd.append('type', type);
     fd.append('privacy', privacy);
     fd.append('tags', tags);
+    if (scheduleEnabled && publishAt) fd.append('publishAt', publishAt);
 
     try {
       const { data } = await api.post('/content/upload', fd, {
@@ -187,6 +190,37 @@ export default function UploadPage() {
             placeholder="reggae, motivation, live" />
         </div>
 
+        {/* Schedule */}
+        <div className="bg-surface-700/50 border border-surface-600 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white font-medium">Schedule for later</p>
+              <p className="text-xs text-gray-500 mt-0.5">Choose a future date and time to publish automatically</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setScheduleEnabled((v) => !v)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${scheduleEnabled ? 'bg-brand-500' : 'bg-surface-500'}`}
+              role="switch"
+              aria-checked={scheduleEnabled}
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${scheduleEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+          {scheduleEnabled && (
+            <div className="mt-3">
+              <input
+                type="datetime-local"
+                value={publishAt}
+                onChange={(e) => setPublishAt(e.target.value)}
+                min={new Date(Date.now() + 15 * 60 * 1000).toISOString().slice(0, 16)}
+                required={scheduleEnabled}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+              />
+            </div>
+          )}
+        </div>
+
         {/* Thumbnail */}
         <div {...thumbProps()} className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${thumbDrag ? 'border-brand-400 bg-brand-400/5' : 'border-surface-600'}`}>
           <input {...thumbInputProps()} />
@@ -224,7 +258,9 @@ export default function UploadPage() {
           </div>
         )}
         <Button type="submit" disabled={uploading} size="lg" className="w-full">
-          {uploading ? (uploadProgress < 100 ? `Uploading ${uploadProgress}%` : 'Processing...') : 'Publish'}
+          {uploading
+            ? (uploadProgress < 100 ? `Uploading ${uploadProgress}%` : 'Processing...')
+            : scheduleEnabled ? 'Schedule' : 'Publish'}
         </Button>
       </form>
     </div>

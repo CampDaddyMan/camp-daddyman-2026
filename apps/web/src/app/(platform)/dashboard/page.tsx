@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button';
 interface DashboardContent {
   id: string; title: string; type: ContentType;
   status: ContentStatus; privacy: Privacy;
-  views: number; thumbnailUrl?: string; createdAt: string;
+  views: number; thumbnailUrl?: string; createdAt: string; publishAt?: string;
   _count: { likes: number; comments: number };
 }
 
@@ -702,8 +702,11 @@ export default function DashboardPage() {
                           <Link href={`/watch/${c.id}`} className="text-white hover:text-brand-400 transition-colors font-medium line-clamp-1">
                             {c.title}
                           </Link>
-                          {c.status !== 'ACTIVE' && (
-                            <span className="ml-2 text-[10px] bg-surface-600 text-gray-400 px-1.5 py-0.5 rounded uppercase">{c.status}</span>
+                          {c.status === 'SCHEDULED' && (
+                            <span className="ml-2 text-[10px] bg-brand-500/20 text-brand-400 px-1.5 py-0.5 rounded uppercase">Scheduled</span>
+                          )}
+                          {c.status === 'PROCESSING' && (
+                            <span className="ml-2 text-[10px] bg-surface-600 text-gray-400 px-1.5 py-0.5 rounded uppercase">Processing</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-400 hidden md:table-cell">{TYPE_LABEL[c.type]}</td>
@@ -718,7 +721,11 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-4 py-3 text-right text-white font-medium">{fmt(c.views)}</td>
                         <td className="px-4 py-3 text-right text-gray-400 hidden sm:table-cell">{c._count.likes}</td>
-                        <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{fmtDate(c.createdAt)}</td>
+                        <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">
+                          {c.status === 'SCHEDULED' && c.publishAt
+                            ? <span className="text-brand-400">Publishes {fmtDate(c.publishAt)}</span>
+                            : fmtDate(c.createdAt)}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                             <button

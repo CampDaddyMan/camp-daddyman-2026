@@ -1,5 +1,5 @@
 export type ContentType = 'FILM' | 'MUSIC' | 'PODCAST' | 'SPOKEN_WORD' | 'DADDYMAN_ISMS' | 'BOOK';
-export type ContentStatus = 'PROCESSING' | 'ACTIVE' | 'ARCHIVED' | 'DELETED';
+export type ContentStatus = 'PROCESSING' | 'ACTIVE' | 'SCHEDULED' | 'ARCHIVED' | 'DELETED';
 export type Privacy = 'PUBLIC' | 'PRIVATE' | 'SUBSCRIBERS_ONLY';
 export type SubscriptionPlan = 'FREE' | 'PRO' | 'PREMIUM' | 'CREATOR';
 export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'TRIALING';

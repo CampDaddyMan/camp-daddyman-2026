@@ -14,7 +14,7 @@ export async function getDashboard(req: AuthRequest, res: Response) {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true, title: true, type: true, status: true, privacy: true,
-        views: true, thumbnailUrl: true, createdAt: true,
+        views: true, thumbnailUrl: true, createdAt: true, publishAt: true,
         _count: { select: { likes: true, comments: true } },
       },
     }),

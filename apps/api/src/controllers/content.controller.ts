@@ -112,6 +112,11 @@ export async function getContent(req: AuthRequest, res: Response) {
     return res.status(404).json({ error: 'Content not found' });
   }
 
+  // Scheduled content is only visible to its creator
+  if (content.status === 'SCHEDULED' && content.creatorId !== req.user?.id) {
+    return res.status(404).json({ error: 'Content not found' });
+  }
+
   // If the requesting user reported this content, block their access
   if (req.user && req.user.id !== content.creatorId && !req.user.isAdmin) {
     const report = await prisma.report.findUnique({
@@ -189,7 +194,7 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     return res.status(400).json({ error: 'Media file required' });
   }
 
-  const { title, description, type, privacy, tags } = req.body;
+  const { title, description, type, privacy, tags, publishAt } = req.body;
 
   const validTypes = ['FILM', 'MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS', 'BOOK'];
   if (!validTypes.includes(type)) {
@@ -202,6 +207,9 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     thumbnailUrl = await uploadToS3(files.thumbnail[0], 'thumbnails');
   }
 
+  const scheduledAt = publishAt ? new Date(publishAt) : null;
+  const isScheduled = scheduledAt && scheduledAt > new Date();
+
   const content = await prisma.content.create({
     data: {
       title,
@@ -212,7 +220,8 @@ export async function uploadContent(req: AuthRequest, res: Response) {
       thumbnailUrl,
       tags: tags ? String(tags).split(',').map((t: string) => t.trim()) : [],
       creatorId: req.user!.id,
-      status: 'ACTIVE',
+      status: isScheduled ? 'SCHEDULED' : 'ACTIVE',
+      publishAt: isScheduled ? scheduledAt : null,
     },
   });
 
@@ -221,7 +230,8 @@ export async function uploadContent(req: AuthRequest, res: Response) {
     await prisma.user.update({ where: { id: req.user!.id }, data: { isCreator: true } });
   }
 
-  notifyFollowers(req.user!.id, content.id);
+  // Only notify followers immediately for live content; scheduler handles scheduled content
+  if (!isScheduled) notifyFollowers(req.user!.id, content.id);
 
   res.status(201).json({ content });
 }

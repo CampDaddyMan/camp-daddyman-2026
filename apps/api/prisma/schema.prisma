@@ -107,7 +107,8 @@ model Content {
 
   tags String[]
 
-  views Int @default(0)
+  views     Int       @default(0)
+  publishAt DateTime?
 
   cardWidth  Int?    @default(224)
   cardAspect String? @default("video")
@@ -144,6 +145,7 @@ enum ContentType {
 enum ContentStatus {
   PROCESSING
   ACTIVE
+  SCHEDULED
   ARCHIVED
   DELETED
 }

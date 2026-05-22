@@ -320,6 +320,7 @@ export default function WatchPage() {
   const [commentText, setCommentText] = useState('');
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const [subRequired, setSubRequired] = useState(false);
   const [preview, setPreview] = useState<PreviewContent | null>(null);
@@ -418,6 +419,18 @@ export default function WatchPage() {
     if (!user) return;
     const { data } = await api.post(`/content/${id}/save`);
     setSaved(data.saved);
+  }
+
+  async function handleShare() {
+    const url = window.location.href;
+    const shareData = { title: content!.title, url };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      await navigator.share(shareData).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   }
 
   async function handleComment(e: React.FormEvent) {
@@ -672,6 +685,9 @@ export default function WatchPage() {
         </Button>
         <Button variant={saved ? 'primary' : 'secondary'} size="sm" onClick={handleSave} disabled={!user}>
           {saved ? '🔖 Saved' : '🔖 Save'}
+        </Button>
+        <Button variant="secondary" size="sm" onClick={handleShare}>
+          {copied ? '✓ Copied!' : '↗ Share'}
         </Button>
         <Link href={`/creator/${content.creator.username}`}>
           <Button variant="ghost" size="sm">

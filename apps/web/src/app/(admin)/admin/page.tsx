@@ -4016,6 +4016,8 @@ interface AdminBannerSlide {
   imageUrl: string;
   linkUrl: string | null;
   caption: string | null;
+  objectPosition: string;
+  objectFit: string;
   sortOrder: number;
   active: boolean;
 }
@@ -4027,6 +4029,8 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
   const [addUrl, setAddUrl] = useState('');
   const [addCaption, setAddCaption] = useState('');
   const [addLink, setAddLink] = useState('');
+  const [addPosition, setAddPosition] = useState('center');
+  const [addFit, setAddFit] = useState('cover');
   const [adding, setAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
@@ -4072,11 +4076,15 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
         imageUrl: addUrl.trim(),
         linkUrl: addLink.trim() || null,
         caption: addCaption.trim() || null,
+        objectPosition: addPosition,
+        objectFit: addFit,
       });
       setSlides((prev) => [...prev, data.slide]);
       setAddUrl('');
       setAddCaption('');
       setAddLink('');
+      setAddPosition('center');
+      setAddFit('cover');
     } catch {}
     finally { setAdding(false); }
   }
@@ -4108,7 +4116,7 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
     );
   }
 
-  async function handleUpdateField(id: string, field: 'caption' | 'linkUrl', value: string) {
+  async function handleUpdateField(id: string, field: 'caption' | 'linkUrl' | 'objectPosition' | 'objectFit', value: string) {
     setSaving(id);
     await api.patch(`/admin/banners/${id}`, { [field]: value || null }).catch(() => {});
     setSlides((prev) => prev.map((s) => s.id === id ? { ...s, [field]: value || null } : s));
@@ -4230,6 +4238,29 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
                     placeholder="Link URL (optional)"
                     className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-400"
                   />
+                  <div className="flex gap-1.5">
+                    <select
+                      defaultValue={slide.objectPosition || 'center'}
+                      onChange={(e) => handleUpdateField(slide.id, 'objectPosition', e.target.value)}
+                      className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-400"
+                    >
+                      <option value="top">Position: Top</option>
+                      <option value="center">Position: Center</option>
+                      <option value="bottom">Position: Bottom</option>
+                      <option value="left">Position: Left</option>
+                      <option value="right">Position: Right</option>
+                      <option value="top left">Position: Top-Left</option>
+                      <option value="top right">Position: Top-Right</option>
+                    </select>
+                    <select
+                      defaultValue={slide.objectFit || 'cover'}
+                      onChange={(e) => handleUpdateField(slide.id, 'objectFit', e.target.value)}
+                      className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-400"
+                    >
+                      <option value="cover">Fit: Cover (crop)</option>
+                      <option value="contain">Fit: Contain (letterbox)</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Controls */}
@@ -4310,6 +4341,27 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
             placeholder="Link URL (optional)"
             className="bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
           />
+          <select
+            value={addPosition}
+            onChange={(e) => setAddPosition(e.target.value)}
+            className="bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+          >
+            <option value="top">Position: Top</option>
+            <option value="center">Position: Center</option>
+            <option value="bottom">Position: Bottom</option>
+            <option value="left">Position: Left</option>
+            <option value="right">Position: Right</option>
+            <option value="top left">Position: Top-Left</option>
+            <option value="top right">Position: Top-Right</option>
+          </select>
+          <select
+            value={addFit}
+            onChange={(e) => setAddFit(e.target.value)}
+            className="bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+          >
+            <option value="cover">Fit: Cover (crop to fill)</option>
+            <option value="contain">Fit: Contain (show full image)</option>
+          </select>
         </div>
         <button
           onClick={handleAdd}

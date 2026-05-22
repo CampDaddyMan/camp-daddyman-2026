@@ -711,14 +711,16 @@ model SiteSetting {
 // ── Banner Slides ─────────────────────────────────────────────────────────────
 
 model BannerSlide {
-  id        String   @id @default(cuid())
-  page      String   // "HOME" | "ARK"
-  imageUrl  String
-  linkUrl   String?
-  caption   String?
-  sortOrder Int      @default(0)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  page           String   // "HOME" | "ARK"
+  imageUrl       String
+  linkUrl        String?
+  caption        String?
+  objectPosition String   @default("center")  // CSS object-position: top | center | bottom | left | right
+  objectFit      String   @default("cover")   // CSS object-fit: cover | contain
+  sortOrder      Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
 
   @@index([page, sortOrder])
 }

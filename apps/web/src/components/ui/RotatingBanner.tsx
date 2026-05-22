@@ -7,6 +7,8 @@ export interface BannerSlide {
   imageUrl: string;
   linkUrl?: string | null;
   caption?: string | null;
+  objectPosition?: string | null; // CSS object-position e.g. "top", "center", "bottom"
+  objectFit?: string | null;      // CSS object-fit: "cover" | "contain"
 }
 
 interface Props {
@@ -14,7 +16,7 @@ interface Props {
   intervalMs?: number;
   overlay?: number;   // 0–1 black overlay opacity
   gradient?: number;  // px bottom-to-top gradient
-  aspectPct?: number; // padding-bottom % for responsive height (e.g. 42.85 = ~21:9)
+  aspectPct?: number; // height as % of width (42.85 = 21:9, 56.25 = 16:9)
 }
 
 export default function RotatingBanner({
@@ -42,19 +44,25 @@ export default function RotatingBanner({
 
   if (n === 0) return null;
 
+  // aspectPct → CSS aspect-ratio (width/height)
+  const cssAspect = `${(100 / aspectPct).toFixed(4)} / 1`;
+
   return (
     <section
       className="w-full bg-black relative overflow-hidden select-none"
-      style={{ paddingBottom: `${aspectPct}%` }}
+      style={{ aspectRatio: cssAspect }}
       onMouseEnter={() => { paused.current = true; }}
       onMouseLeave={() => { paused.current = false; }}
     >
       {slides.map((slide, i) => {
+        const fit      = slide.objectFit      || 'cover';
+        const position = slide.objectPosition || 'center';
         const img = (
           <img
             src={slide.imageUrl}
             alt={slide.caption || ''}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: fit as any, objectPosition: position }}
             draggable={false}
           />
         );
@@ -88,31 +96,23 @@ export default function RotatingBanner({
 
       {n > 1 && (
         <>
-          {/* Prev arrow */}
           <button
             onClick={() => setIdx((i) => (i - 1 + n) % n)}
             className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 text-white text-xl leading-none flex items-center justify-center transition-colors"
             aria-label="Previous slide"
-          >
-            ‹
-          </button>
-          {/* Next arrow */}
+          >‹</button>
           <button
             onClick={() => setIdx((i) => (i + 1) % n)}
             className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 text-white text-xl leading-none flex items-center justify-center transition-colors"
             aria-label="Next slide"
-          >
-            ›
-          </button>
+          >›</button>
 
-          {/* Caption */}
           {slides[idx]?.caption && (
             <div className="absolute bottom-9 left-1/2 -translate-x-1/2 z-10 bg-black/65 text-white text-xs px-4 py-1.5 rounded-full whitespace-nowrap max-w-xs text-center pointer-events-none">
               {slides[idx].caption}
             </div>
           )}
 
-          {/* Dot indicators */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
             {slides.map((_, i) => (
               <button
@@ -121,19 +121,16 @@ export default function RotatingBanner({
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   i === idx ? 'w-5 bg-brand-500' : 'w-1.5 bg-white/40 hover:bg-white/70'
                 }`}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={`Slide ${i + 1}`}
               />
             ))}
           </div>
 
-          {/* Progress bar for current slide */}
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 z-10 pointer-events-none">
             <div
               key={idx}
               className="h-full bg-brand-500/70 origin-left"
-              style={{
-                animation: `bannerProgress ${intervalMs}ms linear forwards`,
-              }}
+              style={{ animation: `bannerProgress ${intervalMs}ms linear forwards` }}
             />
           </div>
         </>

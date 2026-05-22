@@ -1,15 +1,21 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { uploadToS3 } from '../utils/s3';
+import { uploadToS3, signR2Url } from '../utils/s3';
 
 export async function listPublicBanners(req: Request, res: Response) {
   try {
     const page = ((req.query.page as string) || 'HOME').toUpperCase();
-    const slides = await prisma.bannerSlide.findMany({
+    const raw = await prisma.bannerSlide.findMany({
       where: { page, active: true },
       orderBy: { sortOrder: 'asc' },
-      select: { id: true, imageUrl: true, linkUrl: true, caption: true },
+      select: { id: true, imageUrl: true, linkUrl: true, caption: true, objectPosition: true, objectFit: true },
     });
+    const slides = await Promise.all(
+      raw.map(async (s) => ({
+        ...s,
+        imageUrl: (await signR2Url(s.imageUrl, 86400)) ?? s.imageUrl,
+      }))
+    );
     res.json({ slides });
   } catch {
     res.json({ slides: [] });
@@ -19,10 +25,16 @@ export async function listPublicBanners(req: Request, res: Response) {
 export async function adminListBanners(req: Request, res: Response) {
   try {
     const page = ((req.query.page as string) || 'HOME').toUpperCase();
-    const slides = await prisma.bannerSlide.findMany({
+    const raw = await prisma.bannerSlide.findMany({
       where: { page },
       orderBy: { sortOrder: 'asc' },
     });
+    const slides = await Promise.all(
+      raw.map(async (s) => ({
+        ...s,
+        imageUrl: (await signR2Url(s.imageUrl, 86400)) ?? s.imageUrl,
+      }))
+    );
     res.json({ slides });
   } catch {
     res.status(500).json({ error: 'Failed to load slides' });
@@ -37,12 +49,15 @@ export async function createBanner(req: Request, res: Response) {
       return;
     }
     const count = await prisma.bannerSlide.count({ where: { page: page.toUpperCase() } });
+    const { objectPosition, objectFit } = req.body;
     const slide = await prisma.bannerSlide.create({
       data: {
         page: page.toUpperCase(),
         imageUrl,
         linkUrl: linkUrl || null,
         caption: caption || null,
+        objectPosition: objectPosition || 'center',
+        objectFit: objectFit || 'cover',
         sortOrder: count,
       },
     });
@@ -56,7 +71,7 @@ export async function createBanner(req: Request, res: Response) {
 export async function updateBanner(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { linkUrl, caption, sortOrder, active, imageUrl } = req.body;
+    const { linkUrl, caption, sortOrder, active, imageUrl, objectPosition, objectFit } = req.body;
     const slide = await prisma.bannerSlide.update({
       where: { id },
       data: {
@@ -65,6 +80,8 @@ export async function updateBanner(req: Request, res: Response) {
         ...(sortOrder !== undefined && { sortOrder }),
         ...(active !== undefined && { active }),
         ...(imageUrl !== undefined && { imageUrl }),
+        ...(objectPosition !== undefined && { objectPosition }),
+        ...(objectFit !== undefined && { objectFit }),
       },
     });
     res.json({ slide });

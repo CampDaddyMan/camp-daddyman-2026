@@ -86,6 +86,8 @@ export default function Navbar() {
   const { totalItems } = useCart();
   const router = useRouter();
   const pathname = usePathname();
+
+  if (pathname?.startsWith('/embed/')) return null;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [browseOpen, setBrowseOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);

@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/CartContext';
 import { PlayerProvider } from '@/context/PlayerContext';
 import Navbar from '@/components/layout/Navbar';
 import MiniPlayer from '@/components/layout/MiniPlayer';
+import ConditionalFooter from '@/components/layout/ConditionalFooter';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://campdaddyman.com';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png`;
@@ -59,9 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <PlayerProvider>
               <Navbar />
               <main className="min-h-screen pb-24">{children}</main>
-              <footer className="border-t border-surface-700 py-8 text-center text-sm text-gray-500">
-                © {new Date().getFullYear()} Camp DaddyMan. All rights reserved.
-              </footer>
+              <ConditionalFooter />
               <MiniPlayer />
             </PlayerProvider>
           </CartProvider>

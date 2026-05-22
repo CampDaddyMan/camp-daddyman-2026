@@ -337,6 +337,8 @@ export default function WatchPage() {
   const [related, setRelated] = useState<{ fromCreator: RelatedContent[]; sameType: RelatedContent[] }>({ fromCreator: [], sameType: [] });
   const [reportOpen, setReportOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
   const [playlistOpen, setPlaylistOpen] = useState(false);
   const [playlists, setPlaylists] = useState<{ id: string; name: string; _count: { items: number } }[]>([]);
   const [playlistsLoaded, setPlaylistsLoaded] = useState(false);
@@ -778,6 +780,43 @@ export default function WatchPage() {
       {/* Report modal */}
       {reportOpen && <ReportModal contentId={id} onClose={() => setReportOpen(false)} onReported={() => { setReportOpen(false); setHidden(true); }} />}
 
+      {/* Embed modal */}
+      {embedOpen && (() => {
+        const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://campdaddyman.com';
+        const snippet = `<iframe src="${siteUrl}/embed/${id}" width="640" height="360" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" style="border-radius:12px"></iframe>`;
+        return (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setEmbedOpen(false)}>
+            <div className="bg-surface-800 border border-surface-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-white font-bold">Embed this content</h2>
+                <button onClick={() => setEmbedOpen(false)} className="text-gray-500 hover:text-white text-xl leading-none">✕</button>
+              </div>
+              <p className="text-gray-400 text-sm mb-3">Copy and paste this code into your website or blog.</p>
+              <div className="bg-surface-900 border border-surface-600 rounded-xl p-3 mb-3">
+                <code className="text-xs text-brand-300 break-all leading-relaxed">{snippet}</code>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(snippet).catch(() => {});
+                    setEmbedCopied(true);
+                    setTimeout(() => setEmbedCopied(false), 2500);
+                  }}
+                  className="flex-1 bg-brand-500 hover:bg-brand-400 text-black font-semibold text-sm px-4 py-2 rounded-lg transition-colors"
+                >
+                  {embedCopied ? '✓ Copied!' : 'Copy code'}
+                </button>
+                <a href={`/embed/${id}`} target="_blank" rel="noreferrer"
+                  className="px-4 py-2 bg-surface-700 hover:bg-surface-600 text-gray-300 text-sm rounded-lg transition-colors">
+                  Preview
+                </a>
+              </div>
+              <p className="text-gray-600 text-xs mt-3">Default size 640×360px. Adjust width/height as needed.</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Add to Playlist modal */}
       {playlistOpen && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setPlaylistOpen(false)}>
@@ -827,6 +866,9 @@ export default function WatchPage() {
         </Button>
         <Button variant="secondary" size="sm" onClick={handleShare}>
           {copied ? '✓ Copied!' : '↗ Share'}
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setEmbedOpen(true)}>
+          {'</>'} Embed
         </Button>
         {user && (
           <Button variant="secondary" size="sm" onClick={openPlaylistModal}>

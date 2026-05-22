@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { usePlayer } from '@/context/PlayerContext';
 import QueueDrawer from './QueueDrawer';
 
@@ -17,6 +18,8 @@ function fmt(s: number) {
 export default function MiniPlayer() {
   const { track, queue, playing, progress, duration, toggle, seek, dismiss, skipNext, skipPrev, shuffle, repeat, toggleShuffle, toggleRepeat } = usePlayer();
   const [queueOpen, setQueueOpen] = useState(false);
+  const pathname = usePathname();
+  if (pathname?.startsWith('/embed/')) return null;
 
   if (!track) return null;
 

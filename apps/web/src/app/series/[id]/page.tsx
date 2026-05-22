@@ -196,7 +196,6 @@ export default function SeriesDetailPage() {
             <div className="space-y-2">
               {(season?.episodes ?? []).map((ep) => {
                 const c = ep.content;
-                const isAudio = AUDIO_TYPES.includes(c.type);
                 const href = `/watch/${c.id}`;
 
                 return (

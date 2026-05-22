@@ -18,7 +18,7 @@ export async function unifiedSearch(req: Request, res: Response) {
 
   const contentWhere: any = {
     status: 'ACTIVE',
-    privacy: 'PUBLIC',
+    privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] },
     ...(userId && { reports: { none: { reporterId: userId } } }),
     OR: [
       { title:       { contains: term, mode: 'insensitive' } },
@@ -68,7 +68,7 @@ export async function unifiedSearch(req: Request, res: Response) {
 
     wideSearch ? prisma.album.findMany({
       where: {
-        privacy: 'PUBLIC',
+        privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] },
         OR: [
           { title:       { contains: term, mode: 'insensitive' } },
           { description: { contains: term, mode: 'insensitive' } },

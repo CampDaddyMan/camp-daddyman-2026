@@ -18,7 +18,7 @@ export async function listContent(req: AuthRequest, res: Response) {
   const { type, page = '1', limit = '12', creator, sort, tag } = req.query;
   const userId = req.user?.id;
 
-  const where: any = { status: 'ACTIVE', privacy: 'PUBLIC' };
+  const where: any = { status: 'ACTIVE', privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] } };
   if (type) where.type = String(type).toUpperCase();
   if (creator) where.creator = { username: creator };
   if (tag) where.tags = { has: String(tag).toLowerCase() };
@@ -48,7 +48,7 @@ export async function listContent(req: AuthRequest, res: Response) {
 export async function getDiscovery(req: AuthRequest, res: Response) {
   const userId = req.user?.id;
   const notReported = userId ? { reports: { none: { reporterId: userId } } } : {};
-  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const, ...notReported };
+  const base: any = { status: 'ACTIVE', privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] }, ...notReported };
 
   const [trending, newReleases, music, film, podcast, spokenWord, daddymanIsms, topCreators] = await Promise.all([
     prisma.content.findMany({
@@ -345,7 +345,7 @@ export async function searchContent(req: AuthRequest, res: Response) {
 
   const where: any = {
     status: 'ACTIVE',
-    privacy: 'PUBLIC',
+    privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] },
     ...(userId && { reports: { none: { reporterId: userId } } }),
     OR: [
       { title:       { contains: term, mode: 'insensitive' } },
@@ -620,7 +620,7 @@ export async function getRelatedContent(req: AuthRequest, res: Response) {
 
   const userId = req.user?.id;
   const notReported = userId ? { reports: { none: { reporterId: userId } } } : {};
-  const base = { status: 'ACTIVE' as const, privacy: 'PUBLIC' as const, id: { not: req.params.id }, ...notReported };
+  const base: any = { status: 'ACTIVE', privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] }, id: { not: req.params.id }, ...notReported };
 
   // 1. More from the same creator
   // 2. Same type, exclude same creator

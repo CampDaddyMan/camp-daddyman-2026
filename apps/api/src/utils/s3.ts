@@ -36,6 +36,17 @@ export async function getSignedMediaUrl(fileUrl: string, expiresIn = 3600): Prom
   return getSignedUrl(s3, command, { expiresIn });
 }
 
+export async function getDownloadUrl(fileUrl: string, filename: string, expiresIn = 300): Promise<string> {
+  const key = extractKey(fileUrl);
+  if (!key) return fileUrl;
+  const command = new GetObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: key,
+    ResponseContentDisposition: `attachment; filename="${filename.replace(/"/g, '')}"`,
+  });
+  return getSignedUrl(s3, command, { expiresIn });
+}
+
 // Sign any R2 URL — falls back to original if signing fails
 export async function signR2Url(url: string | null | undefined, expiresIn = 86400): Promise<string | null> {
   if (!url) return null;

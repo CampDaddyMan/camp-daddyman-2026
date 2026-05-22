@@ -23,6 +23,7 @@ import {
   getSavedContent,
   reportContent,
   unreportContent,
+  downloadContent,
 } from '../controllers/content.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -80,6 +81,7 @@ router.delete('/:id/comment/:commentId', authMiddleware, writeLimiter, deleteCom
 router.post('/:id/progress', authMiddleware, saveProgress);
 router.get('/:id/progress', authMiddleware, getProgress);
 router.post('/:id/save', authMiddleware, writeLimiter, toggleSaved);
+router.get('/:id/download', authMiddleware, readLimiter, downloadContent);
 router.post('/:id/report', authMiddleware, writeLimiter, reportContent);
 router.delete('/:id/report', authMiddleware, writeLimiter, unreportContent);
 

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { uploadToS3, deleteFromS3, getSignedMediaUrl, signR2Url } from '../utils/s3';
+import { uploadToS3, deleteFromS3, getSignedMediaUrl, signR2Url, getDownloadUrl, extractKey } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers } from '../utils/notifications';
 import { getTranscodeQueue } from '../config/queue';
@@ -691,6 +691,42 @@ export async function reportContent(req: AuthRequest, res: Response) {
   });
 
   res.json({ reported: true });
+}
+
+export async function downloadContent(req: AuthRequest, res: Response) {
+  const plan   = req.user!.subscription?.plan;
+  const status = req.user!.subscription?.status;
+  const canDownload = req.user!.isAdmin || (
+    (plan === 'PREMIUM' || plan === 'CREATOR') && status === 'ACTIVE'
+  );
+
+  if (!canDownload) {
+    return res.status(403).json({ error: 'Premium subscription required to download content', requiresPremium: true });
+  }
+
+  const content = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: { id: true, title: true, status: true, privacy: true, mediaUrl: true, creatorId: true },
+  });
+
+  if (!content || content.status === 'DELETED') {
+    return res.status(404).json({ error: 'Content not found' });
+  }
+
+  if (content.privacy === 'PRIVATE' && req.user!.id !== content.creatorId && !req.user!.isAdmin) {
+    return res.status(404).json({ error: 'Content not found' });
+  }
+
+  if (!content.mediaUrl) {
+    return res.status(400).json({ error: 'No downloadable file for this content' });
+  }
+
+  const key  = extractKey(content.mediaUrl);
+  const ext  = key.split('.').pop()?.toLowerCase() || 'bin';
+  const safe = content.title.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-') || 'download';
+  const url  = await getDownloadUrl(content.mediaUrl, `${safe}.${ext}`, 300);
+
+  res.json({ url });
 }
 
 export async function unreportContent(req: AuthRequest, res: Response) {

@@ -243,13 +243,23 @@ export async function setContentStatus(req: Request, res: Response) {
 
 export async function updateContent(req: Request, res: Response) {
   try {
-    const { featured } = req.body;
+    const { featured, title, description, type, privacy, tags, thumbnailUrl } = req.body;
     const data: any = {};
-    if (featured !== undefined) data.featured = Boolean(featured);
+    if (featured !== undefined)     data.featured     = Boolean(featured);
+    if (title !== undefined)        data.title        = title;
+    if (description !== undefined)  data.description  = description || null;
+    if (type !== undefined)         data.type         = type;
+    if (privacy !== undefined)      data.privacy      = privacy;
+    if (thumbnailUrl !== undefined)  data.thumbnailUrl = thumbnailUrl || null;
+    if (tags !== undefined) {
+      data.tags = Array.isArray(tags)
+        ? tags
+        : String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
+    }
     const content = await prisma.content.update({
       where: { id: req.params.id },
       data,
-      select: { id: true, title: true, status: true, featured: true },
+      select: { id: true, title: true, status: true, featured: true, type: true, privacy: true, thumbnailUrl: true, tags: true },
     });
     res.json({ content });
   } catch {

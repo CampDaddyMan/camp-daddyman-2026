@@ -621,7 +621,7 @@ function EditContentModal({ item, onClose, onSaved }: {
         payload.thumbnailUrl = thumbnailUrl;
       }
       if (tags !== (item.tags || []).join(', ')) payload.tags = tags;
-      const { data } = await api.patch(`/content/${item.id}`, payload);
+      const { data } = await api.patch(`/admin/content/${item.id}`, payload);
       // Include the locally tracked mediaUrl so parent state reflects uploaded file
       onSaved({ ...item, ...data.content, mediaUrl: mediaUrl || item.mediaUrl });
       onClose();

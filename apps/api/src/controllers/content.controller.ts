@@ -94,6 +94,7 @@ export async function getDiscovery(req: AuthRequest, res: Response) {
     signList(podcast), signList(spokenWord), signList(daddymanIsms),
   ]);
 
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   res.json({
     featured: sFeatured,
     trending: sTrending,

@@ -11,6 +11,7 @@ interface LiveStreamDetail {
   status: string;
   thumbnailUrl: string | null;
   cfPlaybackUrl: string;
+  cfStreamId: string;
   scheduledAt: string | null;
   startedAt: string | null;
   creator: { username: string; displayName: string | null; avatar: string | null };
@@ -29,25 +30,26 @@ export default function LiveWatchPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!stream?.cfPlaybackUrl || stream.status !== 'live') return;
+    if (!stream?.cfStreamId || stream.status !== 'live') return;
+    const playbackUrl = `https://videodelivery.net/${stream.cfStreamId}/manifest/video.m3u8`;
     let hls: any;
     async function init() {
       const Hls = (await import('hls.js')).default;
       if (!videoRef.current) return;
       if (Hls.isSupported()) {
         hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-        hls.loadSource(stream!.cfPlaybackUrl);
+        hls.loadSource(playbackUrl);
         hls.attachMedia(videoRef.current);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           videoRef.current?.play().catch(() => {});
         });
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        videoRef.current.src = stream!.cfPlaybackUrl;
+        videoRef.current.src = playbackUrl;
       }
     }
     init();
     return () => hls?.destroy();
-  }, [stream?.cfPlaybackUrl, stream?.status]);
+  }, [stream?.cfStreamId, stream?.status]);
 
   if (error) return (
     <div className="text-center py-20 text-gray-400">

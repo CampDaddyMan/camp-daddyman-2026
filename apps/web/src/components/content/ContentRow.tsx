@@ -42,6 +42,7 @@ function RowCard({ item }: { item: Content }) {
             src={item.thumbnailUrl}
             alt={item.title}
             fill
+            sizes="224px"
             className="object-cover"
           />
         ) : (

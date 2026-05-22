@@ -16,6 +16,7 @@ export async function listPublicBanners(req: Request, res: Response) {
         imageUrl: (await signR2Url(s.imageUrl, 86400)) ?? s.imageUrl,
       }))
     );
+    res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
     res.json({ slides });
   } catch {
     res.json({ slides: [] });

@@ -64,11 +64,7 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
   const streamKey = cf.result.rtmps.streamKey as string;
   const rtmpUrl   = (cf.result.rtmps.url as string) + streamKey;
 
-  // Derive customer subdomain from webRTCPlayback URL
-  const webRTCUrl     = (cf.result.webRTCPlayback?.url as string) || '';
-  const customerMatch = webRTCUrl.match(/customer-([^.]+)\.cloudflarestream\.com/);
-  const customerCode  = customerMatch?.[1] || uid;
-  const playbackUrl   = `https://customer-${customerCode}.cloudflarestream.com/${uid}/manifest/video.m3u8`;
+  const playbackUrl = `https://videodelivery.net/${uid}/manifest/video.m3u8`;
 
   const stream = await prisma.liveStream.create({
     data: {

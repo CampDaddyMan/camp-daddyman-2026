@@ -153,6 +153,9 @@ export async function listPolls(req: AuthRequest, res: Response) {
     imageUrl: await signR2Url(p.imageUrl),
   })));
 
+  if (!req.user?.isAdmin) {
+    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
+  }
   res.json({ polls: signed });
 }
 

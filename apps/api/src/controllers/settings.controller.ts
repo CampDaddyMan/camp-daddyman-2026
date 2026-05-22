@@ -58,5 +58,6 @@ export const adminUploadSettingsImage = async (req: AuthRequest, res: Response) 
 export const getPublicSettings = async (_req: Request, res: Response) => {
   const rows = await prisma.siteSetting.findMany();
   const settings = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
   res.json({ settings });
 };

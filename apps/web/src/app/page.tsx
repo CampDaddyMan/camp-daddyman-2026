@@ -37,9 +37,9 @@ function HomePollBanner({ poll }: { poll: ActivePoll }) {
       href={`/polls/${poll.id}`}
       className="group flex items-center gap-4 bg-surface-800 border border-brand-500/30 hover:border-brand-500/60 rounded-2xl overflow-hidden transition-all hover:shadow-[0_0_24px_rgba(248,194,2,0.1)]"
     >
-      <div className="flex-shrink-0 ml-4 my-4 w-16 h-16 rounded-xl bg-brand-500/15 flex items-center justify-center text-2xl overflow-hidden">
+      <div className="relative flex-shrink-0 ml-4 my-4 w-16 h-16 rounded-xl bg-brand-500/15 flex items-center justify-center text-2xl overflow-hidden">
         {poll.imageUrl
-          ? <img src={poll.imageUrl} alt="" className="w-full h-full object-cover" />
+          ? <Image src={poll.imageUrl} alt="" fill sizes="64px" className="object-cover" />
           : <span>{TYPE_EMOJI[poll.pollType] ?? '🗳️'}</span>
         }
       </div>
@@ -195,9 +195,7 @@ function ContinueWatchingRow({ items }: { items: HistoryItem[] }) {
             >
               <div className="relative aspect-video bg-surface-700 rounded-xl overflow-hidden mb-2">
                 {item.thumbnailUrl ? (
-                  item.thumbnailUrl.startsWith('http')
-                    ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <Image src={item.thumbnailUrl} alt={item.title} fill sizes="224px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-3xl">🎬</div>
                 )}
@@ -432,6 +430,7 @@ export default function HomePage() {
                   src={cat.image}
                   alt={cat.label}
                   fill
+                  sizes="(min-width: 1024px) 250px, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               ) : (

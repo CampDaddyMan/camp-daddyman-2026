@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true,
+  poweredByHeader: false,
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: 'https', hostname: '**.amazonaws.com' },
       { protocol: 'https', hostname: '**.s3.amazonaws.com' },
@@ -11,6 +15,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.cloudflarestorage.com' },
       { protocol: 'https', hostname: '*.cloudflarestorage.com' },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ['hls.js'],
   },
 };
 

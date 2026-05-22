@@ -26,6 +26,7 @@ interface AdminUser {
 interface AdminContent {
   id: string; title: string; description?: string; type: string; status: string; privacy: string;
   views: number; createdAt: string; mediaUrl?: string | null; thumbnailUrl?: string | null; tags?: string[];
+  featured?: boolean;
   creator: { username: string; email: string };
   _count: { likes: number; comments: number };
 }
@@ -549,6 +550,7 @@ function EditContentModal({ item, onClose, onSaved }: {
   const [mediaUrl, setMediaUrl]         = useState(item.mediaUrl || '');
   const [privacy, setPrivacy]           = useState(item.privacy);
   const [tags, setTags]                 = useState((item.tags || []).join(', '));
+  const [featured, setFeatured]         = useState(item.featured ?? false);
   const [saving, setSaving]             = useState(false);
   const [uploading, setUploading]       = useState(false);
   const [mediaUploading, setMediaUp]    = useState(false);
@@ -612,7 +614,7 @@ function EditContentModal({ item, onClose, onSaved }: {
     setSaving(true);
     setError('');
     try {
-      const payload: Record<string, string> = { title, privacy, type };
+      const payload: Record<string, any> = { title, privacy, type, featured };
       if (description !== (item.description || ''))   payload.description  = description;
       // Only include thumbnailUrl if manually pasted (upload already saved it to DB)
       if (!thumbUploadedRef.current && thumbnailUrl !== (item.thumbnailUrl || '')) {
@@ -778,6 +780,23 @@ function EditContentModal({ item, onClose, onSaved }: {
             <p className="text-xs text-gray-500 mt-1">Comma separated</p>
           </div>
 
+          {/* Featured */}
+          <div className="flex items-center justify-between bg-surface-700 border border-surface-600 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-white text-sm font-medium">Featured on Homepage</p>
+              <p className="text-gray-500 text-xs mt-0.5">Shows in the ⭐ Featured row on the homepage</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFeatured((v) => !v)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                featured ? 'bg-brand-500' : 'bg-surface-500'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${featured ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+
           {error && <p className="text-red-400 text-sm">{error}</p>}
         </div>
 
@@ -875,9 +894,12 @@ function ContentTab() {
             {content.map((c) => (
               <tr key={c.id} className="hover:bg-surface-750 transition-colors group">
                 <td className="px-5 py-3">
-                  <Link href={`/watch/${c.id}`} className="text-white hover:text-brand-400 font-medium transition-colors line-clamp-1">
-                    {c.title}
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    {c.featured && <span className="text-brand-400 text-xs flex-shrink-0" title="Featured">⭐</span>}
+                    <Link href={`/watch/${c.id}`} className="text-white hover:text-brand-400 font-medium transition-colors line-clamp-1">
+                      {c.title}
+                    </Link>
+                  </div>
                 </td>
                 <td className="px-4 py-3 hidden md:table-cell">
                   <Link href={`/creator/${c.creator.username}`} className="text-gray-400 hover:text-white transition-colors text-xs">
@@ -2772,6 +2794,7 @@ interface OptionGroup { name: string; values: string[]; priceModifiers?: Record<
 interface AdminProduct {
   id: string; name: string; slug: string; type: string; price: number;
   comparePrice?: number; status: string; featured: boolean; tags: string[];
+  releaseDate?: string | null;
   imageUrl?: string; imagePreviewUrl?: string; description?: string;
   optionGroups?: OptionGroup[];
   optionGroupsPreview?: OptionGroup[];
@@ -2816,7 +2839,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const EMPTY_PRODUCT = {
   name: '', type: 'PHYSICAL', price: '', comparePrice: '', description: '',
-  imageUrl: '', status: 'DRAFT', featured: false, memberDiscountEnabled: false, tags: '',
+  imageUrl: '', status: 'DRAFT', featured: false, releaseDate: '', memberDiscountEnabled: false, tags: '',
   optionGroups: [] as OptionGroup[],
   variants: [] as { name: string; inventory: string; price: string; options?: Record<string,string> }[],
 };
@@ -2845,6 +2868,7 @@ function ProductFormModal({
       comparePrice: initial.comparePrice ? String(initial.comparePrice) : '',
       description: initial.description || '', imageUrl: initial.imageUrl || '',
       status: initial.status, featured: initial.featured,
+      releaseDate: initial.releaseDate ? initial.releaseDate.slice(0, 16) : '',
       memberDiscountEnabled: initial.memberDiscountEnabled ?? false,
       tags: initial.tags.join(', '),
       optionGroups: initial.optionGroups || [],
@@ -2979,6 +3003,7 @@ function ProductFormModal({
         imageUrl: form.imageUrl || null,
         status: form.status,
         featured: form.featured,
+        releaseDate: form.releaseDate || null,
         memberDiscountEnabled: form.memberDiscountEnabled,
         tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         optionGroups: form.optionGroups.length ? form.optionGroups : null,
@@ -3111,6 +3136,17 @@ function ProductFormModal({
               className="w-4 h-4 accent-brand-500 rounded" />
             <span className="text-sm text-gray-300">Featured product (shown with badge, sorted first)</span>
           </label>
+
+          {/* Release Date */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Drop / Release Date <span className="text-gray-600 font-normal normal-case">(optional — shows live countdown)</span></label>
+            <input
+              type="datetime-local"
+              value={form.releaseDate}
+              onChange={(e) => setField('releaseDate', e.target.value)}
+              className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+            />
+          </div>
 
           {/* Member discount */}
           <label className="flex items-center gap-3 cursor-pointer">

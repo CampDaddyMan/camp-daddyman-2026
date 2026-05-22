@@ -77,6 +77,33 @@ function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
+export async function getTipsSent(req: AuthRequest, res: Response) {
+  const userId = req.user!.id;
+  const { page = '1', limit = '20' } = req.query;
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const [tips, total] = await Promise.all([
+    prisma.tip.findMany({
+      where: { senderId: userId },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: Number(limit),
+      select: {
+        id: true, amountCents: true, message: true, createdAt: true,
+        recipient: { select: { username: true, displayName: true, avatar: true } },
+      },
+    }),
+    prisma.tip.count({ where: { senderId: userId } }),
+  ]);
+
+  const totalCents = await prisma.tip.aggregate({
+    where: { senderId: userId },
+    _sum: { amountCents: true },
+  });
+
+  res.json({ tips, total, totalCents: totalCents._sum.amountCents ?? 0 });
+}
+
 export async function getEarnings(req: AuthRequest, res: Response) {
   const userId = req.user!.id;
   const now = new Date();

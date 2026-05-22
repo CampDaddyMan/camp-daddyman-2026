@@ -72,6 +72,7 @@ interface Creator {
 }
 
 interface DiscoveryData {
+  featured: Content[];
   trending: Content[];
   newReleases: Content[];
   byType: {
@@ -451,6 +452,10 @@ export default function HomePage() {
         ) : (
           <>
             <ContinueWatchingRow items={history} />
+
+            {(data?.featured ?? []).length > 0 && (
+              <ContentRow title="⭐ Featured" items={data!.featured} seeAllHref="/browse" emptyText="" />
+            )}
 
             <ContentRow title="🔥 Trending" items={data?.trending ?? []} seeAllHref="/browse?sort=trending" emptyText="New drops coming soon." />
 

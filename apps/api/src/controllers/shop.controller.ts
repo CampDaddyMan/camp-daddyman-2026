@@ -467,7 +467,7 @@ function slugify(name: string): string {
 }
 
 export async function adminCreateProduct(req: AuthRequest, res: Response) {
-  const { name, description, type, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
+  const { name, description, type, price, comparePrice, imageUrl, images, status, featured, releaseDate, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
 
   if (!name || !type || !price) return res.status(400).json({ error: 'name, type, and price are required' });
 
@@ -488,6 +488,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
         images: images || [],
         status: status || 'DRAFT',
         featured: featured ?? false,
+        releaseDate: releaseDate ? new Date(releaseDate) : null,
         tags: tags || [],
         fileUrl,
         optionGroups: optionGroups ?? null,
@@ -513,7 +514,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response) {
 }
 
 export async function adminUpdateProduct(req: AuthRequest, res: Response) {
-  const { name, description, price, comparePrice, imageUrl, images, status, featured, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
+  const { name, description, price, comparePrice, imageUrl, images, status, featured, releaseDate, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
 
   try {
     const data: any = {};
@@ -530,6 +531,7 @@ export async function adminUpdateProduct(req: AuthRequest, res: Response) {
     if (images !== undefined) data.images = images;
     if (status !== undefined) data.status = status;
     if (featured !== undefined) data.featured = featured;
+    if (releaseDate !== undefined) data.releaseDate = releaseDate ? new Date(releaseDate) : null;
     if (tags !== undefined) data.tags = tags;
     if (fileUrl !== undefined) data.fileUrl = fileUrl;
     if (optionGroups !== undefined) data.optionGroups = optionGroups ?? null;

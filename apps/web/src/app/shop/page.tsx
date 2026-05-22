@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import AdSlot from '@/components/ads/AdSlot';
 import RotatingBanner, { BannerSlide } from '@/components/ui/RotatingBanner';
+import CountdownTimer from '@/components/ui/CountdownTimer';
 
 interface Product {
   id: string;
@@ -17,6 +18,7 @@ interface Product {
   comparePrice?: number;
   imageUrl?: string;
   featured: boolean;
+  releaseDate?: string | null;
   tags: string[];
   memberDiscountEnabled?: boolean;
   variants: { id: string; name: string; inventory: number }[];
@@ -73,6 +75,11 @@ function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {product.releaseDate && new Date(product.releaseDate) > new Date() && (
+            <span className="bg-black/80 backdrop-blur-md text-brand-400 text-[10px] font-black px-2.5 py-1 rounded-full border border-brand-500/50 flex items-center gap-1">
+              ⏱ <CountdownTimer target={product.releaseDate} className="text-[10px]" />
+            </span>
+          )}
           {product.featured && (
             <span className="bg-brand-500 text-black text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">Drop</span>
           )}

@@ -210,7 +210,7 @@ export async function listAllContent(req: Request, res: Response) {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true, title: true, description: true, type: true, status: true, privacy: true,
-        mediaUrl: true, thumbnailUrl: true, tags: true, views: true, createdAt: true,
+        mediaUrl: true, thumbnailUrl: true, tags: true, views: true, createdAt: true, featured: true,
         creator: { select: { username: true, email: true } },
         _count: { select: { likes: true, comments: true } },
       },
@@ -239,6 +239,22 @@ export async function setContentStatus(req: Request, res: Response) {
     select: { id: true, title: true, status: true },
   });
   res.json({ content });
+}
+
+export async function updateContent(req: Request, res: Response) {
+  try {
+    const { featured } = req.body;
+    const data: any = {};
+    if (featured !== undefined) data.featured = Boolean(featured);
+    const content = await prisma.content.update({
+      where: { id: req.params.id },
+      data,
+      select: { id: true, title: true, status: true, featured: true },
+    });
+    res.json({ content });
+  } catch {
+    res.status(500).json({ error: 'Failed to update content' });
+  }
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────

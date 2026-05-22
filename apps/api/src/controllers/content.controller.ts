@@ -9,7 +9,7 @@ const CONTENT_SELECT = {
   id: true, title: true, description: true, type: true,
   status: true, thumbnailUrl: true, hlsUrl: true,
   duration: true, views: true, tags: true,
-  privacy: true, createdAt: true,
+  privacy: true, createdAt: true, featured: true,
   creator: { select: { username: true, displayName: true, avatar: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -50,7 +50,10 @@ export async function getDiscovery(req: AuthRequest, res: Response) {
   const notReported = userId ? { reports: { none: { reporterId: userId } } } : {};
   const base: any = { status: 'ACTIVE', privacy: { in: ['PUBLIC', 'SUBSCRIBERS_ONLY'] }, ...notReported };
 
-  const [trending, newReleases, music, film, podcast, spokenWord, daddymanIsms, topCreators] = await Promise.all([
+  const [featured, trending, newReleases, music, film, podcast, spokenWord, daddymanIsms, topCreators] = await Promise.all([
+    prisma.content.findMany({
+      where: { ...base, featured: true }, orderBy: { createdAt: 'desc' }, take: 8, select: CONTENT_SELECT,
+    }),
     prisma.content.findMany({
       where: base, orderBy: { views: 'desc' }, take: 8, select: CONTENT_SELECT,
     }),
@@ -86,12 +89,13 @@ export async function getDiscovery(req: AuthRequest, res: Response) {
 
   const signList = (list: any[]) => Promise.all(list.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
 
-  const [sTrending, sNew, sMusic, sFilm, sPodcast, sSpoken, sDaddyman] = await Promise.all([
-    signList(trending), signList(newReleases), signList(music), signList(film),
+  const [sFeatured, sTrending, sNew, sMusic, sFilm, sPodcast, sSpoken, sDaddyman] = await Promise.all([
+    signList(featured), signList(trending), signList(newReleases), signList(music), signList(film),
     signList(podcast), signList(spokenWord), signList(daddymanIsms),
   ]);
 
   res.json({
+    featured: sFeatured,
     trending: sTrending,
     newReleases: sNew,
     byType: { MUSIC: sMusic, FILM: sFilm, PODCAST: sPodcast, SPOKEN_WORD: sSpoken, DADDYMAN_ISMS: sDaddyman },

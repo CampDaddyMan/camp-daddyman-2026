@@ -118,6 +118,8 @@ model Content {
   cardWidth  Int?    @default(224)
   cardAspect String? @default("video")
 
+  featured  Boolean @default(false)
+
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
@@ -528,6 +530,7 @@ model Product {
   images       String[]
   status       ProductStatus @default(DRAFT)
   featured     Boolean       @default(false)
+  releaseDate  DateTime?
   tags         String[]
   fileUrl               String?
   optionGroups          Json?

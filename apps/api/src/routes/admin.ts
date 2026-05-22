@@ -9,6 +9,7 @@ import {
   notifyUser,
   listAllContent,
   setContentStatus,
+  updateContent,
   listReports,
   resolveReport,
 } from '../controllers/admin.controller';
@@ -49,6 +50,7 @@ router.post('/users/:id/notify',         writeLimiter, notifyUser);
 router.delete('/users/:id',              writeLimiter, deleteUser);
 router.get('/content',                   readLimiter,  listAllContent);
 router.post('/content/:id/status',       writeLimiter, setContentStatus);
+router.patch('/content/:id',             writeLimiter, updateContent);
 router.get('/reports',                   readLimiter,  listReports);
 router.post('/reports/:id/resolve',      writeLimiter, resolveReport);
 

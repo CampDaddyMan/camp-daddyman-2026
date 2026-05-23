@@ -24,6 +24,8 @@ const CONTENT_SELECT = {
   creator: { select: { username: true, displayName: true, avatar: true } },
 };
 
+const CREDS_SELECT = { ...CONTENT_SELECT, cfStreamKey: true, cfWebRtcUrl: true };
+
 export async function listLiveStreams(_req: Request, res: Response) {
   const streams = await prisma.liveStream.findMany({
     orderBy: { createdAt: 'desc' },
@@ -35,10 +37,40 @@ export async function listLiveStreams(_req: Request, res: Response) {
 export async function getLiveStream(req: Request, res: Response) {
   const stream = await prisma.liveStream.findUnique({
     where: { id: req.params.id },
-    select: { ...CONTENT_SELECT, cfStreamKey: true },
+    select: CREDS_SELECT,
   });
   if (!stream) return res.status(404).json({ error: 'Stream not found' });
   res.json({ stream });
+}
+
+export async function refreshLiveStreamCredentials(req: AuthRequest, res: Response) {
+  const existing = await prisma.liveStream.findUnique({
+    where: { id: req.params.id },
+    select: { cfStreamId: true },
+  });
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+
+  const cfRes = await cfFetch(`/${existing.cfStreamId}`);
+  if (!cfRes.ok) return res.status(502).json({ error: 'Cloudflare error fetching live input' });
+
+  const cf = await cfRes.json() as any;
+  const streamKey = cf.result?.rtmps?.streamKey as string;
+  const rtmpUrl   = (cf.result?.rtmps?.url as string) + streamKey;
+  const webRtcUrl = cf.result?.webRTC?.url as string | undefined;
+  const playbackUrl = cf.result?.playback?.hls as string
+    || `https://videodelivery.net/${existing.cfStreamId}/manifest/video.m3u8`;
+
+  const stream = await prisma.liveStream.update({
+    where: { id: req.params.id },
+    data: {
+      cfStreamKey:   streamKey,
+      cfPlaybackUrl: playbackUrl,
+      cfWebRtcUrl:   webRtcUrl ?? null,
+    },
+    select: CREDS_SELECT,
+  });
+
+  res.json({ stream, rtmpUrl });
 }
 
 export async function createLiveStream(req: AuthRequest, res: Response) {
@@ -65,6 +97,7 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
   const rtmpUrl   = (cf.result.rtmps.url as string) + streamKey;
 
   const playbackUrl = `https://videodelivery.net/${uid}/manifest/video.m3u8`;
+  const webRtcUrl   = cf.result?.webRTC?.url as string | undefined;
 
   const stream = await prisma.liveStream.create({
     data: {
@@ -73,10 +106,11 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
       cfStreamId:    uid,
       cfStreamKey:   streamKey,
       cfPlaybackUrl: playbackUrl,
+      cfWebRtcUrl:   webRtcUrl ?? null,
       scheduledAt:   scheduledAt ? new Date(scheduledAt) : null,
       creatorId:     req.user!.id,
     },
-    select: { ...CONTENT_SELECT, cfStreamKey: true },
+    select: CREDS_SELECT,
   });
 
   res.status(201).json({ stream, rtmpUrl });
@@ -85,17 +119,23 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
 export async function updateLiveStream(req: AuthRequest, res: Response) {
   const { title, description, status, thumbnailUrl, scheduledAt } = req.body;
   const data: any = {};
-  if (title       !== undefined) data.title       = title.trim();
-  if (description !== undefined) data.description = description || null;
-  if (thumbnailUrl !== undefined) data.thumbnailUrl = thumbnailUrl || null;
-  if (scheduledAt !== undefined) data.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
+  if (title        !== undefined) data.title        = title.trim();
+  if (description  !== undefined) data.description  = description || null;
+  if (thumbnailUrl !== undefined) data.thumbnailUrl  = thumbnailUrl || null;
+  if (scheduledAt  !== undefined) data.scheduledAt  = scheduledAt ? new Date(scheduledAt) : null;
   if (status !== undefined) {
     if (!['idle', 'live', 'ended'].includes(status)) {
       return res.status(400).json({ error: 'status must be idle | live | ended' });
     }
     data.status = status;
-    if (status === 'live' && !data.startedAt)  data.startedAt = new Date();
-    if (status === 'ended' && !data.endedAt)   data.endedAt   = new Date();
+    if (status === 'live' || status === 'ended') {
+      const existing = await prisma.liveStream.findUnique({
+        where: { id: req.params.id },
+        select: { startedAt: true, endedAt: true },
+      });
+      if (status === 'live'  && !existing?.startedAt) data.startedAt = new Date();
+      if (status === 'ended' && !existing?.endedAt)   data.endedAt   = new Date();
+    }
   }
 
   const stream = await prisma.liveStream.update({

@@ -854,6 +854,7 @@ model LiveStream {
   cfStreamId    String    @unique
   cfStreamKey   String
   cfPlaybackUrl String
+  cfWebRtcUrl   String?
   scheduledAt   DateTime?
   startedAt     DateTime?
   endedAt       DateTime?

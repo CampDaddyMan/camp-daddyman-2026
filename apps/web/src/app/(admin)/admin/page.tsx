@@ -6188,7 +6188,8 @@ function SettingsTab() {
 interface AdminLiveStream {
   id: string; title: string; description: string | null; status: string;
   thumbnailUrl: string | null; cfStreamId: string; cfStreamKey: string;
-  cfPlaybackUrl: string; scheduledAt: string | null; startedAt: string | null; endedAt: string | null;
+  cfPlaybackUrl: string; cfWebRtcUrl: string | null;
+  scheduledAt: string | null; startedAt: string | null; endedAt: string | null;
   creator: { username: string; displayName: string | null };
 }
 
@@ -6233,6 +6234,16 @@ function LiveTab() {
     setStreams((prev) => prev.map((s) => s.id === id ? { ...s, status } : s));
   }
 
+  async function refreshCredentials(id: string) {
+    try {
+      const r = await api.post(`/live/${id}/refresh`);
+      setStreams((prev) => prev.map((s) => s.id === id ? { ...s, ...r.data.stream } : s));
+      setRtmpUrl(r.data.rtmpUrl);
+    } catch {
+      alert('Failed to refresh credentials');
+    }
+  }
+
   async function deleteStream(id: string) {
     if (!confirm('Delete this stream?')) return;
     await api.delete(`/live/${id}`);
@@ -6258,10 +6269,17 @@ function LiveTab() {
       </div>
 
       {rtmpUrl && (
-        <div className="mb-6 p-4 bg-green-900/30 border border-green-600/40 rounded-xl">
-          <p className="text-green-400 font-semibold text-sm mb-1">Stream created! Use this RTMP URL in OBS / streaming software:</p>
-          <code className="text-xs text-green-300 break-all">{rtmpUrl}</code>
-          <button onClick={() => setRtmpUrl(null)} className="ml-3 text-xs text-gray-500 hover:text-gray-300">dismiss</button>
+        <div className="mb-6 p-4 bg-green-900/30 border border-green-600/40 rounded-xl space-y-2">
+          <p className="text-green-400 font-semibold text-sm">Stream created! Configure OBS → Settings → Stream → Custom:</p>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Server (paste into OBS Server field):</p>
+            <code className="text-xs text-green-300 break-all">rtmps://live.cloudflare.com:443/live/</code>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Stream Key (paste into OBS Stream Key field):</p>
+            <code className="text-xs text-green-300 break-all">{rtmpUrl.replace('rtmps://live.cloudflare.com:443/live/', '')}</code>
+          </div>
+          <button onClick={() => setRtmpUrl(null)} className="text-xs text-gray-500 hover:text-gray-300">dismiss</button>
         </div>
       )}
 
@@ -6326,7 +6344,27 @@ function LiveTab() {
                     <a href={`/live/${s.id}`} target="_blank" rel="noopener" className="text-xs text-brand-400 hover:underline">View page ↗</a>
                   </div>
                   {keyVisible === s.id && (
-                    <code className="mt-1 block text-xs text-green-300 break-all">{s.cfStreamKey}</code>
+                    <div className="mt-2 space-y-2">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-0.5">RTMP Server:</p>
+                        <code className="text-xs text-green-300 break-all">rtmps://live.cloudflare.com:443/live/</code>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-0.5">Stream Key:</p>
+                        <code className="text-xs text-green-300 break-all">{s.cfStreamKey}</code>
+                      </div>
+                      {s.cfWebRtcUrl && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-0.5">WHIP URL (OBS WebRTC — recommended):</p>
+                          <code className="text-xs text-green-300 break-all">{s.cfWebRtcUrl}</code>
+                        </div>
+                      )}
+                      {!s.cfWebRtcUrl && (
+                        <button onClick={() => refreshCredentials(s.id)} className="text-xs text-brand-400 hover:underline">
+                          Refresh credentials to get WHIP URL
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">

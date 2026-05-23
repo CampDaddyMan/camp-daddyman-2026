@@ -56,18 +56,16 @@ export default function LiveWatchPage() {
       const Hls = (await import('hls.js')).default;
       if (cancelled || !videoRef.current) return;
 
-      // Destroy any previous instance
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
 
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
-          // Retry aggressively — manifest may not be ready immediately when stream goes live
-          manifestLoadingMaxRetry: 20,
+          manifestLoadingMaxRetry: 6,
           manifestLoadingRetryDelay: 2000,
           manifestLoadingMaxRetryTimeout: 8000,
-          levelLoadingMaxRetry: 10,
+          levelLoadingMaxRetry: 6,
           levelLoadingRetryDelay: 2000,
         });
         hlsRef.current = hls;
@@ -83,12 +81,14 @@ export default function LiveWatchPage() {
 
         hls.on(Hls.Events.ERROR, (_: any, data: any) => {
           if (cancelled || !data.fatal) return;
+          // Fatal error — destroy and fully reinit after 4s (startLoad won't recover a dead instance)
           setPlayerState('error');
-          // Auto-retry fatal errors after 4s (stream may be starting up)
+          hls.destroy();
+          hlsRef.current = null;
           setTimeout(() => {
-            if (!cancelled && hlsRef.current) {
+            if (!cancelled) {
               setPlayerState('buffering');
-              hlsRef.current.startLoad();
+              init();
             }
           }, 4000);
         });

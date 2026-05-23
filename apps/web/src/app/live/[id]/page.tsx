@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -21,34 +21,92 @@ export default function LiveWatchPage() {
   const { id } = useParams<{ id: string }>();
   const [stream, setStream] = useState<LiveStreamDetail | null>(null);
   const [error, setError] = useState('');
+  const [playerState, setPlayerState] = useState<'idle' | 'buffering' | 'playing' | 'error'>('idle');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<any>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    api.get(`/live/${id}`)
+  const fetchStream = useCallback(() => {
+    return api.get(`/live/${id}`)
       .then((r) => setStream(r.data.stream))
       .catch(() => setError('Stream not found'));
   }, [id]);
 
   useEffect(() => {
-    if (!stream?.cfStreamId || stream.status !== 'live') return;
-    const playbackUrl = `https://videodelivery.net/${stream.cfStreamId}/manifest/video.m3u8`;
-    let hls: any;
+    fetchStream();
+  }, [fetchStream]);
+
+  // Poll every 5s while stream hasn't ended — picks up status changes without refreshing
+  useEffect(() => {
+    if (!stream || stream.status === 'ended') return;
+    pollRef.current = setInterval(fetchStream, 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [stream?.status, fetchStream]);
+
+  // HLS player — re-runs when stream goes live
+  useEffect(() => {
+    if (!stream?.cfPlaybackUrl || stream.status !== 'live') return;
+
+    const playbackUrl = stream.cfPlaybackUrl;
+    let cancelled = false;
+
+    setPlayerState('buffering');
+
     async function init() {
       const Hls = (await import('hls.js')).default;
-      if (!videoRef.current) return;
+      if (cancelled || !videoRef.current) return;
+
+      // Destroy any previous instance
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+
       if (Hls.isSupported()) {
-        hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          // Retry aggressively — manifest may not be ready immediately when stream goes live
+          manifestLoadingMaxRetry: 20,
+          manifestLoadingRetryDelay: 2000,
+          manifestLoadingMaxRetryTimeout: 8000,
+          levelLoadingMaxRetry: 10,
+          levelLoadingRetryDelay: 2000,
+        });
+        hlsRef.current = hls;
+
         hls.loadSource(playbackUrl);
         hls.attachMedia(videoRef.current);
+
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (cancelled) return;
+          setPlayerState('playing');
           videoRef.current?.play().catch(() => {});
         });
+
+        hls.on(Hls.Events.ERROR, (_: any, data: any) => {
+          if (cancelled || !data.fatal) return;
+          setPlayerState('error');
+          // Auto-retry fatal errors after 4s (stream may be starting up)
+          setTimeout(() => {
+            if (!cancelled && hlsRef.current) {
+              setPlayerState('buffering');
+              hlsRef.current.startLoad();
+            }
+          }, 4000);
+        });
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS (Safari / iOS)
         videoRef.current.src = playbackUrl;
+        videoRef.current.play().catch(() => {});
+        setPlayerState('playing');
       }
     }
+
     init();
-    return () => hls?.destroy();
+
+    return () => {
+      cancelled = true;
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      setPlayerState('idle');
+    };
   }, [stream?.cfStreamId, stream?.status]);
 
   if (error) return (
@@ -75,15 +133,32 @@ export default function LiveWatchPage() {
           {/* Player */}
           <div className="relative bg-black rounded-2xl overflow-hidden aspect-video mb-5">
             {isLive ? (
-              <video
-                ref={videoRef}
-                controls
-                controlsList="nodownload noremoteplayback"
-                disablePictureInPicture
-                playsInline
-                className="w-full h-full object-contain"
-                onContextMenu={(e) => e.preventDefault()}
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  controls
+                  controlsList="nodownload noremoteplayback"
+                  disablePictureInPicture
+                  playsInline
+                  className="w-full h-full object-contain"
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+                {playerState === 'buffering' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 pointer-events-none">
+                    <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-400 text-sm">Connecting to stream...</p>
+                  </div>
+                )}
+                {playerState === 'error' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 pointer-events-none">
+                    <span className="text-4xl">📡</span>
+                    <p className="text-gray-400 text-sm text-center px-6">
+                      Stream is starting up — retrying automatically
+                    </p>
+                    <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </>
             ) : stream.thumbnailUrl ? (
               <img src={stream.thumbnailUrl} alt={stream.title} className="w-full h-full object-cover" />
             ) : (
@@ -96,6 +171,9 @@ export default function LiveWatchPage() {
                     ? 'Stream has ended'
                     : 'Stream not yet started'}
                 </p>
+                {stream.status !== 'ended' && (
+                  <p className="text-xs text-gray-600">This page updates automatically</p>
+                )}
               </div>
             )}
             {isLive && (

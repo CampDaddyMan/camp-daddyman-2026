@@ -19,10 +19,16 @@ export default function LivePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/live')
-      .then((r) => setStreams(r.data.streams ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    const fetch = () =>
+      api.get('/live')
+        .then((r) => setStreams(r.data.streams ?? []))
+        .catch(() => {})
+        .finally(() => setLoading(false));
+
+    fetch();
+    // Poll every 10s so the "Live Now" section appears without refreshing
+    const interval = setInterval(fetch, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const live      = streams.filter((s) => s.status === 'live');

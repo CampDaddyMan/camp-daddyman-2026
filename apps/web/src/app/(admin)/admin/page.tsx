@@ -6196,6 +6196,7 @@ interface AdminLiveStream {
 function LiveTab() {
   const [streams, setStreams]     = useState<AdminLiveStream[]>([]);
   const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [creating, setCreating]   = useState(false);
   const [form, setForm]           = useState({ title: '', description: '', scheduledAt: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -6204,7 +6205,11 @@ function LiveTab() {
   const [keyVisible, setKeyVisible] = useState<string | null>(null);
 
   function load() {
-    api.get('/live').then((r) => setStreams(r.data.streams ?? [])).catch(() => {}).finally(() => setLoading(false));
+    setLoading(true); setLoadError('');
+    api.get('/live')
+      .then((r) => { if (r.data.streams) setStreams(r.data.streams); })
+      .catch((err) => setLoadError(err?.response?.data?.error || err?.message || 'Failed to load streams'))
+      .finally(() => setLoading(false));
   }
   useEffect(load, []);
 
@@ -6316,6 +6321,11 @@ function LiveTab() {
 
       {loading ? (
         <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-16 bg-surface-700 rounded-xl animate-pulse" />)}</div>
+      ) : loadError ? (
+        <div className="py-10 text-center space-y-3">
+          <p className="text-red-400 text-sm">Failed to load streams: {loadError}</p>
+          <button onClick={load} className="text-xs text-brand-400 hover:underline">Try again</button>
+        </div>
       ) : streams.length === 0 ? (
         <p className="text-gray-500 text-sm text-center py-12">No streams yet.</p>
       ) : (
@@ -6342,6 +6352,7 @@ function LiveTab() {
                       {keyVisible === s.id ? 'Hide stream key' : 'Show stream key'}
                     </button>
                     <a href={`/live/${s.id}`} target="_blank" rel="noopener" className="text-xs text-brand-400 hover:underline">View page ↗</a>
+                    <a href={`/admin/studio/${s.id}`} className="text-xs text-brand-500 font-semibold hover:text-brand-400 transition-colors">🎙 Browser Studio</a>
                   </div>
                   {keyVisible === s.id && (
                     <div className="mt-2 space-y-2">
@@ -6370,7 +6381,7 @@ function LiveTab() {
                 <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                   {s.status === 'idle'  && <button onClick={() => setStatus(s.id, 'live')}  className="text-xs px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg transition-colors">Go Live</button>}
                   {s.status === 'live'  && <button onClick={() => setStatus(s.id, 'ended')} className="text-xs px-3 py-1.5 bg-surface-600 hover:bg-surface-500 text-white rounded-lg transition-colors">End Stream</button>}
-                  <button onClick={() => deleteStream(s.id)} className="text-xs px-3 py-1.5 text-red-400 hover:text-red-300 border border-red-900/50 rounded-lg transition-colors">Delete</button>
+                  <button onClick={() => deleteStream(s.id)} className="text-xs px-3 py-1.5 text-gray-600 hover:text-red-400 border border-surface-700 hover:border-red-900/50 rounded-lg transition-colors ml-4">🗑 Delete</button>
                 </div>
               </div>
             </div>

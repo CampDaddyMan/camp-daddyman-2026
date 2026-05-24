@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react'; // useRef kept for pollRef
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -10,7 +10,6 @@ interface LiveStreamDetail {
   description: string | null;
   status: string;
   thumbnailUrl: string | null;
-  cfPlaybackUrl: string;
   cfStreamId: string;
   scheduledAt: string | null;
   startedAt: string | null;
@@ -21,9 +20,6 @@ export default function LiveWatchPage() {
   const { id } = useParams<{ id: string }>();
   const [stream, setStream] = useState<LiveStreamDetail | null>(null);
   const [error, setError] = useState('');
-  const [playerState, setPlayerState] = useState<'idle' | 'buffering' | 'playing' | 'error'>('idle');
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<any>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchStream = useCallback(() => {
@@ -43,71 +39,6 @@ export default function LiveWatchPage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [stream?.status, fetchStream]);
 
-  // HLS player — re-runs when stream goes live
-  useEffect(() => {
-    if (!stream?.cfPlaybackUrl || stream.status !== 'live') return;
-
-    const playbackUrl = stream.cfPlaybackUrl;
-    let cancelled = false;
-
-    setPlayerState('buffering');
-
-    async function init() {
-      const Hls = (await import('hls.js')).default;
-      if (cancelled || !videoRef.current) return;
-
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-          manifestLoadingMaxRetry: 6,
-          manifestLoadingRetryDelay: 2000,
-          manifestLoadingMaxRetryTimeout: 8000,
-          levelLoadingMaxRetry: 6,
-          levelLoadingRetryDelay: 2000,
-        });
-        hlsRef.current = hls;
-
-        hls.loadSource(playbackUrl);
-        hls.attachMedia(videoRef.current);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          if (cancelled) return;
-          setPlayerState('playing');
-          videoRef.current?.play().catch(() => {});
-        });
-
-        hls.on(Hls.Events.ERROR, (_: any, data: any) => {
-          if (cancelled || !data.fatal) return;
-          // Fatal error — destroy and fully reinit after 4s (startLoad won't recover a dead instance)
-          setPlayerState('error');
-          hls.destroy();
-          hlsRef.current = null;
-          setTimeout(() => {
-            if (!cancelled) {
-              setPlayerState('buffering');
-              init();
-            }
-          }, 4000);
-        });
-      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        // Native HLS (Safari / iOS)
-        videoRef.current.src = playbackUrl;
-        videoRef.current.play().catch(() => {});
-        setPlayerState('playing');
-      }
-    }
-
-    init();
-
-    return () => {
-      cancelled = true;
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      setPlayerState('idle');
-    };
-  }, [stream?.cfStreamId, stream?.status]);
 
   if (error) return (
     <div className="text-center py-20 text-gray-400">
@@ -133,32 +64,12 @@ export default function LiveWatchPage() {
           {/* Player */}
           <div className="relative bg-black rounded-2xl overflow-hidden aspect-video mb-5">
             {isLive ? (
-              <>
-                <video
-                  ref={videoRef}
-                  controls
-                  controlsList="nodownload noremoteplayback"
-                  disablePictureInPicture
-                  playsInline
-                  className="w-full h-full object-contain"
-                  onContextMenu={(e) => e.preventDefault()}
-                />
-                {playerState === 'buffering' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 pointer-events-none">
-                    <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-400 text-sm">Connecting to stream...</p>
-                  </div>
-                )}
-                {playerState === 'error' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 pointer-events-none">
-                    <span className="text-4xl">📡</span>
-                    <p className="text-gray-400 text-sm text-center px-6">
-                      Stream is starting up — retrying automatically
-                    </p>
-                    <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-              </>
+              // CF's native player handles both WHEP (live WebRTC) and HLS automatically
+              <iframe
+                src={`https://customer-kokzl8m7bomdnwqc.cloudflarestream.com/${stream.cfStreamId}/iframe`}
+                allow="autoplay; fullscreen; picture-in-picture"
+                className="w-full h-full border-0"
+              />
             ) : stream.thumbnailUrl ? (
               <img src={stream.thumbnailUrl} alt={stream.title} className="w-full h-full object-cover" />
             ) : (

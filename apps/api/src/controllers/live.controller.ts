@@ -7,8 +7,11 @@ const CF_STREAM_TOKEN = process.env.CLOUDFLARE_STREAM_TOKEN || '';
 const CF_BASE = () => `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream/live_inputs`;
 
 function cfHlsUrl(streamId: string, webRtcUrl?: string): string {
+  // streamId = cf.result.uid = the live input UID — correct for the HLS manifest path.
+  // WHIP URL path format is {streamKey}k{liveInputUID}/webRTC/publish (key first, UID second).
+  // We extract only the customer subdomain from the WHIP URL; streamId provides the UID.
   if (webRtcUrl) {
-    const m = webRtcUrl.match(/https:\/\/(customer-[^.]+\.cloudflarestream\.com)/);
+    const m = webRtcUrl.match(/https:\/\/(customer-[^.]+\.cloudflarestream\.com)\//);
     if (m) return `https://${m[1]}/${streamId}/manifest/video.m3u8`;
   }
   return `https://customer-kokzl8m7bomdnwqc.cloudflarestream.com/${streamId}/manifest/video.m3u8`;
@@ -64,7 +67,8 @@ export async function refreshLiveStreamCredentials(req: AuthRequest, res: Respon
   const cf = await cfRes.json() as any;
   const streamKey = cf.result?.rtmps?.streamKey as string;
   const rtmpUrl   = (cf.result?.rtmps?.url as string) + streamKey;
-  const webRtcUrl = cf.result?.webRTC?.url as string | undefined;
+  const webRtcUrl = (cf.result?.webRTC?.url as string | undefined)
+    || `https://customer-kokzl8m7bomdnwqc.cloudflarestream.com/${existing.cfStreamId}/webRTC/publish`;
   const playbackUrl = cfHlsUrl(existing.cfStreamId, webRtcUrl);
 
   const stream = await prisma.liveStream.update({
@@ -72,7 +76,7 @@ export async function refreshLiveStreamCredentials(req: AuthRequest, res: Respon
     data: {
       cfStreamKey:   streamKey,
       cfPlaybackUrl: playbackUrl,
-      cfWebRtcUrl:   webRtcUrl ?? null,
+      cfWebRtcUrl:   webRtcUrl,
     },
     select: CREDS_SELECT,
   });
@@ -90,7 +94,10 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
 
   const cfRes = await cfFetch('', {
     method: 'POST',
-    body: JSON.stringify({ meta: { name: title.trim() } }),
+    body: JSON.stringify({
+      meta: { name: title.trim() },
+      recording: { mode: 'automatic' },
+    }),
   });
 
   if (!cfRes.ok) {
@@ -103,7 +110,8 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
   const streamKey = cf.result.rtmps.streamKey as string;
   const rtmpUrl   = (cf.result.rtmps.url as string) + streamKey;
 
-  const webRtcUrl   = cf.result?.webRTC?.url as string | undefined;
+  const webRtcUrl   = (cf.result?.webRTC?.url as string | undefined)
+    || `https://customer-kokzl8m7bomdnwqc.cloudflarestream.com/${uid}/webRTC/publish`;
   const playbackUrl = cfHlsUrl(uid, webRtcUrl);
 
   const stream = await prisma.liveStream.create({
@@ -113,7 +121,7 @@ export async function createLiveStream(req: AuthRequest, res: Response) {
       cfStreamId:    uid,
       cfStreamKey:   streamKey,
       cfPlaybackUrl: playbackUrl,
-      cfWebRtcUrl:   webRtcUrl ?? null,
+      cfWebRtcUrl:   webRtcUrl,
       scheduledAt:   scheduledAt ? new Date(scheduledAt) : null,
       creatorId:     req.user!.id,
     },

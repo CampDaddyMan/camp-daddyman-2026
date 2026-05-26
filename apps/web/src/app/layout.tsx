@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     template: '%s — Camp DaddyMan',
   },
   description: 'Music, film, teachings, and community content rooted in the DaddyMan philosophy.',
+  icons: {
+    icon: '/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png',
+    apple: '/CAMPDADDYMAN_GOLD_MEMBERSHIP_LOGO-V4.png',
+  },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

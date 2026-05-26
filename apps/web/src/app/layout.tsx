@@ -46,6 +46,7 @@ async function getCustomCss(): Promise<string> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
     const res = await fetch(`${apiUrl}/site-settings/css`, {
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) return '';
     const data = await res.json();

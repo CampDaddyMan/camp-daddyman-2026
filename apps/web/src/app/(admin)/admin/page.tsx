@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 import { createContext, useContext, useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -29,6 +30,7 @@ interface AdminContent {
   featured?: boolean;
   creator: { username: string; email: string };
   _count: { likes: number; comments: number };
+  credits?: { id: string; role: string; user: { username: string; displayName?: string | null } }[];
 }
 
 interface AdminReport {
@@ -41,7 +43,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -558,6 +560,15 @@ function EditContentModal({ item, onClose, onSaved }: {
   const [error, setError]               = useState('');
   const fileInputRef                    = useRef<HTMLInputElement>(null);
   const mediaInputRef                   = useRef<HTMLInputElement>(null);
+  // Credits
+  const [credits, setCredits]           = useState<{ username: string; role: string }[]>(
+    (item.credits || []).map((c) => ({ username: c.user.username, role: c.role }))
+  );
+  const [creditUsername, setCreditUser] = useState('');
+  const [creditRole, setCreditRole]     = useState('');
+  const [creditSaving, setCreditSaving] = useState(false);
+  const [userSuggestions, setUserSugg]  = useState<{ username: string; displayName?: string | null }[]>([]);
+  const [suggOpen, setSuggOpen]         = useState(false);
   // Track whether thumbnail was updated via upload (already saved to DB by uploadThumbnail endpoint)
   const thumbUploadedRef                = useRef(false);
 
@@ -630,6 +641,31 @@ function EditContentModal({ item, onClose, onSaved }: {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function searchUsers(q: string) {
+    if (!q.trim()) { setUserSugg([]); setSuggOpen(false); return; }
+    const r = await api.get('/admin/users', { params: { search: q, limit: 5 } }).catch(() => null);
+    if (r) {
+      setUserSugg(r.data.users || []);
+      setSuggOpen(true);
+    }
+  }
+
+  function addCredit() {
+    if (!creditUsername.trim() || !creditRole.trim()) return;
+    if (credits.some((c) => c.username === creditUsername.trim())) return;
+    setCredits((prev) => [...prev, { username: creditUsername.trim(), role: creditRole.trim() }]);
+    setCreditUser('');
+    setCreditRole('');
+    setUserSugg([]);
+    setSuggOpen(false);
+  }
+
+  async function saveCredits() {
+    setCreditSaving(true);
+    await api.put(`/admin/content/${item.id}/credits`, { credits }).catch(() => {});
+    setCreditSaving(false);
   }
 
   return (
@@ -794,6 +830,63 @@ function EditContentModal({ item, onClose, onSaved }: {
               }`}
             >
               <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${featured ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+
+          {/* Credits */}
+          <div>
+            <p className="text-sm font-medium text-gray-300 mb-3">Collab Credits</p>
+            {credits.length > 0 && (
+              <div className="space-y-1.5 mb-3">
+                {credits.map((c, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-surface-700 rounded-lg px-3 py-2">
+                    <span className="text-xs text-gray-400 w-28 flex-shrink-0">{c.role}</span>
+                    <span className="text-sm text-white flex-1">@{c.username}</span>
+                    <button type="button" onClick={() => setCredits((prev) => prev.filter((_, j) => j !== i))} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="relative mb-2">
+              <input
+                value={creditUsername}
+                onChange={(e) => { setCreditUser(e.target.value); searchUsers(e.target.value); }}
+                onBlur={() => setTimeout(() => setSuggOpen(false), 150)}
+                placeholder="Username"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+              />
+              {suggOpen && userSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 bg-surface-700 border border-surface-600 rounded-lg z-10 overflow-hidden">
+                  {userSuggestions.map((u) => (
+                    <button
+                      key={u.username}
+                      type="button"
+                      onMouseDown={() => { setCreditUser(u.username); setSuggOpen(false); }}
+                      className="w-full text-left px-3 py-2 text-sm text-white hover:bg-surface-600"
+                    >
+                      @{u.username}{u.displayName ? ` — ${u.displayName}` : ''}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={creditRole}
+                onChange={(e) => setCreditRole(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCredit())}
+                placeholder="Role (e.g. Featured Artist)"
+                className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+              />
+              <button type="button" onClick={addCredit} className="px-3 py-2 bg-surface-600 hover:bg-surface-500 text-white text-sm rounded-lg transition-colors">Add</button>
+            </div>
+            <button
+              type="button"
+              onClick={saveCredits}
+              disabled={creditSaving}
+              className="mt-3 w-full py-2 text-sm border border-surface-600 text-gray-400 hover:text-white hover:border-surface-500 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {creditSaving ? 'Saving credits…' : 'Save credits'}
             </button>
           </div>
 
@@ -4876,6 +4969,7 @@ function FieldBlock({
 
 interface SeriesRow {
   id: string; title: string; description: string | null; coverUrl: string | null;
+  trailerUrl: string | null;
   genre: string | null; tags: string[]; status: string; privacy: string; createdAt: string;
   creator: { username: string; displayName: string | null };
   _count: { seasons: number };
@@ -4884,19 +4978,21 @@ interface SeriesRow {
 
 interface SeasonRow {
   id: string; number: number; title: string | null; description: string | null;
+  coverUrl?: string | null;
   _count?: { episodes: number };
   episodes?: EpisodeRow[];
 }
 
 interface EpisodeRow {
+  id: string;
   episodeNumber: number;
-  contentId: string;
-  content: { id: string; title: string; type: string; duration: number | null; thumbnailUrl: string | null };
-}
-
-interface AnyContent {
-  id: string; title: string; type: string; duration: number | null;
-  creator: { username: string; displayName: string | null };
+  title: string;
+  description: string | null;
+  thumbnailUrl: string | null;
+  mediaUrl: string | null;
+  duration: number | null;
+  views: number;
+  rating: string | null;
 }
 
 function SeriesTab() {
@@ -4906,34 +5002,74 @@ function SeriesTab() {
   const [expandedSeason, setExpandedSeason] = useState<string | null>(null);
   const [showCreate, setShowCreate]       = useState(false);
   const [saving, setSaving]               = useState(false);
-  const [contentSearch, setContentSearch] = useState('');
-  const [contentResults, setContentResults] = useState<AnyContent[]>([]);
   const [addingEpTo, setAddingEpTo]       = useState<string | null>(null); // seasonId
+  const [epForm, setEpForm]               = useState({ title: '', description: '' });
+  const [epThumbnailFile, setEpThumbnailFile] = useState<File | null>(null);
+  const [epVideoFile, setEpVideoFile]     = useState<File | null>(null);
+  const [epThumbnailPreview, setEpThumbnailPreview] = useState<string | null>(null);
+  const [epSaving, setEpSaving]           = useState(false);
+  const [epUploadProg, setEpUploadProg]   = useState<{ thumb?: number; video?: number }>({});
+  const [editingEpId, setEditingEpId]     = useState<string | null>(null);
+  const [editEpForm, setEditEpForm]       = useState({ title: '', description: '' });
+  const [editEpThumbFile, setEditEpThumbFile] = useState<File | null>(null);
+  const [editEpVideoFile, setEditEpVideoFile] = useState<File | null>(null);
+  const [editEpThumbPreview, setEditEpThumbPreview] = useState<string | null>(null);
+  const [editEpSaving, setEditEpSaving]   = useState(false);
   const [newSeasonNum, setNewSeasonNum]   = useState('');
   const [newSeasonTitle, setNewSeasonTitle] = useState('');
+  const [newSeasonCoverFile, setNewSeasonCoverFile] = useState<File | null>(null);
+  const [newSeasonCoverPreview, setNewSeasonCoverPreview] = useState<string | null>(null);
   const [addingSeasonTo, setAddingSeasonTo] = useState<string | null>(null); // seriesId
 
   const [form, setForm] = useState({
     title: '', description: '', genre: '', tags: '', status: 'ACTIVE', privacy: 'PUBLIC',
   });
+  const [pendingCoverFile, setPendingCoverFile]   = useState<File | null>(null);
+  const [pendingTrailerFile, setPendingTrailerFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview]           = useState<string | null>(null);
+  const [uploadProg, setUploadProg]               = useState<{ cover?: number; trailer?: number }>({});
+  const [uploadError, setUploadError]             = useState('');
 
   function resetForm() {
     setForm({ title: '', description: '', genre: '', tags: '', status: 'ACTIVE', privacy: 'PUBLIC' });
+    setPendingCoverFile(null);
+    setPendingTrailerFile(null);
+    setCoverPreview(null);
+    setUploadProg({});
+    setUploadError('');
   }
 
   useEffect(() => {
     api.get('/series').then((r) => setSeriesList(r.data.series)).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (!contentSearch.trim()) { setContentResults([]); return; }
-    const t = setTimeout(() => {
-      api.get('/content', { params: { search: contentSearch, limit: 10 } })
-        .then((r) => setContentResults(r.data.items || []))
-        .catch(() => {});
-    }, 350);
-    return () => clearTimeout(t);
-  }, [contentSearch]);
+async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
+    let latest: SeriesRow | null = null;
+    setUploadError('');
+    if (pendingCoverFile) {
+      const fd = new FormData(); fd.append('cover', pendingCoverFile);
+      const cr = await api.patch(`/series/${seriesId}/cover`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (ev) => { if (ev.total) setUploadProg((p) => ({ ...p, cover: Math.round(ev.loaded / ev.total! * 100) })); },
+      });
+      latest = cr.data.series;
+    }
+    if (pendingTrailerFile) {
+      const fd = new FormData(); fd.append('trailer', pendingTrailerFile);
+      try {
+        const tr = await api.patch(`/series/${seriesId}/trailer`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (ev) => { if (ev.total) setUploadProg((p) => ({ ...p, trailer: Math.round(ev.loaded / ev.total! * 100) })); },
+        });
+        latest = tr.data.series;
+      } catch (e: any) {
+        const msg = e?.response?.data?.error || 'Trailer upload failed';
+        setUploadError(msg);
+        throw new Error(msg);
+      }
+    }
+    return latest;
+  }
 
   async function handleCreate() {
     if (!form.title.trim()) return;
@@ -4944,7 +5080,9 @@ function SeriesTab() {
         tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         status: form.status, privacy: form.privacy,
       });
-      setSeriesList((prev) => [r.data.series, ...prev]);
+      const created = r.data.series;
+      const withMedia = await uploadFiles(created.id);
+      setSeriesList((prev) => [withMedia ?? created, ...prev]);
       setShowCreate(false); resetForm();
     } catch { } finally { setSaving(false); }
   }
@@ -4958,6 +5096,7 @@ function SeriesTab() {
         tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         status: form.status, privacy: form.privacy,
       });
+      await uploadFiles(editSeries.id);
       const r = await api.get('/series');
       setSeriesList(r.data.series);
       setEditSeries(null); resetForm();
@@ -4977,6 +5116,10 @@ function SeriesTab() {
       title: s.title, description: s.description || '', genre: s.genre || '',
       tags: s.tags?.join(', ') || '', status: s.status, privacy: s.privacy,
     });
+    setPendingCoverFile(null);
+    setPendingTrailerFile(null);
+    setCoverPreview(null);
+    setUploadProg({});
     setShowCreate(false);
     loadSeriesDetail(s.id);
   }
@@ -4989,12 +5132,22 @@ function SeriesTab() {
   }
 
   async function handleAddSeason(seriesId: string) {
-    if (!newSeasonNum.trim()) return;
+    if (!newSeasonNum.trim()) { alert('Enter a season number'); return; }
     try {
-      await api.post(`/series/${seriesId}/seasons`, {
+      const r = await api.post(`/series/${seriesId}/seasons`, {
         number: Number(newSeasonNum), title: newSeasonTitle || null,
       });
-      setNewSeasonNum(''); setNewSeasonTitle(''); setAddingSeasonTo(null);
+      const newSeasonId = r.data.season.id;
+      if (newSeasonCoverFile) {
+        const fd = new FormData(); fd.append('cover', newSeasonCoverFile);
+        await api.patch(`/series/${seriesId}/seasons/${newSeasonId}/cover`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }).catch(() => {});
+      }
+      setNewSeasonNum(''); setNewSeasonTitle('');
+      setNewSeasonCoverFile(null); setNewSeasonCoverPreview(null);
+      setAddingSeasonTo(null);
+      setExpandedSeason(newSeasonId); // auto-expand so user can add episodes immediately
       await loadSeriesDetail(seriesId);
     } catch (e: any) {
       alert(e.response?.data?.error || 'Failed to add season');
@@ -5007,21 +5160,91 @@ function SeriesTab() {
     await loadSeriesDetail(seriesId);
   }
 
-  async function handleAddEpisode(seriesId: string, seasonId: string, content: AnyContent) {
+  function resetEpForm() {
+    setEpForm({ title: '', description: '' });
+    setEpThumbnailFile(null);
+    setEpVideoFile(null);
+    setEpThumbnailPreview(null);
+    setEpUploadProg({});
+  }
+
+  async function handleAddEpisode(seriesId: string, seasonId: string) {
+    if (!epForm.title.trim()) { alert('Episode title is required'); return; }
     const season = editSeries?.seasons?.find((s) => s.id === seasonId);
     const nextNum = (season?.episodes?.length ?? 0) + 1;
+    setEpSaving(true);
     try {
-      await api.post(`/series/${seriesId}/seasons/${seasonId}/episodes`, { contentId: content.id, episodeNumber: nextNum });
-      setContentSearch(''); setContentResults([]); setAddingEpTo(null);
+      const r = await api.post(`/series/${seriesId}/seasons/${seasonId}/episodes`, {
+        title: epForm.title.trim(),
+        description: epForm.description || null,
+        episodeNumber: nextNum,
+      });
+      const epId = r.data.episode.id;
+      if (epThumbnailFile) {
+        const fd = new FormData(); fd.append('thumbnail', epThumbnailFile);
+        await api.patch(`/series/${seriesId}/seasons/${seasonId}/episodes/${epId}/thumbnail`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (ev) => { if (ev.total) setEpUploadProg((p) => ({ ...p, thumb: Math.round(ev.loaded / ev.total! * 100) })); },
+        }).catch(() => {});
+      }
+      if (epVideoFile) {
+        const fd = new FormData(); fd.append('video', epVideoFile);
+        await api.patch(`/series/${seriesId}/seasons/${seasonId}/episodes/${epId}/video`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (ev) => { if (ev.total) setEpUploadProg((p) => ({ ...p, video: Math.round(ev.loaded / ev.total! * 100) })); },
+        }).catch(() => {});
+      }
+      resetEpForm();
+      setAddingEpTo(null);
       await loadSeriesDetail(seriesId);
     } catch (e: any) {
       alert(e.response?.data?.error || 'Failed to add episode');
+    } finally {
+      setEpSaving(false);
     }
   }
 
-  async function handleRemoveEpisode(seriesId: string, seasonId: string, contentId: string) {
-    await api.delete(`/series/${seriesId}/seasons/${seasonId}/episodes/${contentId}`).catch(() => {});
+  async function handleRemoveEpisode(seriesId: string, seasonId: string, episodeId: string) {
+    await api.delete(`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}`).catch(() => {});
     await loadSeriesDetail(seriesId);
+  }
+
+  function openEditEp(ep: EpisodeRow) {
+    setEditingEpId(ep.id);
+    setEditEpForm({ title: ep.title, description: ep.description || '' });
+    setEditEpThumbFile(null);
+    setEditEpVideoFile(null);
+    setEditEpThumbPreview(null);
+    setAddingEpTo(null);
+  }
+
+  async function handleUpdateEpisode(seriesId: string, seasonId: string, episodeId: string) {
+    if (!editEpForm.title.trim()) { alert('Title is required'); return; }
+    setEditEpSaving(true);
+    try {
+      await api.patch(`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}`, {
+        title: editEpForm.title.trim(),
+        description: editEpForm.description || null,
+      });
+      if (editEpThumbFile) {
+        const fd = new FormData(); fd.append('thumbnail', editEpThumbFile);
+        await api.patch(`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}/thumbnail`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }).catch(() => {});
+      }
+      if (editEpVideoFile) {
+        const fd = new FormData(); fd.append('video', editEpVideoFile);
+        await api.patch(`/series/${seriesId}/seasons/${seasonId}/episodes/${episodeId}/video`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }).catch(() => {});
+      }
+      setEditingEpId(null);
+      await loadSeriesDetail(seriesId);
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Failed to update episode');
+    } finally {
+      setEditEpSaving(false);
+    }
   }
 
   function fmtDur(s: number | null) {
@@ -5030,7 +5253,7 @@ function SeriesTab() {
     return `${m}:${String(sec).padStart(2, '0')}`;
   }
 
-  const SeriesForm = () => (
+  const seriesFormJsx = (
     <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
       <h3 className="text-white font-semibold text-sm">{editSeries ? 'Edit Series' : 'New Series'}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -5073,7 +5296,78 @@ function SeriesTab() {
           <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} placeholder="Optional description"
             className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none" />
         </div>
+
+        {/* Cover image */}
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">
+            Cover Image <span className="font-normal normal-case text-gray-600">— optional</span>
+          </label>
+          <div className="flex items-start gap-4">
+            <div className="w-20 h-20 rounded-xl bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
+              {coverPreview || editSeries?.coverUrl
+                ? <img src={coverPreview || editSeries?.coverUrl || ''} alt="" className="w-full h-full object-cover" />
+                : <span className="text-2xl opacity-30">🖼</span>
+              }
+            </div>
+            <div className="space-y-1.5">
+              <label className="cursor-pointer inline-block px-4 py-2 bg-surface-700 border border-surface-600 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
+                {pendingCoverFile ? pendingCoverFile.name : 'Choose image'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setPendingCoverFile(f);
+                    setCoverPreview(URL.createObjectURL(f));
+                  }} />
+              </label>
+              {uploadProg.cover !== undefined && uploadProg.cover < 100 && (
+                <div className="w-40 h-1.5 bg-surface-600 rounded-full overflow-hidden">
+                  <div className="h-full bg-brand-500 transition-all" style={{ width: `${uploadProg.cover}%` }} />
+                </div>
+              )}
+              <p className="text-xs text-gray-600">JPEG, PNG or WebP · max 8 MB</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Trailer video */}
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">
+            Trailer / Promo Video <span className="font-normal normal-case text-gray-600">— optional</span>
+          </label>
+          <div className="flex items-center gap-4 flex-wrap">
+            <label className="cursor-pointer inline-block px-4 py-2 bg-surface-700 border border-surface-600 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
+              {pendingTrailerFile ? pendingTrailerFile.name : (editSeries?.trailerUrl ? 'Replace trailer' : 'Choose video')}
+              <input type="file" accept="video/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setPendingTrailerFile(f); }} />
+            </label>
+            {editSeries?.trailerUrl && !pendingTrailerFile && (() => {
+              // Extract original filename from R2 URL path: strip timestamp prefix (digits-)
+              const raw = editSeries.trailerUrl!.split('?')[0].split('/').pop() ?? '';
+              const name = raw.replace(/^\d+-/, '');
+              return (
+                <span className="text-xs text-green-500 flex items-center gap-1">
+                  <span>✓</span>
+                  <span className="truncate max-w-[200px]" title={name}>{name}</span>
+                </span>
+              );
+            })()}
+            {uploadProg.trailer !== undefined && uploadProg.trailer < 100 && (
+              <div className="flex items-center gap-2">
+                <div className="w-32 h-1.5 bg-surface-600 rounded-full overflow-hidden">
+                  <div className="h-full bg-brand-500 transition-all" style={{ width: `${uploadProg.trailer}%` }} />
+                </div>
+                <span className="text-xs text-gray-400">{uploadProg.trailer}%</span>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-gray-600 mt-1">MP4, WebM, MOV, AVI, MKV · max 500 MB</p>
+        </div>
+
       </div>
+      {uploadError && (
+        <p className="text-red-400 text-sm">{uploadError}</p>
+      )}
       <div className="flex gap-3 pt-2">
         <button onClick={editSeries ? handleUpdate : handleCreate} disabled={saving || !form.title.trim()}
           className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
@@ -5100,11 +5394,11 @@ function SeriesTab() {
         </button>
       </div>
 
-      {showCreate && !editSeries && <SeriesForm />}
+      {showCreate && !editSeries && seriesFormJsx}
 
       {editSeries && (
         <div className="space-y-4">
-          <SeriesForm />
+          {seriesFormJsx}
 
           {/* Season management */}
           <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
@@ -5119,25 +5413,51 @@ function SeriesTab() {
             </div>
 
             {addingSeasonTo === editSeries.id && (
-              <div className="flex gap-2 items-end">
+              <div className="space-y-3 bg-surface-800 border border-surface-700 rounded-xl p-4">
+                <div className="flex gap-2 items-end">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">Season #</label>
+                    <input type="number" min="1" value={newSeasonNum} onChange={(e) => setNewSeasonNum(e.target.value)} placeholder="1"
+                      className="w-20 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 block mb-1">Title (optional)</label>
+                    <input value={newSeasonTitle} onChange={(e) => setNewSeasonTitle(e.target.value)} placeholder="e.g. The Beginning"
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                  </div>
+                </div>
+                {/* Season cover image */}
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">Season #</label>
-                  <input type="number" min="1" value={newSeasonNum} onChange={(e) => setNewSeasonNum(e.target.value)} placeholder="1"
-                    className="w-20 bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                  <label className="text-xs text-gray-500 block mb-1.5">Cover Image <span className="text-gray-600 font-normal">(optional)</span></label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-20 rounded-lg bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {newSeasonCoverPreview
+                        ? <img src={newSeasonCoverPreview} alt="" className="w-full h-full object-cover" />
+                        : <span className="text-xl opacity-30">🎬</span>
+                      }
+                    </div>
+                    <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
+                      {newSeasonCoverFile ? newSeasonCoverFile.name : 'Choose image'}
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          setNewSeasonCoverFile(f);
+                          setNewSeasonCoverPreview(URL.createObjectURL(f));
+                        }} />
+                    </label>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <label className="text-xs text-gray-500 block mb-1">Title (optional)</label>
-                  <input value={newSeasonTitle} onChange={(e) => setNewSeasonTitle(e.target.value)} placeholder="e.g. The Beginning"
-                    className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => handleAddSeason(editSeries.id)}
+                    className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 transition-colors">
+                    Add Season
+                  </button>
+                  <button type="button" onClick={() => { setAddingSeasonTo(null); setNewSeasonNum(''); setNewSeasonTitle(''); setNewSeasonCoverFile(null); setNewSeasonCoverPreview(null); }}
+                    className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
+                    Cancel
+                  </button>
                 </div>
-                <button onClick={() => handleAddSeason(editSeries.id)}
-                  className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 transition-colors">
-                  Add
-                </button>
-                <button onClick={() => { setAddingSeasonTo(null); setNewSeasonNum(''); setNewSeasonTitle(''); }}
-                  className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
-                  Cancel
-                </button>
               </div>
             )}
 
@@ -5150,78 +5470,216 @@ function SeriesTab() {
                 {editSeries.seasons.map((season) => (
                   <div key={season.id} className="border border-surface-700 rounded-xl overflow-hidden">
                     {/* Season header */}
-                    <div className="flex items-center gap-3 px-4 py-3 bg-surface-800 cursor-pointer"
-                      onClick={() => setExpandedSeason(expandedSeason === season.id ? null : season.id)}>
-                      <span className="text-gray-500 text-xs font-mono w-5">S{season.number}</span>
+                    <div className="flex items-center gap-3 px-4 py-3 bg-surface-800">
+                      <div className="w-8 h-11 rounded bg-surface-700 border border-surface-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        {season.coverUrl
+                          ? <img src={season.coverUrl} alt="" className="w-full h-full object-cover" />
+                          : <span className="text-xs opacity-30">🎬</span>
+                        }
+                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm font-medium">{season.title || `Season ${season.number}`}</p>
                         <p className="text-gray-600 text-xs">{season.episodes?.length ?? season._count?.episodes ?? 0} episodes</p>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setAddingEpTo(addingEpTo === season.id ? null : season.id); setContentSearch(''); setContentResults([]); }}
+                      <button type="button"
+                        onClick={() => { setAddingEpTo(addingEpTo === season.id ? null : season.id); resetEpForm(); }}
                         className="text-xs px-2 py-1 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors"
                       >
-                        + Ep
+                        + Add Episode
                       </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteSeason(editSeries.id, season.id); }}
+                      <button type="button"
+                        onClick={() => handleDeleteSeason(editSeries.id, season.id)}
                         className="text-xs px-2 py-1 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
                       >
-                        Del
+                        Delete
                       </button>
-                      <span className="text-gray-600 text-xs">{expandedSeason === season.id ? '▲' : '▼'}</span>
                     </div>
 
-                    {/* Add episode search */}
+                    {/* Add episode form */}
                     {addingEpTo === season.id && (
-                      <div className="px-4 py-3 bg-surface-850 border-t border-surface-700 relative">
-                        <input value={contentSearch} onChange={(e) => setContentSearch(e.target.value)}
-                          placeholder="Search content to add as episode…" autoFocus
-                          className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
-                        {contentResults.length > 0 && (
-                          <div className="absolute left-4 right-4 z-10 mt-1 bg-surface-800 border border-surface-600 rounded-xl overflow-hidden shadow-xl">
-                            {contentResults.map((c) => (
-                              <button key={c.id} onClick={() => handleAddEpisode(editSeries.id, season.id, c)}
-                                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-700 transition-colors text-left">
-                                <span className="text-sm text-white truncate">{c.title}</span>
-                                <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                                  {c.type} · {fmtDur(c.duration)} · {c.creator.displayName || c.creator.username}
-                                </span>
-                              </button>
-                            ))}
+                      <div className="px-4 py-4 border-t border-surface-700 space-y-3 bg-surface-900/50">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">New Episode</p>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Title *</label>
+                          <input value={epForm.title} onChange={(e) => setEpForm((f) => ({ ...f, title: e.target.value }))}
+                            placeholder="Episode title" autoFocus
+                            className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Description <span className="text-gray-600 font-normal">(optional)</span></label>
+                          <textarea value={epForm.description} onChange={(e) => setEpForm((f) => ({ ...f, description: e.target.value }))}
+                            placeholder="Short description…" rows={2}
+                            className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+                        </div>
+                        <div className="flex gap-4 flex-wrap">
+                          {/* Thumbnail */}
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1.5">Thumbnail <span className="text-gray-600 font-normal">(optional)</span></label>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-10 rounded bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
+                                {epThumbnailPreview
+                                  ? <img src={epThumbnailPreview} alt="" className="w-full h-full object-cover" />
+                                  : <span className="text-sm opacity-30">🖼</span>
+                                }
+                              </div>
+                              <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
+                                {epThumbnailFile ? epThumbnailFile.name.slice(0, 18) : 'Choose'}
+                                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (!f) return;
+                                    setEpThumbnailFile(f);
+                                    setEpThumbnailPreview(URL.createObjectURL(f));
+                                  }} />
+                              </label>
+                            </div>
+                          </div>
+                          {/* Video */}
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1.5">Video File <span className="text-gray-600 font-normal">(optional)</span></label>
+                            <div className="flex items-center gap-2">
+                              <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
+                                {epVideoFile ? epVideoFile.name.slice(0, 22) : 'Choose video'}
+                                <input type="file" accept="video/*" className="hidden"
+                                  onChange={(e) => { const f = e.target.files?.[0]; if (f) setEpVideoFile(f); }} />
+                              </label>
+                              {epVideoFile && <span className="text-xs text-green-500">✓ {(epVideoFile.size / 1024 / 1024).toFixed(0)} MB</span>}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Upload progress */}
+                        {(epUploadProg.thumb !== undefined || epUploadProg.video !== undefined) && (
+                          <div className="space-y-1">
+                            {epUploadProg.thumb !== undefined && epUploadProg.thumb < 100 && (
+                              <div className="flex items-center gap-2 text-xs text-gray-400">
+                                <span>Thumbnail</span>
+                                <div className="flex-1 h-1 bg-surface-600 rounded-full overflow-hidden">
+                                  <div className="h-full bg-brand-500" style={{ width: `${epUploadProg.thumb}%` }} />
+                                </div>
+                                <span>{epUploadProg.thumb}%</span>
+                              </div>
+                            )}
+                            {epUploadProg.video !== undefined && epUploadProg.video < 100 && (
+                              <div className="flex items-center gap-2 text-xs text-gray-400">
+                                <span>Video</span>
+                                <div className="flex-1 h-1 bg-surface-600 rounded-full overflow-hidden">
+                                  <div className="h-full bg-brand-500" style={{ width: `${epUploadProg.video}%` }} />
+                                </div>
+                                <span>{epUploadProg.video}%</span>
+                              </div>
+                            )}
                           </div>
                         )}
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => handleAddEpisode(editSeries.id, season.id)} disabled={epSaving || !epForm.title.trim()}
+                            className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
+                            {epSaving ? 'Saving…' : 'Save Episode'}
+                          </button>
+                          <button type="button" onClick={() => { setAddingEpTo(null); resetEpForm(); }}
+                            className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
+                            Cancel
+                          </button>
+                        </div>
                       </div>
                     )}
 
-                    {/* Episode list */}
-                    {expandedSeason === season.id && (
-                      <div className="border-t border-surface-700">
+                    {/* Episode list — always visible */}
+                    <div className="border-t border-surface-700">
                         {!season.episodes || season.episodes.length === 0 ? (
                           <p className="text-gray-600 text-xs text-center py-4">No episodes yet.</p>
                         ) : (
                           <div>
                             {season.episodes.map((ep) => (
-                              <div key={ep.contentId} className="flex items-center gap-3 px-4 py-2.5 border-b border-surface-700/50 last:border-0 group">
-                                <span className="text-gray-600 text-xs w-5 text-center">{ep.episodeNumber}</span>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-white truncate">{ep.content.title}</p>
-                                  <p className="text-xs text-gray-500">{ep.content.type} {fmtDur(ep.content.duration) && `· ${fmtDur(ep.content.duration)}`}</p>
+                              <div key={ep.id}>
+                                {/* Episode row */}
+                                <div className="flex items-center gap-3 px-4 py-2.5 border-b border-surface-700/50 group">
+                                  <span className="text-gray-600 text-xs w-5 text-center flex-shrink-0">{ep.episodeNumber}</span>
+                                  <div className="w-14 h-8 rounded bg-surface-700 border border-surface-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                    {(editingEpId === ep.id ? editEpThumbPreview : null) || ep.thumbnailUrl
+                                      ? <img src={editEpThumbPreview && editingEpId === ep.id ? editEpThumbPreview : ep.thumbnailUrl!} alt="" className="w-full h-full object-cover" />
+                                      : <span className="text-xs opacity-30">🎬</span>
+                                    }
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-white truncate">{ep.title}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {ep.mediaUrl ? '✓ video' : 'no video'}
+                                      {fmtDur(ep.duration) ? ` · ${fmtDur(ep.duration)}` : ''}
+                                    </p>
+                                  </div>
+                                  <button type="button" onClick={() => editingEpId === ep.id ? setEditingEpId(null) : openEditEp(ep)}
+                                    className="opacity-0 group-hover:opacity-100 text-xs text-brand-400 hover:text-brand-300 transition-all">
+                                    {editingEpId === ep.id ? 'Close' : 'Edit'}
+                                  </button>
+                                  <button type="button" onClick={() => handleRemoveEpisode(editSeries.id, season.id, ep.id)}
+                                    className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-300 transition-all">
+                                    Remove
+                                  </button>
                                 </div>
-                                <a href={`/watch/${ep.contentId}`} target="_blank" rel="noreferrer"
-                                  className="opacity-0 group-hover:opacity-100 text-xs text-brand-400 hover:underline transition-opacity">
-                                  View
-                                </a>
-                                <button onClick={() => handleRemoveEpisode(editSeries.id, season.id, ep.contentId)}
-                                  className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-300 transition-all">
-                                  Remove
-                                </button>
+
+                                {/* Inline edit panel */}
+                                {editingEpId === ep.id && (
+                                  <div className="px-4 py-4 border-b border-surface-700 space-y-3 bg-surface-900/60">
+                                    <div>
+                                      <label className="text-xs text-gray-500 block mb-1">Title *</label>
+                                      <input value={editEpForm.title} onChange={(e) => setEditEpForm((f) => ({ ...f, title: e.target.value }))}
+                                        className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-gray-500 block mb-1">Description</label>
+                                      <textarea value={editEpForm.description} onChange={(e) => setEditEpForm((f) => ({ ...f, description: e.target.value }))}
+                                        rows={2} placeholder="Optional description…"
+                                        className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
+                                    </div>
+                                    <div className="flex gap-4 flex-wrap">
+                                      <div>
+                                        <label className="text-xs text-gray-500 block mb-1.5">Replace Thumbnail</label>
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-16 h-10 rounded bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
+                                            {editEpThumbPreview
+                                              ? <img src={editEpThumbPreview} alt="" className="w-full h-full object-cover" />
+                                              : ep.thumbnailUrl
+                                              ? <img src={ep.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                                              : <span className="text-sm opacity-30">🖼</span>
+                                            }
+                                          </div>
+                                          <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
+                                            {editEpThumbFile ? editEpThumbFile.name.slice(0, 16) : 'Choose'}
+                                            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                                              onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; setEditEpThumbFile(f); setEditEpThumbPreview(URL.createObjectURL(f)); }} />
+                                          </label>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-gray-500 block mb-1.5">{ep.mediaUrl ? 'Replace Video' : 'Upload Video'}</label>
+                                        <div className="flex items-center gap-2">
+                                          <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
+                                            {editEpVideoFile ? editEpVideoFile.name.slice(0, 20) : 'Choose video'}
+                                            <input type="file" accept="video/*" className="hidden"
+                                              onChange={(e) => { const f = e.target.files?.[0]; if (f) setEditEpVideoFile(f); }} />
+                                          </label>
+                                          {editEpVideoFile && <span className="text-xs text-green-500">✓ {(editEpVideoFile.size / 1024 / 1024).toFixed(0)} MB</span>}
+                                          {ep.mediaUrl && !editEpVideoFile && <span className="text-xs text-green-500">✓ uploaded</span>}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button type="button" onClick={() => handleUpdateEpisode(editSeries.id, season.id, ep.id)} disabled={editEpSaving || !editEpForm.title.trim()}
+                                        className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
+                                        {editEpSaving ? 'Saving…' : 'Save Changes'}
+                                      </button>
+                                      <button type="button" onClick={() => setEditingEpId(null)}
+                                        className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -5691,6 +6149,133 @@ function AlbumsTab() {
             </div>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── Newsletter Tab ────────────────────────────────────────────────────────────
+
+function NewsletterTab() {
+  const [subscribers, setSubscribers] = useState<{ id: string; email: string; name: string | null; source: string; subscribedAt: string }[]>([]);
+  const [total, setTotal]   = useState(0);
+  const [page, setPage]     = useState(1);
+  const [pages, setPages]   = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ]           = useState('');
+  const [status, setStatus] = useState<'active' | 'unsub'>('active');
+
+  function load(p = 1, search = q, st = status) {
+    setLoading(true);
+    api.get(`/admin/newsletter?page=${p}&limit=50&q=${encodeURIComponent(search)}&status=${st}`)
+      .then((r) => {
+        setSubscribers(r.data.subscribers);
+        setTotal(r.data.total);
+        setPage(r.data.page);
+        setPages(r.data.pages);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => { load(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    load(1, q, status);
+  }
+
+  function handleStatusChange(s: 'active' | 'unsub') {
+    setStatus(s);
+    load(1, q, s);
+  }
+
+  async function handleDelete(id: string) {
+    await api.delete(`/admin/newsletter/${id}`).catch(() => {});
+    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+    setTotal((t) => t - 1);
+  }
+
+  function handleExport() {
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/admin/newsletter/export`, '_blank');
+  }
+
+  return (
+    <div className="max-w-4xl">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-white">Newsletter Subscribers</h2>
+          <p className="text-gray-500 text-sm mt-1">{total.toLocaleString()} {status === 'active' ? 'active' : 'unsubscribed'}</p>
+        </div>
+        <button onClick={handleExport} className="text-sm bg-surface-700 hover:bg-surface-600 text-white px-4 py-2 rounded-lg transition-colors">
+          Export CSV
+        </button>
+      </div>
+
+      <div className="flex gap-3 mb-4">
+        <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by email…"
+            className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+          />
+          <button type="submit" className="bg-brand-500 hover:bg-brand-400 text-black font-semibold text-sm px-4 py-2 rounded-lg">Search</button>
+        </form>
+        <div className="flex gap-1 bg-surface-800 border border-surface-700 rounded-lg p-1">
+          {(['active', 'unsub'] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => handleStatusChange(s)}
+              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${status === s ? 'bg-brand-500 text-black font-bold' : 'text-gray-400 hover:text-white'}`}
+            >
+              {s === 'active' ? 'Active' : 'Unsubscribed'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-10 bg-surface-700 rounded-lg animate-pulse" />)}</div>
+      ) : subscribers.length === 0 ? (
+        <p className="text-gray-500 text-sm text-center py-12">No subscribers found.</p>
+      ) : (
+        <>
+          <div className="bg-surface-800 border border-surface-700 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-surface-700 text-left text-gray-500 text-xs uppercase tracking-wider">
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Source</th>
+                  <th className="px-4 py-3">Joined</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-700">
+                {subscribers.map((s) => (
+                  <tr key={s.id} className="hover:bg-surface-700/50">
+                    <td className="px-4 py-3">
+                      <p className="text-white">{s.email}</p>
+                      {s.name && <p className="text-gray-500 text-xs">{s.name}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-gray-400">{s.source}</td>
+                    <td className="px-4 py-3 text-gray-400">{new Date(s.subscribedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => handleDelete(s.id)} className="text-red-400 hover:text-red-300 text-xs">Remove</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {pages > 1 && (
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <button onClick={() => load(page - 1)} disabled={page <= 1} className="text-sm text-gray-400 hover:text-white disabled:opacity-40">← Prev</button>
+              <span className="text-sm text-gray-500">Page {page} of {pages}</span>
+              <button onClick={() => load(page + 1)} disabled={page >= pages} className="text-sm text-gray-400 hover:text-white disabled:opacity-40">Next →</button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -6512,8 +7097,9 @@ function AdminInner() {
     { key: 'albums',    label: 'Albums',    emoji: '💿' },
     { key: 'series',    label: 'Series',    emoji: '📺' },
     { key: 'live',      label: 'Live',      emoji: '📡' },
-    { key: 'push',      label: 'Push',      emoji: '🔔' },
-    { key: 'settings',  label: 'Settings',   emoji: '🎨' },
+    { key: 'push',       label: 'Push',       emoji: '🔔' },
+    { key: 'newsletter', label: 'Newsletter', emoji: '📧' },
+    { key: 'settings',   label: 'Settings',   emoji: '🎨' },
   ];
 
   return (
@@ -6553,8 +7139,9 @@ function AdminInner() {
       {tab === 'albums'    && <AlbumsTab />}
       {tab === 'series'    && <SeriesTab />}
       {tab === 'live'      && <LiveTab />}
-      {tab === 'push'      && <PushTab />}
-      {tab === 'settings'  && <SettingsTab />}
+      {tab === 'push'       && <PushTab />}
+      {tab === 'newsletter' && <NewsletterTab />}
+      {tab === 'settings'   && <SettingsTab />}
     </div>
   );
 }

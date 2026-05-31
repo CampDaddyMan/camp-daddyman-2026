@@ -2,14 +2,16 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { uploadToS3, deleteFromS3, getSignedMediaUrl, signR2Url, getDownloadUrl, extractKey } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
-import { notify, notifyFollowers } from '../utils/notifications';
+import { notify, notifyFollowers, checkViewMilestone } from '../utils/notifications';
+import { awardXp } from '../utils/xp';
 import { getTranscodeQueue } from '../config/queue';
 
 const CONTENT_SELECT = {
   id: true, title: true, description: true, type: true,
-  status: true, thumbnailUrl: true, hlsUrl: true,
+  status: true, thumbnailUrl: true, hlsUrl: true, previewUrl: true,
   duration: true, views: true, tags: true,
   privacy: true, createdAt: true, featured: true, rating: true,
+  chapters: true,
   creator: { select: { username: true, displayName: true, avatar: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -40,6 +42,7 @@ export async function listContent(req: AuthRequest, res: Response) {
   const items = await Promise.all(raw.map(async (item) => ({
     ...item,
     thumbnailUrl: await signR2Url(item.thumbnailUrl),
+    previewUrl: await signR2Url((item as any).previewUrl, 4 * 3600),
   })));
 
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
@@ -87,7 +90,11 @@ export async function getDiscovery(req: AuthRequest, res: Response) {
     }),
   ]);
 
-  const signList = (list: any[]) => Promise.all(list.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+  const signList = (list: any[]) => Promise.all(list.map(async (i) => ({
+    ...i,
+    thumbnailUrl: await signR2Url(i.thumbnailUrl),
+    previewUrl: await signR2Url(i.previewUrl, 4 * 3600),
+  })));
 
   const [sFeatured, sTrending, sNew, sMusic, sFilm, sPodcast, sSpoken, sDaddyman] = await Promise.all([
     signList(featured), signList(trending), signList(newReleases), signList(music), signList(film),
@@ -109,16 +116,11 @@ export async function getContent(req: AuthRequest, res: Response) {
     where: { id: req.params.id },
     include: {
       creator: { select: { username: true, displayName: true, avatar: true } },
-      _count: { select: { likes: true, comments: true } },
-      episode: {
-        include: {
-          season: {
-            include: {
-              series: { select: { id: true, title: true } },
-            },
-          },
-        },
+      credits: {
+        include: { user: { select: { username: true, displayName: true, avatar: true } } },
+        orderBy: { createdAt: 'asc' },
       },
+      _count: { select: { likes: true, comments: true } },
     },
   });
 
@@ -181,33 +183,28 @@ export async function getContent(req: AuthRequest, res: Response) {
   Promise.all([
     prisma.content.update({ where: { id: content.id }, data: { views: { increment: 1 } } }),
     prisma.viewLog.create({ data: { contentId: content.id } }),
-  ]).catch(() => {});
+  ]).then(() => {
+    checkViewMilestone(content.creatorId).catch(() => {});
+  }).catch(() => {});
 
   // Always sign URLs — R2 public access unreliable; signed URLs work regardless
-  const mediaUrl    = await signR2Url(content.mediaUrl, 4 * 3600);
-  const thumbnailUrl = await signR2Url(content.thumbnailUrl);
+  const [mediaUrl, thumbnailUrl, canvasUrl, previewUrl] = await Promise.all([
+    signR2Url(content.mediaUrl, 4 * 3600),
+    signR2Url(content.thumbnailUrl),
+    signR2Url((content as any).canvasUrl, 4 * 3600),
+    signR2Url((content as any).previewUrl, 4 * 3600),
+  ]);
 
   let isLiked = false;
   let isSaved = false;
-  let nextEpisodeContentId: string | null = null;
 
-  const checks: Promise<any>[] = [
+  const [like, saved] = await Promise.all([
     req.user ? prisma.like.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }) : Promise.resolve(null),
     req.user ? prisma.savedContent.findUnique({ where: { userId_contentId: { userId: req.user.id, contentId: content.id } } }) : Promise.resolve(null),
-    content.episode
-      ? prisma.episode.findFirst({
-          where: { seasonId: content.episode.seasonId, episodeNumber: { gt: content.episode.episodeNumber } },
-          orderBy: { episodeNumber: 'asc' },
-          select: { contentId: true },
-        })
-      : Promise.resolve(null),
-  ];
-
-  const [like, saved, nextEp] = await Promise.all(checks);
+  ]);
   if (req.user) { isLiked = !!like; isSaved = !!saved; }
-  if (nextEp) nextEpisodeContentId = nextEp.contentId;
 
-  res.json({ content: { ...content, mediaUrl, thumbnailUrl, nextEpisodeContentId }, isLiked, isSaved });
+  res.json({ content: { ...content, mediaUrl, thumbnailUrl, canvasUrl, previewUrl }, isLiked, isSaved });
 }
 
 export async function uploadContent(req: AuthRequest, res: Response) {
@@ -295,6 +292,7 @@ export async function likeContent(req: AuthRequest, res: Response) {
     notify({ userId: content.creatorId, type: 'NEW_LIKE', actorId: req.user!.id, contentId: req.params.id });
   }
 
+  awardXp(req.user!.id, 'LIKE', req.params.id);
   res.json({ liked: true });
 }
 
@@ -319,6 +317,7 @@ export async function commentOnContent(req: AuthRequest, res: Response) {
 
   if (content && !parentId) {
     notify({ userId: content.creatorId, type: 'NEW_COMMENT', actorId: req.user!.id, contentId: req.params.id });
+    awardXp(req.user!.id, 'COMMENT', req.params.id);
   }
 
   res.status(201).json({
@@ -348,16 +347,46 @@ export async function saveProgress(req: AuthRequest, res: Response) {
     return res.status(400).json({ error: 'progress must be a non-negative number (seconds)' });
   }
 
+  const profileId = req.headers['x-profile-id'] as string | undefined;
+
   const record = await prisma.watchHistory.upsert({
     where: { userId_contentId: { userId: req.user!.id, contentId: req.params.id } },
     update: { progress, watchedAt: new Date() },
     create: { userId: req.user!.id, contentId: req.params.id, progress },
   });
 
+  if (progress >= 30) {
+    awardXp(req.user!.id, 'WATCH', req.params.id);
+  }
+
+  if (profileId) {
+    const valid = await prisma.profile.findFirst({ where: { id: profileId, userId: req.user!.id }, select: { id: true } });
+    if (valid) {
+      await prisma.profileWatchHistory.upsert({
+        where: { profileId_contentId: { profileId, contentId: req.params.id } },
+        update: { progress, watchedAt: new Date() },
+        create: { profileId, contentId: req.params.id, progress },
+      });
+    }
+  }
+
   res.json({ progress: record.progress });
 }
 
 export async function getProgress(req: AuthRequest, res: Response) {
+  const profileId = req.headers['x-profile-id'] as string | undefined;
+
+  if (profileId) {
+    const valid = await prisma.profile.findFirst({ where: { id: profileId, userId: req.user!.id }, select: { id: true } });
+    if (valid) {
+      const record = await prisma.profileWatchHistory.findUnique({
+        where: { profileId_contentId: { profileId, contentId: req.params.id } },
+        select: { progress: true, watchedAt: true },
+      });
+      if (record) return res.json({ progress: record.progress, watchedAt: record.watchedAt });
+    }
+  }
+
   const record = await prisma.watchHistory.findUnique({
     where: { userId_contentId: { userId: req.user!.id, contentId: req.params.id } },
     select: { progress: true, watchedAt: true },
@@ -421,7 +450,7 @@ export async function getComments(req: Request, res: Response) {
 
   const comments = await prisma.comment.findMany({
     where: { contentId: req.params.id, parentId: null },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
     take: 50,
     include: {
       user: { select: { id: true, username: true, displayName: true, avatar: true } },
@@ -453,6 +482,31 @@ export async function getComments(req: Request, res: Response) {
   res.json({ comments: shaped });
 }
 
+export async function pinComment(req: AuthRequest, res: Response) {
+  const { id: contentId, commentId } = req.params;
+
+  const [content, comment] = await Promise.all([
+    prisma.content.findUnique({ where: { id: contentId }, select: { creatorId: true } }),
+    prisma.comment.findUnique({ where: { id: commentId }, select: { id: true, contentId: true, parentId: true, isPinned: true } }),
+  ]);
+
+  if (!content) return res.status(404).json({ error: 'Content not found' });
+  if (!comment || comment.contentId !== contentId) return res.status(404).json({ error: 'Comment not found' });
+  if (comment.parentId) return res.status(400).json({ error: 'Cannot pin a reply' });
+  if (content.creatorId !== req.user!.id && !req.user!.isAdmin) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+
+  const nowPinned = !comment.isPinned;
+
+  await prisma.$transaction([
+    prisma.comment.updateMany({ where: { contentId, isPinned: true }, data: { isPinned: false } }),
+    ...(nowPinned ? [prisma.comment.update({ where: { id: commentId }, data: { isPinned: true } })] : []),
+  ]);
+
+  res.json({ isPinned: nowPinned });
+}
+
 export async function toggleCommentLike(req: AuthRequest, res: Response) {
   const { commentId } = req.params;
 
@@ -480,12 +534,16 @@ export async function updateContent(req: AuthRequest, res: Response) {
     return res.status(403).json({ error: 'Not authorized' });
   }
 
-  const { title, description, privacy, tags, thumbnailUrl, type, rating } = req.body;
+  const { title, description, lyrics, privacy, tags, thumbnailUrl, type, rating, introStart, introEnd, chapters } = req.body;
 
   const data: any = {};
   if (title !== undefined)        data.title = String(title).trim();
   if (rating !== undefined)       data.rating = rating || null;
   if (description !== undefined)  data.description = String(description).trim() || null;
+  if (lyrics !== undefined)       data.lyrics = lyrics ? String(lyrics).trim() : null;
+  if (introStart !== undefined)   data.introStart = introStart != null ? Math.max(0, Number(introStart)) : null;
+  if (introEnd !== undefined)     data.introEnd   = introEnd   != null ? Math.max(0, Number(introEnd))   : null;
+  if (chapters !== undefined)     data.chapters   = Array.isArray(chapters) ? chapters : null;
   if (thumbnailUrl !== undefined) data.thumbnailUrl = thumbnailUrl ? String(thumbnailUrl).trim() : null;
   if (privacy !== undefined && ['PUBLIC', 'PRIVATE', 'SUBSCRIBERS_ONLY'].includes(privacy)) {
     data.privacy = privacy;
@@ -539,6 +597,64 @@ export async function uploadThumbnail(req: AuthRequest, res: Response) {
   }
 }
 
+export async function uploadCanvas(req: AuthRequest, res: Response) {
+  try {
+    const content = await prisma.content.findUnique({
+      where: { id: req.params.id },
+      select: { creatorId: true, canvasUrl: true } as any,
+    });
+    if (!content) return res.status(404).json({ error: 'Content not found' });
+    if ((content as any).creatorId !== req.user!.id && !req.user!.isAdmin) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ error: 'Video file required' });
+
+    if ((content as any).canvasUrl?.startsWith('http')) {
+      deleteFromS3((content as any).canvasUrl).catch(() => {});
+    }
+
+    const rawUrl = await uploadToS3(file, 'canvas');
+    await prisma.content.update({ where: { id: req.params.id }, data: { canvasUrl: rawUrl } as any });
+    const canvasUrl = await signR2Url(rawUrl, 4 * 3600);
+
+    res.json({ canvasUrl });
+  } catch (err: any) {
+    console.error('[uploadCanvas]', err.message);
+    res.status(500).json({ error: 'Canvas upload failed', detail: err.message });
+  }
+}
+
+export async function uploadPreview(req: AuthRequest, res: Response) {
+  try {
+    const content = await prisma.content.findUnique({
+      where: { id: req.params.id },
+      select: { creatorId: true, previewUrl: true } as any,
+    });
+    if (!content) return res.status(404).json({ error: 'Content not found' });
+    if ((content as any).creatorId !== req.user!.id && !req.user!.isAdmin) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ error: 'Video file required' });
+
+    if ((content as any).previewUrl?.startsWith('http')) {
+      deleteFromS3((content as any).previewUrl).catch(() => {});
+    }
+
+    const rawUrl = await uploadToS3(file, 'previews');
+    await prisma.content.update({ where: { id: req.params.id }, data: { previewUrl: rawUrl } as any });
+    const previewUrl = await signR2Url(rawUrl, 4 * 3600);
+
+    res.json({ previewUrl });
+  } catch (err: any) {
+    console.error('[uploadPreview]', err.message);
+    res.status(500).json({ error: 'Preview upload failed', detail: err.message });
+  }
+}
+
 export async function uploadMedia(req: AuthRequest, res: Response) {
   try {
     const content = await prisma.content.findUnique({
@@ -570,6 +686,42 @@ export async function uploadMedia(req: AuthRequest, res: Response) {
 }
 
 export async function getWatchHistory(req: AuthRequest, res: Response) {
+  const profileId = req.headers['x-profile-id'] as string | undefined;
+
+  if (profileId) {
+    const valid = await prisma.profile.findFirst({ where: { id: profileId, userId: req.user!.id }, select: { id: true, isKids: true } });
+    if (valid) {
+      const kidFilter = valid.isKids ? { rating: { notIn: ['R', 'EXPLICIT'] } } : {};
+      const records = await prisma.profileWatchHistory.findMany({
+        where: {
+          profileId,
+          progress: { gt: 5 },
+          content: { status: 'ACTIVE', ...kidFilter, reports: { none: { reporterId: req.user!.id } } },
+        },
+        orderBy: { watchedAt: 'desc' },
+        take: 20,
+        include: {
+          content: {
+            select: {
+              id: true, title: true, type: true, status: true, privacy: true,
+              thumbnailUrl: true, previewUrl: true, duration: true, views: true, tags: true,
+              createdAt: true, hlsUrl: true,
+              creator: { select: { username: true, displayName: true, avatar: true } },
+              _count: { select: { likes: true, comments: true } },
+            },
+          },
+        },
+      });
+      const raw = records.map((r) => ({ ...r.content, watchProgress: r.progress, watchedAt: r.watchedAt }));
+      const items = await Promise.all(raw.map(async (i) => ({
+        ...i,
+        thumbnailUrl: await signR2Url(i.thumbnailUrl),
+        previewUrl: await signR2Url((i as any).previewUrl, 4 * 3600),
+      })));
+      return res.json({ items });
+    }
+  }
+
   const records = await prisma.watchHistory.findMany({
     where: {
       userId: req.user!.id,
@@ -582,7 +734,7 @@ export async function getWatchHistory(req: AuthRequest, res: Response) {
       content: {
         select: {
           id: true, title: true, type: true, status: true, privacy: true,
-          thumbnailUrl: true, duration: true, views: true, tags: true,
+          thumbnailUrl: true, previewUrl: true, duration: true, views: true, tags: true,
           createdAt: true, hlsUrl: true,
           creator: { select: { username: true, displayName: true, avatar: true } },
           _count: { select: { likes: true, comments: true } },
@@ -596,6 +748,7 @@ export async function getWatchHistory(req: AuthRequest, res: Response) {
   const items = await Promise.all(raw.map(async (i) => ({
     ...i,
     thumbnailUrl: await signR2Url(i.thumbnailUrl),
+    previewUrl: await signR2Url((i as any).previewUrl, 4 * 3600),
   })));
 
   res.json({ items });
@@ -707,7 +860,7 @@ export async function getRelatedContent(req: AuthRequest, res: Response) {
       take: 4,
       select: {
         id: true, title: true, type: true, status: true, privacy: true,
-        thumbnailUrl: true, duration: true, views: true, tags: true,
+        thumbnailUrl: true, previewUrl: true, duration: true, views: true, tags: true,
         createdAt: true, hlsUrl: true,
         creator: { select: { username: true, displayName: true, avatar: true } },
         _count: { select: { likes: true, comments: true } },
@@ -719,7 +872,7 @@ export async function getRelatedContent(req: AuthRequest, res: Response) {
       take: 8,
       select: {
         id: true, title: true, type: true, status: true, privacy: true,
-        thumbnailUrl: true, duration: true, views: true, tags: true,
+        thumbnailUrl: true, previewUrl: true, duration: true, views: true, tags: true,
         createdAt: true, hlsUrl: true,
         creator: { select: { username: true, displayName: true, avatar: true } },
         _count: { select: { likes: true, comments: true } },
@@ -727,7 +880,7 @@ export async function getRelatedContent(req: AuthRequest, res: Response) {
     }),
   ]);
 
-  const signList = (list: any[]) => Promise.all(list.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+  const signList = (list: any[]) => Promise.all(list.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl), previewUrl: await signR2Url(i.previewUrl, 4 * 3600) })));
   const [sFromCreator, sSameType] = await Promise.all([signList(fromCreator), signList(sameType)]);
 
   res.json({ fromCreator: sFromCreator, sameType: sSameType });
@@ -816,7 +969,7 @@ export async function unreportContent(req: AuthRequest, res: Response) {
 
 const CONTENT_LIGHT = {
   id: true, title: true, type: true, status: true, privacy: true,
-  thumbnailUrl: true, duration: true, views: true, tags: true,
+  thumbnailUrl: true, previewUrl: true, duration: true, views: true, tags: true,
   createdAt: true, hlsUrl: true,
   creator: { select: { username: true, displayName: true, avatar: true } },
   _count: { select: { likes: true, comments: true } },
@@ -833,7 +986,7 @@ export async function getRecommended(req: AuthRequest, res: Response) {
       take: 20,
       select: CONTENT_LIGHT,
     });
-    const signed = await Promise.all(items.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+    const signed = await Promise.all(items.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl), previewUrl: await signR2Url((i as any).previewUrl, 4 * 3600) })));
     return res.json({ items: signed });
   }
 
@@ -904,6 +1057,75 @@ export async function getRecommended(req: AuthRequest, res: Response) {
   scored.sort((a, b) => b.score - a.score || b.item.views - a.item.views);
   const items = scored.slice(0, 20).map((s) => s.item);
 
-  const signed = await Promise.all(items.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl) })));
+  const signed = await Promise.all(items.map(async (i) => ({ ...i, thumbnailUrl: await signR2Url(i.thumbnailUrl), previewUrl: await signR2Url((i as any).previewUrl, 4 * 3600) })));
   res.json({ items: signed });
+}
+
+// ── Wrapped / Year in Review ───────────────────────────────────────────────────
+
+export async function getWrapped(req: AuthRequest, res: Response) {
+  const userId = req.user!.id;
+  const year = req.query.year ? Number(req.query.year) : new Date().getFullYear();
+  const start = new Date(year, 0, 1);
+  const end   = new Date(year + 1, 0, 1);
+
+  const history = await prisma.watchHistory.findMany({
+    where: { userId, watchedAt: { gte: start, lt: end } },
+    include: {
+      content: {
+        select: {
+          id: true, title: true, type: true, thumbnailUrl: true, duration: true,
+          creator: { select: { username: true, displayName: true } },
+        },
+      },
+    },
+    orderBy: { watchedAt: 'asc' },
+  });
+
+  if (history.length === 0) {
+    return res.json({ year, empty: true, totalItems: 0, totalSeconds: 0 });
+  }
+
+  const totalItems   = history.length;
+  const totalSeconds = history.reduce((acc, h) => acc + h.progress, 0);
+
+  // Top 5 by progress seconds
+  const sorted = [...history].sort((a, b) => b.progress - a.progress);
+  const topContent = await Promise.all(
+    sorted.slice(0, 5).map(async (h) => ({
+      ...h.content,
+      thumbnailUrl: await signR2Url(h.content.thumbnailUrl),
+      progress: h.progress,
+    })),
+  );
+
+  // Creator leaderboard
+  const creatorMap: Record<string, { username: string; displayName: string; seconds: number; count: number }> = {};
+  for (const h of history) {
+    const { username, displayName } = h.content.creator;
+    if (!creatorMap[username]) creatorMap[username] = { username, displayName: displayName || username, seconds: 0, count: 0 };
+    creatorMap[username].seconds += h.progress;
+    creatorMap[username].count  += 1;
+  }
+  const topCreator = Object.values(creatorMap).sort((a, b) => b.seconds - a.seconds)[0] ?? null;
+
+  // Type breakdown
+  const typeStats: Record<string, { count: number; seconds: number }> = {};
+  for (const h of history) {
+    const t = h.content.type;
+    if (!typeStats[t]) typeStats[t] = { count: 0, seconds: 0 };
+    typeStats[t].count   += 1;
+    typeStats[t].seconds += h.progress;
+  }
+  const topType = Object.entries(typeStats).sort((a, b) => b[1].seconds - a[1].seconds)[0]?.[0] ?? null;
+
+  // First content watched that year
+  const firstItem = history[0];
+  const firstContent = {
+    ...firstItem.content,
+    thumbnailUrl: await signR2Url(firstItem.content.thumbnailUrl),
+    watchedAt: firstItem.watchedAt,
+  };
+
+  res.json({ year, empty: false, totalItems, totalSeconds, topContent, topCreator, topType, typeStats, firstContent });
 }

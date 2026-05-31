@@ -3,6 +3,7 @@ import { prisma } from '../config/database';
 import { stripe } from '../config/stripe';
 import { AuthRequest } from '../middleware/auth';
 import { signR2Url } from '../utils/s3';
+import { awardXp } from '../utils/xp';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://campdaddyman.com';
 
@@ -30,6 +31,7 @@ export async function listProducts(req: Request, res: Response) {
   const signed = await Promise.all(products.map(async (p) => ({
     ...p,
     imageUrl: await signR2Url(p.imageUrl),
+    images: await Promise.all((p.images ?? []).map((u) => signR2Url(u))),
   })));
 
   res.json({ products: signed });
@@ -68,8 +70,101 @@ export async function getProduct(req: Request, res: Response) {
   if (!product) return res.status(404).json({ error: 'Product not found' });
 
   const imageUrl = await signR2Url(product.imageUrl);
+  const images = await Promise.all((product.images ?? []).map((u) => signR2Url(u)));
   const optionGroups = await signOptionGroupImages(product.optionGroups);
-  res.json({ product: { ...product, imageUrl, optionGroups } });
+  res.json({ product: { ...product, imageUrl, images, optionGroups } });
+}
+
+export async function getRelatedProducts(req: Request, res: Response) {
+  const { idOrSlug } = req.params;
+
+  const product = await prisma.product.findFirst({
+    where: { status: 'ACTIVE', OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+    select: { id: true, type: true, tags: true },
+  });
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+
+  const related = await prisma.product.findMany({
+    where: {
+      status: 'ACTIVE',
+      NOT: { id: product.id },
+      OR: [
+        ...(product.tags.length > 0 ? [{ tags: { hasSome: product.tags } }] : []),
+        { type: product.type },
+      ],
+    },
+    orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }],
+    take: 4,
+    include: { variants: true },
+  });
+
+  const signed = await Promise.all(related.map(async (p) => ({
+    ...p,
+    imageUrl: await signR2Url(p.imageUrl),
+  })));
+
+  res.json({ products: signed });
+}
+
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+
+export async function toggleWishlist(req: AuthRequest, res: Response) {
+  const { productId } = req.params;
+  const userId = req.user!.id;
+
+  const existing = await prisma.productWishlist.findUnique({
+    where: { userId_productId: { userId, productId } },
+  });
+
+  if (existing) {
+    await prisma.productWishlist.delete({ where: { id: existing.id } });
+    return res.json({ wishlisted: false });
+  }
+
+  const product = await prisma.product.findFirst({ where: { id: productId, status: 'ACTIVE' }, select: { id: true } });
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+
+  await prisma.productWishlist.create({ data: { userId, productId } });
+  res.json({ wishlisted: true });
+}
+
+export async function getWishlist(req: AuthRequest, res: Response) {
+  const items = await prisma.productWishlist.findMany({
+    where: { userId: req.user!.id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      product: { include: { variants: true } },
+    },
+  });
+
+  const shaped = await Promise.all(items.map(async (w) => ({
+    ...w.product,
+    imageUrl: await signR2Url(w.product.imageUrl),
+    wishlisted: true,
+  })));
+
+  res.json({ products: shaped });
+}
+
+// ── Back-in-stock ─────────────────────────────────────────────────────────────
+
+export async function subscribeBackInStock(req: AuthRequest, res: Response) {
+  const { id: productId } = req.params;
+  const email: string = req.body.email?.trim().toLowerCase();
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    return res.status(400).json({ error: 'Valid email required' });
+  }
+
+  const product = await prisma.product.findFirst({ where: { id: productId, status: 'ACTIVE' }, select: { id: true } });
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+
+  await prisma.backInStockRequest.upsert({
+    where: { productId_email: { productId, email } },
+    create: { productId, email, userId: req.user?.id ?? null, notified: false },
+    update: { notified: false },
+  });
+
+  res.json({ ok: true });
 }
 
 // ── Coupon validation (public) ────────────────────────────────────────────────
@@ -358,6 +453,11 @@ export async function handleWebhook(req: Request, res: Response) {
         data: { usedCount: { increment: 1 } },
       });
     }
+
+    // Award XP to logged-in buyer
+    if (order.userId) {
+      awardXp(order.userId, 'PURCHASE', orderId);
+    }
   }
 
   res.json({ received: true });
@@ -517,6 +617,12 @@ export async function adminUpdateProduct(req: AuthRequest, res: Response) {
   const { name, description, price, comparePrice, imageUrl, images, status, featured, releaseDate, tags, fileUrl, variants, optionGroups, memberDiscountEnabled } = req.body;
 
   try {
+    // Capture out-of-stock state before update so we can fire back-in-stock notifications
+    const oldVariants = variants !== undefined
+      ? await prisma.productVariant.findMany({ where: { productId: req.params.id }, select: { inventory: true } })
+      : null;
+    const wasOutOfStock = oldVariants ? oldVariants.every((v) => v.inventory <= 0) : false;
+
     const data: any = {};
     if (name !== undefined) {
       data.name = name;
@@ -557,6 +663,14 @@ export async function adminUpdateProduct(req: AuthRequest, res: Response) {
       data,
       include: { variants: true },
     });
+
+    // Fire back-in-stock notifications if product went from sold-out to in-stock
+    if (wasOutOfStock && product.variants.some((v) => v.inventory > 0)) {
+      prisma.backInStockRequest.updateMany({
+        where: { productId: req.params.id, notified: false },
+        data: { notified: true },
+      }).catch(() => {});
+    }
 
     res.json({ product });
   } catch (err: any) {

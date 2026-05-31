@@ -15,6 +15,7 @@ export interface User {
   isCreator: boolean;
   isTester?: boolean;
   emailVerified?: boolean;
+  xp?: number;
   subscription?: { plan: SubscriptionPlan; status: SubscriptionStatus; currentPeriodEnd?: string } | null;
 }
 
@@ -28,6 +29,8 @@ export interface Content {
   mediaUrl?: string;
   hlsUrl?: string;
   thumbnailUrl?: string;
+  previewUrl?: string;
+  chapters?: Array<{ time: number; label: string }> | null;
   duration?: number;
   tags: string[];
   views: number;
@@ -36,7 +39,17 @@ export interface Content {
 
   createdAt: string;
   creator: { username: string; displayName?: string; avatar?: string };
+  credits?: { id: string; role: string; user: { username: string; displayName?: string | null; avatar?: string | null } }[];
   _count?: { likes: number; comments: number };
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  avatar: string | null;
+  isKids: boolean;
+  order: number;
+  createdAt: string;
 }
 
 export interface Comment {
@@ -44,6 +57,7 @@ export interface Comment {
   text: string;
   createdAt: string;
   parentId?: string | null;
+  isPinned?: boolean;
   isLiked: boolean;
   _count: { likes: number; replies: number };
   user: { id: string; username: string; displayName?: string; avatar?: string };

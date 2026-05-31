@@ -12,6 +12,7 @@ import {
   sendTwoFactorEmail,
   sendNewDeviceLoginEmail,
 } from '../utils/email';
+import { sendReferralSignupEmail } from '../utils/email';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -88,20 +89,45 @@ export async function register(req: Request, res: Response) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const { email, username, password, displayName, deviceId, deviceLabel } = req.body;
+  const { email, username, password, displayName, deviceId, deviceLabel, referralCode } = req.body;
 
   const exists = await prisma.user.findFirst({
     where: { OR: [{ email }, { username }] },
   });
   if (exists) return res.status(400).json({ error: 'Email or username already taken' });
 
+  // Resolve referral
+  let referredById: string | undefined;
+  if (referralCode?.trim()) {
+    const referrer = await prisma.user.findUnique({
+      where: { username: referralCode.trim().toLowerCase() },
+      select: { id: true },
+    });
+    if (referrer) referredById = referrer.id;
+  }
+
   const hashed = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({
-    data: { email, username: username.toLowerCase(), password: hashed, displayName },
+    data: { email, username: username.toLowerCase(), password: hashed, displayName, referredById },
   });
 
   // Create free subscription
   await prisma.subscription.create({ data: { userId: user.id, plan: 'FREE', status: 'ACTIVE' } });
+
+  // Notify referrer
+  if (referredById) {
+    const referrer = await prisma.user.findUnique({
+      where: { id: referredById },
+      select: { email: true, username: true, displayName: true, emailVerified: true },
+    }).catch(() => null);
+    if (referrer?.emailVerified) {
+      sendReferralSignupEmail(
+        referrer.email,
+        referrer.displayName || referrer.username,
+        user.displayName || user.username,
+      ).catch(() => {});
+    }
+  }
 
   // Issue 2FA challenge to verify email ownership
   const ip = parseIp(req);
@@ -127,8 +153,35 @@ export async function login(req: Request, res: Response) {
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   if (user.isBanned) return res.status(403).json({ error: 'Account suspended', banned: true });
 
+  // Check account lockout
+  if ((user as any).lockedUntil && (user as any).lockedUntil > new Date()) {
+    const minutesLeft = Math.ceil(((user as any).lockedUntil.getTime() - Date.now()) / 60_000);
+    return res.status(423).json({
+      error: `Account locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.`,
+    });
+  }
+
   const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!match) {
+    const attempts = ((user as any).loginAttempts || 0) + 1;
+    const lockout = attempts >= 5 ? { lockedUntil: new Date(Date.now() + 30 * 60_000) } : {};
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { loginAttempts: attempts, ...lockout } as any,
+    });
+    const remaining = Math.max(0, 5 - attempts);
+    return res.status(401).json({
+      error: remaining > 0
+        ? `Invalid credentials. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before lockout.`
+        : 'Invalid credentials. Account locked for 30 minutes.',
+    });
+  }
+
+  // Successful auth — reset lockout counter
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { loginAttempts: 0, lockedUntil: null } as any,
+  });
 
   const ip = parseIp(req);
   const ua = req.headers['user-agent'];
@@ -360,7 +413,7 @@ export async function getMe(req: AuthRequest, res: Response) {
     select: {
       id: true, email: true, username: true, displayName: true,
       avatar: true, bio: true, isAdmin: true, isCreator: true,
-      emailVerified: true, createdAt: true,
+      emailVerified: true, createdAt: true, xp: true,
       subscription: { select: { plan: true, status: true, currentPeriodEnd: true } },
       _count: { select: { content: true, likes: true } },
     },
@@ -480,12 +533,67 @@ export async function forgotPassword(req: Request, res: Response) {
   res.json({ message: 'If that email exists, a reset link is on its way.' });
 }
 
+// ── Web Handoff (one-time admin panel deep-link) ──────────────────────────────
+
+export async function webHandoff(req: AuthRequest, res: Response) {
+  const code = crypto.randomUUID();
+  await prisma.token.create({
+    data: {
+      userId: req.user!.id,
+      type: 'WEB_HANDOFF',
+      token: code,
+      expiresAt: new Date(Date.now() + 60_000), // 60s TTL, single-use
+    },
+  });
+  res.json({ code });
+}
+
+export async function exchangeHandoff(req: Request, res: Response) {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Code required' });
+
+  const record = await prisma.token.findUnique({ where: { token: String(code) } });
+  if (!record || record.type !== 'WEB_HANDOFF' || record.expiresAt < new Date()) {
+    if (record) await prisma.token.delete({ where: { id: record.id } }).catch(() => {});
+    return res.status(400).json({ error: 'Invalid or expired handoff code' });
+  }
+
+  // Consume immediately — single-use
+  await prisma.token.delete({ where: { id: record.id } });
+
+  const user = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: {
+      id: true, email: true, username: true, displayName: true,
+      isAdmin: true, isTester: true, emailVerified: true,
+      subscription: { select: { plan: true, status: true } },
+    },
+  });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const ip = parseIp(req);
+  const ua = req.headers['user-agent'];
+  const jwtId = await createSession(user.id, 'web-admin-handoff', 'Web browser (admin)', ip, ua);
+  const token = signToken({ id: user.id, isAdmin: user.isAdmin }, jwtId);
+
+  res.json({
+    token,
+    user: {
+      id: user.id, email: user.email, username: user.username,
+      displayName: user.displayName, isAdmin: user.isAdmin, isTester: user.isTester,
+      emailVerified: user.emailVerified, subscription: user.subscription,
+    },
+  });
+}
+
 // ── Reset password ────────────────────────────────────────────────────────────
 
 export async function resetPassword(req: Request, res: Response) {
   const { token, password } = req.body;
   if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
-  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  if (!/[A-Z]/.test(password)) return res.status(400).json({ error: 'Password must contain at least one uppercase letter' });
+  if (!/[0-9]/.test(password)) return res.status(400).json({ error: 'Password must contain at least one number' });
 
   const record = await prisma.token.findUnique({
     where: { token: String(token) },

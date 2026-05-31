@@ -22,17 +22,25 @@ model User {
   isTester       Boolean @default(false)
   isBanned       Boolean @default(false)
   emailVerified  Boolean @default(false)
+  loginAttempts  Int       @default(0)
+  lockedUntil    DateTime?
 
   emailNewFollower Boolean @default(true)
   emailNewContent  Boolean @default(true)
   emailNewComment  Boolean @default(true)
   emailNewTip      Boolean @default(true)
 
+  pushNewFollower Boolean @default(true)
+  pushNewContent  Boolean @default(true)
+  pushNewComment  Boolean @default(true)
+  pushNewTip      Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   content      Content[]
   subscription Subscription?
+  profiles     Profile[]
   likes        Like[]
   comments     Comment[]
   watchHistory WatchHistory[]
@@ -57,7 +65,17 @@ model User {
   series                 Series[]
   seriesComments         SeriesComment[]
   pushSubscriptions      PushSubscription[]
+  expoPushTokens         ExpoPushToken[]
   liveStreams            LiveStream[]
+  contentCredits         ContentCredit[]
+  referredById           String?
+  referredBy             User?    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals              User[]   @relation("Referrals")
+  posts                  Post[]
+  wishlistItems          ProductWishlist[]
+  backInStockReqs        BackInStockRequest[]
+  xp                     Int              @default(0)
+  xpEvents               UserXpEvent[]
 }
 
 model Token {
@@ -80,6 +98,7 @@ enum TokenType {
   TWO_FACTOR_LOGIN
   TWO_FACTOR_REGISTER
   FORCE_SESSION
+  WEB_HANDOFF
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
@@ -126,6 +145,12 @@ model Content {
 
   featured  Boolean @default(false)
   rating    String? // "G" | "PG" | "PG-13" | "R" | "EXPLICIT" — null means NR
+  lyrics      String?
+  canvasUrl   String? // short looping background video for audio content
+  introStart  Int?    // seconds — when "Skip Intro" button appears
+  introEnd    Int?    // seconds — where playhead jumps to on skip
+  previewUrl  String? // short muted clip shown on hover in content rows
+  chapters    Json?   // Array of {time: number, label: string}
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -140,8 +165,8 @@ model Content {
   pollOptions   PollOption[]
   albumTracks    AlbumTrack[]
   playlistItems  PlaylistItem[]
-  episode        Episode?
-
+  credits        ContentCredit[]
+  profileHistory ProfileWatchHistory[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -264,6 +289,7 @@ model Comment {
   userId    String
   contentId String
   parentId  String?
+  isPinned  Boolean @default(false)
 
   user      User     @relation(fields: [userId],    references: [id], onDelete: Cascade)
   content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
@@ -317,6 +343,36 @@ model WatchHistory {
   @@index([userId])
 }
 
+// ── Profiles ─────────────────────────────────────────────────────────────────
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatar    String?  // hex color, e.g. "#e8b800"
+  isKids    Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  watchHistory ProfileWatchHistory[]
+
+  @@index([userId])
+}
+
+model ProfileWatchHistory {
+  id        String   @id @default(cuid())
+  profileId String
+  contentId String
+  progress  Int      @default(0)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  watchedAt DateTime @default(now())
+
+  @@unique([profileId, contentId])
+  @@index([profileId])
+}
+
 // ── Notifications ─────────────────────────────────────────────────────────────
 
 model Notification {
@@ -325,8 +381,10 @@ model Notification {
   type    NotificationType
   read    Boolean          @default(false)
 
-  actorId   String?
-  contentId String?
+  actorId       String?
+  contentId     String?
+  milestone     Int?
+  milestoneKind String?  // 'FOLLOWERS' | 'VIEWS'
 
   user    User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor   User?    @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
@@ -344,6 +402,7 @@ enum NotificationType {
   NEW_COMMENT   // someone commented on your content
   NEW_FOLLOWER  // someone followed you
   NEW_TIP       // someone tipped you
+  MILESTONE     // creator hit a follower or view count milestone
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────
@@ -494,12 +553,16 @@ model Ad {
   startsAt    DateTime
   endsAt      DateTime
   status      AdStatus  @default(PENDING)
-  impressions Int       @default(0)
-  clicks      Int       @default(0)
-  paidAmount  Float     @default(0)
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  impressions           Int       @default(0)
+  clicks                Int       @default(0)
+  paidAmount            Float     @default(0)
+  notes                 String?
+  stripeSessionId       String?   @unique
+  stripePaymentIntentId String?
+  refundId              String?
+  advertiserEmail       String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([placementId, status, startsAt, endsAt])
 }
@@ -518,7 +581,8 @@ enum PartnerStatus {
 }
 
 enum AdStatus {
-  PENDING
+  PENDING          // submitted, awaiting payment
+  PENDING_REVIEW   // paid, awaiting Drew's content approval
   ACTIVE
   PAUSED
   COMPLETED
@@ -545,14 +609,44 @@ model Product {
   optionGroups          Json?
   memberDiscountEnabled Boolean @default(false)
 
-  variants   ProductVariant[]
-  orderItems OrderItem[]
-  reviews    ProductReview[]
+  variants         ProductVariant[]
+  orderItems       OrderItem[]
+  reviews          ProductReview[]
+  wishlistItems    ProductWishlist[]
+  backInStockReqs  BackInStockRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, type])
+}
+
+model BackInStockRequest {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String?
+  email     String
+  notified  Boolean  @default(false)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([productId, email])
+  @@index([productId, notified])
+}
+
+model ProductWishlist {
+  id        String  @id @default(cuid())
+  userId    String
+  productId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
 }
 
 model ProductVariant {
@@ -768,6 +862,7 @@ model Series {
   description String?
   coverUrl    String?
   bannerUrl   String?
+  trailerUrl  String?
   genre       String?
   tags        String[]
   status      String          @default("ACTIVE") // ACTIVE | ARCHIVED
@@ -820,9 +915,15 @@ model Episode {
   id            String   @id @default(cuid())
   seasonId      String
   season        Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  contentId     String   @unique
-  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   episodeNumber Int
+  title         String
+  description   String?
+  thumbnailUrl  String?
+  mediaUrl      String?
+  hlsUrl        String?
+  duration      Int?
+  views         Int      @default(0)
+  rating        String?
   createdAt     DateTime @default(now())
 
   @@unique([seasonId, episodeNumber])
@@ -841,6 +942,79 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model ExpoPushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String   // "ios" | "android"
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ── Newsletter Subscribers ────────────────────────────────────────────────────
+
+model EmailSubscriber {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  source           String    @default("website")
+  unsubscribeToken String    @unique @default(cuid())
+  unsubscribed     Boolean   @default(false)
+  unsubscribedAt   DateTime?
+  subscribedAt     DateTime  @default(now())
+
+  @@index([unsubscribed])
+}
+
+// ── Content Credits ───────────────────────────────────────────────────────────
+
+model ContentCredit {
+  id        String  @id @default(cuid())
+  contentId String
+  userId    String
+  role      String  // e.g. "Featured Artist", "Producer", "Director"
+
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([contentId, userId])
+  @@index([contentId])
+  @@index([userId])
+}
+
+// ── Gamification ─────────────────────────────────────────────────────────────
+
+model UserXpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // 'LIKE' | 'COMMENT' | 'FOLLOW' | 'WATCH' | 'PURCHASE'
+  refId     String   // contentId, orderId, creatorId — dedup key
+  xp        Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type, refId])
+  @@index([userId])
+}
+
+// ── Creator Posts ─────────────────────────────────────────────────────────────
+
+model Post {
+  id        String   @id @default(cuid())
+  text      String
+  imageUrl  String?
+  creatorId String
+  creator   User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([creatorId])
+  @@index([createdAt(sort: Desc)])
 }
 
 // ── Live Streams ──────────────────────────────────────────────────────────────

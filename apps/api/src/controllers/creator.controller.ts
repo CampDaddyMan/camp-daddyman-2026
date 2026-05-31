@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { AuthRequest } from '../middleware/auth';
-import { notify } from '../utils/notifications';
+import { notify, checkFollowerMilestone } from '../utils/notifications';
 import { signR2Url } from '../utils/s3';
+import { awardXp } from '../utils/xp';
 
 export async function getCreator(req: AuthRequest, res: Response) {
   const creator = await prisma.user.findUnique({
@@ -63,6 +64,8 @@ export async function toggleFollow(req: AuthRequest, res: Response) {
   const followerCount = await prisma.follow.count({ where: { followingId: target.id } });
 
   notify({ userId: target.id, type: 'NEW_FOLLOWER', actorId: req.user!.id });
+  checkFollowerMilestone(target.id).catch(() => {});
+  awardXp(req.user!.id, 'FOLLOW', target.id);
 
   res.json({ following: true, followerCount });
 }

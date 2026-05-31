@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { ContentType, ContentStatus, Privacy } from '@/types';
 import Button from '@/components/ui/Button';
+import { getLevel } from '@/lib/xp';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -132,6 +133,57 @@ function EngagementChart({ data }: { data: ActivityDay[] }) {
       <div className="flex gap-4 mt-2 text-xs text-gray-500">
         <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#f8c202', opacity: 0.85 }} />Likes</span>
         <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: '#7c3aed', opacity: 0.5 }} />Comments</span>
+      </div>
+    </div>
+  );
+}
+
+// ── XP Level card ─────────────────────────────────────────────────────────────
+
+const LEVEL_EMOJI = ['🥚', '🐛', '🫘', '🦋'] as const;
+const LEVEL_COLORS = [
+  'from-stone-500/20 to-stone-600/10 border-stone-600/40',
+  'from-green-700/20 to-green-900/10 border-green-700/40',
+  'from-violet-700/20 to-violet-900/10 border-violet-700/40',
+  'from-brand-500/20 to-brand-600/10 border-brand-500/40',
+] as const;
+
+function XpCard({ xp }: { xp: number }) {
+  const { index, name, nextName, currentMin, nextMin, progress } = getLevel(xp);
+  const i = index - 1;
+  const pct = Math.round(progress * 100);
+
+  return (
+    <div className={`bg-gradient-to-br ${LEVEL_COLORS[i]} border rounded-xl p-5 mb-8`}>
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="text-4xl leading-none">{LEVEL_EMOJI[i]}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="text-white font-bold text-base">{name}</span>
+            <span className="text-xs text-gray-500 font-mono">{xp.toLocaleString()} XP</span>
+          </div>
+          {nextMin !== null ? (
+            <>
+              <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden mb-1.5">
+                <div
+                  className="h-full bg-brand-500 rounded-full transition-all duration-700"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                {(nextMin - xp).toLocaleString()} XP to <span className="text-brand-400 font-medium">{nextName}</span>
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-brand-400 font-medium">Max level achieved 🏆</p>
+          )}
+        </div>
+        <div className="text-right flex-shrink-0 hidden sm:block">
+          <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Earn XP by</p>
+          <p className="text-xs text-gray-500">Watching (+10) · Liking (+2)</p>
+          <p className="text-xs text-gray-500">Commenting (+5) · Following (+10)</p>
+          <p className="text-xs text-gray-500">Purchasing (+25)</p>
+        </div>
       </div>
     </div>
   );
@@ -296,6 +348,81 @@ function StatCard({ label, value, emoji }: { label: string; value: number; emoji
   );
 }
 
+// ── Milestone progress card ───────────────────────────────────────────────────
+
+const FOLLOWER_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 5000, 10000, 50000, 100000];
+const VIEW_MILESTONES     = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000];
+
+function nextMilestone(current: number, milestones: number[]) {
+  return milestones.find((m) => m > current) ?? null;
+}
+
+function prevMilestone(current: number, milestones: number[]) {
+  const passed = milestones.filter((m) => m <= current);
+  return passed[passed.length - 1] ?? 0;
+}
+
+function fmtMs(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString()}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toLocaleString()}K`;
+  return n.toLocaleString();
+}
+
+function MilestoneBar({ label, current, milestones, emoji }: { label: string; current: number; milestones: number[]; emoji: string }) {
+  const next = nextMilestone(current, milestones);
+  const prev = prevMilestone(current, milestones);
+
+  if (!next) {
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-2">
+          <span>{emoji}</span>
+          <span className="text-sm font-semibold text-white">{label}</span>
+          <span className="text-xs text-brand-400 font-bold ml-auto">All milestones hit! 🏆</span>
+        </div>
+        <div className="h-2 bg-surface-700 rounded-full overflow-hidden">
+          <div className="h-full bg-brand-500 rounded-full" style={{ width: '100%' }} />
+        </div>
+      </div>
+    );
+  }
+
+  const progress = prev === 0 ? (current / next) : ((current - prev) / (next - prev));
+  const pct = Math.min(Math.round(progress * 100), 100);
+
+  return (
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-2">
+        <span>{emoji}</span>
+        <span className="text-sm font-semibold text-white">{label}</span>
+        <span className="text-xs text-gray-500 ml-auto">{fmt(current)} / {fmtMs(next)}</span>
+      </div>
+      <div className="h-2 bg-surface-700 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-brand-500 rounded-full transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-xs text-gray-600 mt-1.5">
+        {fmtMs(next - current)} more to reach <span className="text-brand-400 font-semibold">{fmtMs(next)} {label.toLowerCase()}</span>
+      </p>
+    </div>
+  );
+}
+
+function MilestoneProgress({ followers, views }: { followers: number; views: number }) {
+  return (
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-5 mb-8">
+      <h2 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Milestone Progress</h2>
+      <div className="flex flex-col sm:flex-row gap-6">
+        <MilestoneBar label="Followers" current={followers} milestones={FOLLOWER_MILESTONES} emoji="👥" />
+        <div className="hidden sm:block w-px bg-surface-700" />
+        <MilestoneBar label="Views" current={views} milestones={VIEW_MILESTONES} emoji="👁️" />
+      </div>
+    </div>
+  );
+}
+
 // ── Edit content modal ────────────────────────────────────────────────────────
 
 function EditContentModal({
@@ -420,6 +547,8 @@ export default function DashboardPage() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [earnings, setEarnings]           = useState<EarningsData | null>(null);
+  const [referralCount, setReferralCount] = useState<number | null>(null);
+  const [linkCopied, setLinkCopied]       = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -443,6 +572,9 @@ export default function DashboardPage() {
         .then((r) => setEarnings(r.data))
         .catch(() => {});
     }
+    api.get('/referral')
+      .then((r) => setReferralCount(r.data.count))
+      .catch(() => {});
   }, [user, days]);
 
   async function handleDelete(id: string, title: string) {
@@ -631,13 +763,47 @@ export default function DashboardPage() {
       ) : data && (
         <>
           {/* ── Stats row ── */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <StatCard label="Total Views"     value={data.stats.totalViews}    emoji="👁️" />
             <StatCard label="Followers"        value={data.stats.followerCount} emoji="👥" />
             <StatCard label="Likes"            value={data.stats.totalLikes}    emoji="👍" />
             <StatCard label="Comments"         value={data.stats.totalComments} emoji="💬" />
             <StatCard label="Pieces Published" value={data.stats.totalContent}  emoji="🎵" />
           </div>
+
+          {/* ── XP Level card ── */}
+          <XpCard xp={(user as any).xp ?? 0} />
+
+          {/* ── Milestone progress ── */}
+          <MilestoneProgress followers={data.stats.followerCount} views={data.stats.totalViews} />
+
+          {/* ── Invite friends ── */}
+          {user && (
+            <div className="bg-surface-800 border border-surface-700 rounded-xl p-5 mb-8 flex items-center gap-5 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold mb-0.5">Invite friends to Camp DaddyMan</p>
+                <p className="text-gray-500 text-sm">Share your link — every person who joins via your link is tracked here.</p>
+                {referralCount !== null && referralCount > 0 && (
+                  <p className="text-brand-400 text-sm font-medium mt-1">{referralCount} referral{referralCount !== 1 ? 's' : ''} so far 🎉</p>
+                )}
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <div className="bg-surface-700 border border-surface-600 rounded-lg px-3 py-2 text-xs text-gray-400 font-mono truncate max-w-[180px]">
+                  campdaddyman.com/join/{user.username}
+                </div>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(`https://campdaddyman.com/join/${user.username}`).catch(() => {});
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2500);
+                  }}
+                  className="flex-shrink-0 bg-brand-500 hover:bg-brand-400 text-black font-semibold text-xs px-4 py-2 rounded-lg transition-colors"
+                >
+                  {linkCopied ? '✓ Copied!' : 'Copy link'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ── Earnings section (creators only) ── */}
           {earnings && (

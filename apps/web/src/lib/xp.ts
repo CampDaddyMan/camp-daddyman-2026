@@ -1,3 +1,12 @@
+export interface BadgeData {
+  key: string;
+  name: string;
+  emoji: string;
+  desc: string;
+  earned: boolean;
+  earnedAt: string | null;
+}
+
 export const LEVELS = [
   { name: 'The Egg',         min: 0    },
   { name: 'The Caterpillar', min: 100  },

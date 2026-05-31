@@ -118,7 +118,7 @@ export async function listUsers(req: Request, res: Response) {
         isAdmin: true, isCreator: true, isBanned: true, createdAt: true,
         xp: true, currentStreak: true, longestStreak: true,
         subscription: { select: { plan: true, status: true } },
-        _count: { select: { content: true, followers: true } },
+        _count: { select: { content: true, followers: true, badges: true } },
       },
     }),
     prisma.user.count({ where }),

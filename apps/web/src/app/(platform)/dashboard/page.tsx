@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { ContentType, ContentStatus, Privacy } from '@/types';
 import Button from '@/components/ui/Button';
-import { getLevel } from '@/lib/xp';
+import { getLevel, BadgeData } from '@/lib/xp';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -201,6 +201,52 @@ function XpCard({ xp, currentStreak, longestStreak }: { xp: number; currentStrea
           <p className="text-xs text-gray-500">Commenting (+5) · Following (+10)</p>
           <p className="text-xs text-gray-500">Purchasing (+25)</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Badges section ────────────────────────────────────────────────────────────
+
+function BadgesSection({ badges }: { badges: BadgeData[] }) {
+  const earned = badges.filter((b) => b.earned);
+  const locked = badges.filter((b) => !b.earned);
+
+  return (
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-5 mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider">Badges</h2>
+        <span className="text-xs text-gray-500">{earned.length} / {badges.length} earned</span>
+      </div>
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
+        {badges.map((b) => (
+          <div
+            key={b.key}
+            title={b.earned ? `${b.name}\n${b.desc}` : `${b.name} — ${b.desc}`}
+            className={`group relative flex flex-col items-center gap-1 rounded-xl p-2 transition-colors cursor-default ${
+              b.earned
+                ? 'bg-surface-700 border border-surface-600'
+                : 'bg-surface-900/50 border border-surface-800 opacity-40 grayscale'
+            }`}
+          >
+            <span className="text-2xl leading-none">{b.emoji}</span>
+            <span className={`text-[9px] text-center leading-tight font-medium truncate w-full text-center ${b.earned ? 'text-gray-300' : 'text-gray-600'}`}>
+              {b.name}
+            </span>
+            {/* Tooltip */}
+            <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 z-10 hidden group-hover:block pointer-events-none">
+              <div className="bg-black border border-surface-600 rounded-lg px-2.5 py-1.5 text-xs text-white whitespace-nowrap shadow-lg">
+                <p className="font-semibold">{b.name}</p>
+                <p className="text-gray-400">{b.desc}</p>
+                {b.earnedAt && (
+                  <p className="text-brand-400 text-[10px] mt-0.5">
+                    Earned {new Date(b.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -566,6 +612,7 @@ export default function DashboardPage() {
   const [earnings, setEarnings]           = useState<EarningsData | null>(null);
   const [referralCount, setReferralCount] = useState<number | null>(null);
   const [linkCopied, setLinkCopied]       = useState(false);
+  const [badges, setBadges]               = useState<BadgeData[]>([]);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -591,6 +638,9 @@ export default function DashboardPage() {
     }
     api.get('/referral')
       .then((r) => setReferralCount(r.data.count))
+      .catch(() => {});
+    api.get('/xp')
+      .then((r) => setBadges(r.data.badges ?? []))
       .catch(() => {});
   }, [user, days]);
 
@@ -794,6 +844,9 @@ export default function DashboardPage() {
             currentStreak={(user as any).currentStreak ?? 0}
             longestStreak={(user as any).longestStreak ?? 0}
           />
+
+          {/* ── Badges ── */}
+          {badges.length > 0 && <BadgesSection badges={badges} />}
 
           {/* ── Milestone progress ── */}
           <MilestoneProgress followers={data.stats.followerCount} views={data.stats.totalViews} />

@@ -76,6 +76,7 @@ model User {
   backInStockReqs        BackInStockRequest[]
   xp                     Int              @default(0)
   xpEvents               UserXpEvent[]
+  badges                 UserBadge[]
   currentStreak          Int              @default(0)
   longestStreak          Int              @default(0)
   lastStreakDate         DateTime?        @db.Date
@@ -1003,6 +1004,17 @@ model UserXpEvent {
   createdAt DateTime @default(now())
 
   @@unique([userId, type, refId])
+  @@index([userId])
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, badge])
   @@index([userId])
 }
 

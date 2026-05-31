@@ -22,7 +22,7 @@ interface AdminUser {
   isAdmin: boolean; isCreator: boolean; isBanned: boolean; createdAt: string;
   xp: number; currentStreak: number; longestStreak: number;
   subscription?: { plan: string; status: string } | null;
-  _count: { content: number; followers: number };
+  _count: { content: number; followers: number; badges: number };
 }
 
 interface AdminContent {
@@ -504,7 +504,11 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
                 <td className="px-4 py-3"><PlanBadge plan={u.subscription?.plan} /></td>
                 <td className="px-4 py-3 hidden md:table-cell">
                   <div className="text-xs text-white font-medium">{getLevel(u.xp ?? 0).name}</div>
-                  <div className="text-[10px] text-gray-500 font-mono">{(u.xp ?? 0).toLocaleString()} XP{u.currentStreak > 0 ? ` · 🔥${u.currentStreak}` : ''}</div>
+                  <div className="text-[10px] text-gray-500 font-mono">
+                    {(u.xp ?? 0).toLocaleString()} XP
+                    {u.currentStreak > 0 && ` · 🔥${u.currentStreak}`}
+                    {u._count.badges > 0 && ` · ${u._count.badges}🏅`}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-right hidden sm:table-cell">{u._count.content}</td>
                 <td className="px-4 py-3 text-gray-400 text-right hidden lg:table-cell">{u._count.followers}</td>

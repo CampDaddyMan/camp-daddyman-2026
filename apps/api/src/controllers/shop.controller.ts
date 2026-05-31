@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { stripe } from '../config/stripe';
 import { AuthRequest } from '../middleware/auth';
 import { signR2Url } from '../utils/s3';
-import { awardXp } from '../utils/xp';
+import { awardXp, checkBadges } from '../utils/xp';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://campdaddyman.com';
 
@@ -457,6 +457,7 @@ export async function handleWebhook(req: Request, res: Response) {
     // Award XP to logged-in buyer
     if (order.userId) {
       awardXp(order.userId, 'PURCHASE', orderId);
+      checkBadges(order.userId, 'PURCHASE');
     }
   }
 

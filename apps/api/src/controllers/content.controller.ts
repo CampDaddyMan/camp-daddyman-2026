@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { uploadToS3, deleteFromS3, getSignedMediaUrl, signR2Url, getDownloadUrl, extractKey } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers, checkViewMilestone } from '../utils/notifications';
-import { awardXp, updateStreak } from '../utils/xp';
+import { awardXp, updateStreak, checkBadges } from '../utils/xp';
 import { getTranscodeQueue } from '../config/queue';
 
 const CONTENT_SELECT = {
@@ -293,6 +293,7 @@ export async function likeContent(req: AuthRequest, res: Response) {
   }
 
   awardXp(req.user!.id, 'LIKE', req.params.id);
+  checkBadges(req.user!.id, 'LIKE');
   res.json({ liked: true });
 }
 
@@ -318,6 +319,7 @@ export async function commentOnContent(req: AuthRequest, res: Response) {
   if (content && !parentId) {
     notify({ userId: content.creatorId, type: 'NEW_COMMENT', actorId: req.user!.id, contentId: req.params.id });
     awardXp(req.user!.id, 'COMMENT', req.params.id);
+    checkBadges(req.user!.id, 'COMMENT');
   }
 
   res.status(201).json({
@@ -358,6 +360,7 @@ export async function saveProgress(req: AuthRequest, res: Response) {
   if (progress >= 30) {
     awardXp(req.user!.id, 'WATCH', req.params.id);
     updateStreak(req.user!.id);
+    checkBadges(req.user!.id, 'WATCH');
   }
 
   if (profileId) {

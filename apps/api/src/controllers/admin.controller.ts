@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { signR2Url } from '../utils/s3';
 import { sendAdminEmail } from '../utils/email';
+import { sendPushToAll } from './push.controller';
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,7 @@ export async function listUsers(req: Request, res: Response) {
       select: {
         id: true, email: true, username: true, displayName: true,
         isAdmin: true, isCreator: true, isBanned: true, createdAt: true,
+        xp: true, currentStreak: true, longestStreak: true,
         subscription: { select: { plan: true, status: true } },
         _count: { select: { content: true, followers: true } },
       },
@@ -238,6 +240,16 @@ export async function setContentStatus(req: Request, res: Response) {
     data: { status },
     select: { id: true, title: true, status: true },
   });
+
+  if (status === 'ACTIVE') {
+    sendPushToAll(
+      'New on Camp DaddyMan 🎵',
+      `"${content.title}" is now available`,
+      `/watch/${content.id}`,
+      'new-content',
+    ).catch(() => {});
+  }
+
   res.json({ content });
 }
 
@@ -266,6 +278,36 @@ export async function updateContent(req: Request, res: Response) {
   } catch {
     res.status(500).json({ error: 'Failed to update content' });
   }
+}
+
+export async function setContentCredits(req: Request, res: Response) {
+  const credits = req.body.credits as { username: string; role: string }[];
+  if (!Array.isArray(credits)) {
+    return res.status(400).json({ error: 'credits must be an array' });
+  }
+
+  const users = await Promise.all(
+    credits.map((c) =>
+      prisma.user.findUnique({ where: { username: c.username }, select: { id: true, username: true, displayName: true } })
+    )
+  );
+
+  const valid: { userId: string; role: string; username: string; displayName: string | null }[] = [];
+  for (let i = 0; i < credits.length; i++) {
+    const u = users[i];
+    if (u) valid.push({ userId: u.id, role: credits[i].role.trim() || 'Collaborator', username: u.username, displayName: u.displayName });
+  }
+
+  await prisma.contentCredit.deleteMany({ where: { contentId: req.params.id } });
+
+  if (valid.length > 0) {
+    await prisma.contentCredit.createMany({
+      data: valid.map((v) => ({ contentId: req.params.id, userId: v.userId, role: v.role })),
+      skipDuplicates: true,
+    });
+  }
+
+  res.json({ credits: valid });
 }
 
 // ── Reports ───────────────────────────────────────────────────────────────────

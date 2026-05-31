@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import { getLevel } from '@/lib/xp';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -19,12 +20,13 @@ interface OverviewData {
 interface AdminUser {
   id: string; username: string; email: string; displayName?: string;
   isAdmin: boolean; isCreator: boolean; isBanned: boolean; createdAt: string;
+  xp: number; currentStreak: number; longestStreak: number;
   subscription?: { plan: string; status: string } | null;
   _count: { content: number; followers: number };
 }
 
 interface AdminContent {
-  id: string; title: string; description?: string; type: string; status: string; privacy: string;
+  id: string; title: string; description?: string; lyrics?: string; canvasUrl?: string | null; previewUrl?: string | null; type: string; status: string; privacy: string;
   views: number; createdAt: string; mediaUrl?: string | null; thumbnailUrl?: string | null; tags?: string[];
   featured?: boolean;
   creator: { username: string; email: string };
@@ -478,6 +480,7 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
               <th className="px-5 py-3">User</th>
               <th className="px-4 py-3 hidden md:table-cell">Email</th>
               <th className="px-4 py-3">Plan</th>
+              <th className="px-4 py-3 hidden md:table-cell">Level</th>
               <th className="px-4 py-3 hidden sm:table-cell text-right">Content</th>
               <th className="px-4 py-3 hidden lg:table-cell text-right">Followers</th>
               <th className="px-4 py-3 hidden lg:table-cell">Joined</th>
@@ -499,6 +502,10 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
                 </td>
                 <td className="px-4 py-3 text-gray-400 hidden md:table-cell text-xs">{u.email}</td>
                 <td className="px-4 py-3"><PlanBadge plan={u.subscription?.plan} /></td>
+                <td className="px-4 py-3 hidden md:table-cell">
+                  <div className="text-xs text-white font-medium">{getLevel(u.xp ?? 0).name}</div>
+                  <div className="text-[10px] text-gray-500 font-mono">{(u.xp ?? 0).toLocaleString()} XP{u.currentStreak > 0 ? ` · 🔥${u.currentStreak}` : ''}</div>
+                </td>
                 <td className="px-4 py-3 text-gray-400 text-right hidden sm:table-cell">{u._count.content}</td>
                 <td className="px-4 py-3 text-gray-400 text-right hidden lg:table-cell">{u._count.followers}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{fmtDate(u.createdAt)}</td>
@@ -546,16 +553,29 @@ function EditContentModal({ item, onClose, onSaved }: {
 }) {
   const [title, setTitle]               = useState(item.title);
   const [description, setDesc]          = useState(item.description || '');
+  const [lyrics, setLyrics]             = useState(item.lyrics || '');
+  const [introStart, setIntroStart]     = useState<string>(String((item as any).introStart ?? ''));
+  const [introEnd, setIntroEnd]         = useState<string>(String((item as any).introEnd   ?? ''));
+  const [canvasUrl, setCanvasUrl]       = useState(item.canvasUrl || '');
+  const [canvasUploading, setCanvasUp]  = useState(false);
+  const canvasInputRef                  = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl]     = useState(item.previewUrl || '');
+  const [previewUploading, setPreviewUp] = useState(false);
+  const previewInputRef                 = useRef<HTMLInputElement>(null);
   const [type, setType]                 = useState(item.type);
   const [thumbnailUrl, setThumb]        = useState(item.thumbnailUrl || '');
   const [mediaUrl, setMediaUrl]         = useState(item.mediaUrl || '');
   const [privacy, setPrivacy]           = useState(item.privacy);
   const [tags, setTags]                 = useState((item.tags || []).join(', '));
   const [featured, setFeatured]         = useState(item.featured ?? false);
+  const [chapters, setChapters]         = useState<{ time: string; label: string }[]>(
+    ((item as any).chapters || []).map((c: { time: number; label: string }) => ({ time: String(c.time), label: c.label }))
+  );
   const [saving, setSaving]             = useState(false);
   const [uploading, setUploading]       = useState(false);
   const [mediaUploading, setMediaUp]    = useState(false);
   const [mediaProgress, setMediaProg]   = useState(0);
+  const [mediaUploadDone, setMediaDone] = useState(false);
   const [error, setError]               = useState('');
   const fileInputRef                    = useRef<HTMLInputElement>(null);
   const mediaInputRef                   = useRef<HTMLInputElement>(null);
@@ -608,14 +628,54 @@ function EditContentModal({ item, onClose, onSaved }: {
         },
       });
       setMediaUrl(data.mediaUrl);
-      // Propagate to parent immediately so the list reflects the new file
-      onSaved({ ...item, mediaUrl: data.mediaUrl });
+      setMediaDone(true);
+      setTimeout(() => setMediaDone(false), 4000);
     } catch {
       setError('Media upload failed');
     } finally {
       setMediaUp(false);
       setMediaProg(0);
       if (mediaInputRef.current) mediaInputRef.current.value = '';
+    }
+  }
+
+  async function handleCanvasUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCanvasUp(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('canvas', file);
+      const { data } = await api.post(`/content/${item.id}/canvas`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setCanvasUrl(data.canvasUrl);
+    } catch {
+      setError('Canvas upload failed');
+    } finally {
+      setCanvasUp(false);
+      if (canvasInputRef.current) canvasInputRef.current.value = '';
+    }
+  }
+
+  async function handlePreviewUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPreviewUp(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('preview', file);
+      const { data } = await api.post(`/content/${item.id}/preview`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPreviewUrl(data.previewUrl);
+    } catch {
+      setError('Preview upload failed');
+    } finally {
+      setPreviewUp(false);
+      if (previewInputRef.current) previewInputRef.current.value = '';
     }
   }
 
@@ -626,14 +686,20 @@ function EditContentModal({ item, onClose, onSaved }: {
     try {
       const payload: Record<string, any> = { title, privacy, type, featured };
       if (description !== (item.description || ''))   payload.description  = description;
+      if (lyrics !== (item.lyrics || ''))             payload.lyrics       = lyrics;
+      const parsedIntroStart = introStart !== '' ? Number(introStart) : null;
+      const parsedIntroEnd   = introEnd   !== '' ? Number(introEnd)   : null;
+      if (parsedIntroStart !== ((item as any).introStart ?? null)) payload.introStart = parsedIntroStart;
+      if (parsedIntroEnd   !== ((item as any).introEnd   ?? null)) payload.introEnd   = parsedIntroEnd;
       // Only include thumbnailUrl if manually pasted (upload already saved it to DB)
       if (!thumbUploadedRef.current && thumbnailUrl !== (item.thumbnailUrl || '')) {
         payload.thumbnailUrl = thumbnailUrl;
       }
       if (tags !== (item.tags || []).join(', ')) payload.tags = tags;
+      payload.chapters = chapters.filter(c => c.label.trim()).map(c => ({ time: Number(c.time) || 0, label: c.label.trim() })).sort((a, b) => a.time - b.time);
       const { data } = await api.patch(`/admin/content/${item.id}`, payload);
-      // Include the locally tracked mediaUrl so parent state reflects uploaded file
-      onSaved({ ...item, ...data.content, mediaUrl: mediaUrl || item.mediaUrl });
+      // Use locally tracked signed URLs — the PATCH response returns raw storage paths, not signed
+      onSaved({ ...item, ...data.content, mediaUrl: mediaUrl || item.mediaUrl, thumbnailUrl: thumbnailUrl || item.thumbnailUrl });
       onClose();
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Save failed');
@@ -723,11 +789,20 @@ function EditContentModal({ item, onClose, onSaved }: {
             {mediaUploading && (
               <div className="mb-2">
                 <div className="flex justify-between text-xs text-gray-400 mb-1">
-                  <span>Uploading...</span><span>{mediaProgress}%</span>
+                  {mediaProgress < 100
+                    ? <><span>Uploading…</span><span>{mediaProgress}%</span></>
+                    : <span className="text-yellow-400 animate-pulse">Processing — please wait…</span>}
                 </div>
                 <div className="h-1.5 bg-surface-600 rounded-full overflow-hidden">
-                  <div className="h-full bg-camp-500 rounded-full transition-all" style={{ width: `${mediaProgress}%` }} />
+                  {mediaProgress < 100
+                    ? <div className="h-full bg-brand-500 rounded-full transition-all duration-200" style={{ width: `${mediaProgress}%` }} />
+                    : <div className="h-full bg-yellow-500 rounded-full animate-pulse w-full" />}
                 </div>
+              </div>
+            )}
+            {mediaUploadDone && !mediaUploading && (
+              <div className="mb-2 flex items-center gap-2 text-xs text-green-400 font-semibold">
+                <span>✓</span><span>Audio uploaded successfully</span>
               </div>
             )}
             <button
@@ -736,7 +811,9 @@ function EditContentModal({ item, onClose, onSaved }: {
               disabled={mediaUploading}
               className="px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
             >
-              {mediaUploading ? `Uploading ${mediaProgress}%` : 'Replace File'}
+              {mediaUploading
+                ? mediaProgress < 100 ? `Uploading ${mediaProgress}%…` : 'Processing…'
+                : mediaUrl ? 'Replace File' : 'Upload File'}
             </button>
             <input
               ref={mediaInputRef}
@@ -787,6 +864,169 @@ function EditContentModal({ item, onClose, onSaved }: {
               rows={4}
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none"
             />
+          </div>
+
+          {/* Lyrics — audio types only */}
+          {['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(type) && (
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Lyrics / Transcript</label>
+              <textarea
+                value={lyrics}
+                onChange={(e) => setLyrics(e.target.value)}
+                rows={10}
+                placeholder={"[Verse 1]\nLine one...\n\n[Chorus]\nLine two..."}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-y font-mono"
+              />
+              <p className="text-xs text-gray-500 mt-1">Use plain text. Optional section labels like [Verse 1] are supported.</p>
+            </div>
+          )}
+
+          {/* Skip Intro timestamps — video types only */}
+          {['FILM'].includes(type) && (
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Skip Intro</label>
+              <p className="text-xs text-gray-500 mb-3">Set the intro window in seconds. A "Skip Intro" button appears when playback is inside this range.</p>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 block mb-1">Intro starts (sec)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={introStart}
+                    onChange={(e) => setIntroStart(e.target.value)}
+                    placeholder="e.g. 2"
+                    className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 block mb-1">Skip to (sec)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={introEnd}
+                    onChange={(e) => setIntroEnd(e.target.value)}
+                    placeholder="e.g. 90"
+                    className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Chapters — all video/audio types */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs text-gray-400 uppercase tracking-wide">Chapters</label>
+              <button
+                type="button"
+                onClick={() => setChapters(prev => [...prev, { time: '', label: '' }])}
+                className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+              >
+                + Add chapter
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">Clickable timestamp markers. Viewers jump to any chapter from the watch page.</p>
+            {chapters.length === 0 ? (
+              <p className="text-xs text-gray-600 italic">No chapters yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {chapters.map((ch, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      type="number" min={0}
+                      value={ch.time}
+                      onChange={(e) => setChapters(prev => prev.map((c, j) => j === i ? { ...c, time: e.target.value } : c))}
+                      placeholder="0"
+                      className="w-20 bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400"
+                    />
+                    <span className="text-gray-500 text-xs flex-shrink-0">sec</span>
+                    <input
+                      type="text"
+                      value={ch.label}
+                      onChange={(e) => setChapters(prev => prev.map((c, j) => j === i ? { ...c, label: e.target.value } : c))}
+                      placeholder="Chapter title"
+                      maxLength={80}
+                      className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setChapters(prev => prev.filter((_, j) => j !== i))}
+                      className="text-gray-600 hover:text-red-400 transition-colors px-1 flex-shrink-0"
+                    >✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Canvas video — audio types only */}
+          {['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(type) && (
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Canvas Video</label>
+              <p className="text-xs text-gray-500 mb-3">Short looping video (3–8s) shown as background on the audio player. MP4 or WebM, max 50MB.</p>
+              <div className="flex items-start gap-4">
+                {canvasUrl ? (
+                  <div className="relative w-24 flex-shrink-0 rounded-xl overflow-hidden bg-surface-900 border border-surface-600" style={{ aspectRatio: '9/16' }}>
+                    <video
+                      src={canvasUrl}
+                      autoPlay loop muted playsInline
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCanvasUrl('')}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-red-500 transition-colors"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <div className="w-24 flex-shrink-0 rounded-xl bg-surface-700 border border-surface-600 border-dashed flex items-center justify-center text-gray-600 text-2xl" style={{ aspectRatio: '9/16' }}>
+                    ▶
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => canvasInputRef.current?.click()}
+                    disabled={canvasUploading}
+                    className="px-4 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {canvasUploading ? 'Uploading...' : canvasUrl ? 'Replace Canvas' : 'Upload Canvas'}
+                  </button>
+                  <input ref={canvasInputRef} type="file" accept="video/mp4,video/webm" className="hidden" onChange={handleCanvasUpload} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hover Preview Clip */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Hover Preview Clip</label>
+            <p className="text-xs text-gray-500 mb-3">Short muted clip (5–30s) that auto-plays when users hover a card. MP4 or WebM, max 100MB.</p>
+            <div className="flex items-start gap-4">
+              {previewUrl ? (
+                <div className="relative w-32 flex-shrink-0 rounded-xl overflow-hidden bg-surface-900 border border-surface-600" style={{ aspectRatio: '16/9' }}>
+                  <video
+                    src={previewUrl}
+                    autoPlay loop muted playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPreviewUrl('')}
+                    className="absolute top-1 right-1 bg-black/70 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
+                  >×</button>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => previewInputRef.current?.click()}
+                disabled={previewUploading}
+                className="px-4 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                {previewUploading ? 'Uploading...' : previewUrl ? 'Replace Preview' : 'Upload Preview'}
+              </button>
+              <input ref={previewInputRef} type="file" accept="video/mp4,video/webm" className="hidden" onChange={handlePreviewUpload} />
+            </div>
           </div>
 
           {/* Privacy */}
@@ -1873,11 +2113,12 @@ const PARTNER_STATUS_COLORS: Record<string, string> = {
   SUSPENDED: 'bg-red-500/20 text-red-400',
 };
 const AD_STATUS_COLORS: Record<string, string> = {
-  PENDING:   'bg-yellow-500/20 text-yellow-400',
-  ACTIVE:    'bg-green-500/20 text-green-400',
-  PAUSED:    'bg-surface-600 text-gray-400',
-  COMPLETED: 'bg-blue-500/20 text-blue-400',
-  CANCELLED: 'bg-red-500/20 text-red-400',
+  PENDING:        'bg-yellow-500/20 text-yellow-400',
+  PENDING_REVIEW: 'bg-orange-500/20 text-orange-400',
+  ACTIVE:         'bg-green-500/20 text-green-400',
+  PAUSED:         'bg-surface-600 text-gray-400',
+  COMPLETED:      'bg-blue-500/20 text-blue-400',
+  CANCELLED:      'bg-red-500/20 text-red-400',
 };
 
 function PartnersTab() {
@@ -1952,6 +2193,26 @@ function PartnersTab() {
     setActing(id);
     await api.patch(`/partners/ads/${id}`, { status }).finally(() => setActing(null));
     setAds((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
+  }
+
+  async function handleApproveAd(id: string) {
+    setActing(id);
+    try {
+      await api.post(`/partners/ads/${id}/approve`);
+      setAds((prev) => prev.map((a) => a.id === id ? { ...a, status: 'ACTIVE' } : a));
+    } catch { alert('Failed to approve ad'); }
+    finally { setActing(null); }
+  }
+
+  async function handleRejectAd(id: string, title: string) {
+    const reason = prompt(`Rejection reason for "${title}" (optional, sent to advertiser):`);
+    if (reason === null) return; // user cancelled prompt
+    setActing(id);
+    try {
+      await api.post(`/partners/ads/${id}/reject`, { reason: reason || undefined });
+      setAds((prev) => prev.map((a) => a.id === id ? { ...a, status: 'CANCELLED' } : a));
+    } catch { alert('Failed to reject ad'); }
+    finally { setActing(null); }
   }
 
   async function handleDeleteAd(id: string) {
@@ -2131,6 +2392,14 @@ function PartnersTab() {
       {/* Ads list */}
       {!loading && view === 'ads' && (
         <div className="space-y-3">
+          {ads.filter((a) => a.status === 'PENDING_REVIEW').length > 0 && (
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
+              <span className="text-orange-400 text-lg">🔔</span>
+              <p className="text-orange-300 text-sm font-medium">
+                {ads.filter((a) => a.status === 'PENDING_REVIEW').length} ad{ads.filter((a) => a.status === 'PENDING_REVIEW').length !== 1 ? 's' : ''} pending your review
+              </p>
+            </div>
+          )}
           {ads.length === 0 && (
             <div className="text-center py-16 text-gray-500">
               <p className="text-4xl mb-3">📢</p>
@@ -2145,7 +2414,7 @@ function PartnersTab() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${AD_STATUS_COLORS[a.status] ?? 'bg-surface-600 text-gray-400'}`}>
-                        {a.status}
+                        {a.status === 'PENDING_REVIEW' ? 'Pending Review' : a.status}
                       </span>
                       <span className="text-xs text-gray-500">{fmtDate(a.startsAt)} – {fmtDate(a.endsAt)}</span>
                     </div>
@@ -2169,6 +2438,18 @@ function PartnersTab() {
                       className="text-xs px-3 py-1.5 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors">
                       Duplicate
                     </button>
+                    {a.status === 'PENDING_REVIEW' && (
+                      <>
+                        <button onClick={() => handleApproveAd(a.id)} disabled={acting === a.id}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40 font-semibold">
+                          ✓ Approve
+                        </button>
+                        <button onClick={() => handleRejectAd(a.id, a.title)} disabled={acting === a.id}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40 font-semibold">
+                          ✕ Reject
+                        </button>
+                      </>
+                    )}
                     {a.status === 'PENDING' && (
                       <button onClick={() => handleAdStatus(a.id, 'ACTIVE')} disabled={acting === a.id}
                         className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40">
@@ -5696,35 +5977,47 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
           <p>No series yet. Create your first one.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {seriesList.map((s) => (
-            <div key={s.id} className="flex items-center gap-4 bg-surface-800 border border-surface-700 rounded-2xl p-4">
-              <div className="w-12 h-16 bg-surface-700 rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl">
-                {s.coverUrl ? <img src={s.coverUrl} alt={s.title} className="w-full h-full object-cover" /> : '📺'}
+            <div key={s.id} className="bg-surface-800 border border-surface-700 rounded-2xl overflow-hidden">
+              {/* Thumbnail — full width */}
+              <div className="w-full aspect-video bg-surface-700 overflow-hidden">
+                {s.coverUrl
+                  ? <img src={s.coverUrl} alt={s.title} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">📺</div>
+                }
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold text-sm truncate">{s.title}</p>
-                <p className="text-gray-500 text-xs">
+              {/* Info + actions below image */}
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.status === 'ACTIVE' ? 'bg-green-500/15 text-green-400' : 'bg-surface-700 text-gray-500'}`}>
+                    {s.status.toLowerCase()}
+                  </span>
+                  {s.privacy !== 'PUBLIC' && (
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500">
+                      {s.privacy.replace('_', ' ').toLowerCase()}
+                    </span>
+                  )}
+                </div>
+                <p className="text-white font-bold text-base leading-snug mb-1">{s.title}</p>
+                <p className="text-gray-500 text-sm mb-4">
                   {s._count.seasons} season{s._count.seasons !== 1 ? 's' : ''}
                   {s.genre && ` · ${s.genre}`}
-                  {' · '}
-                  <span className={s.status === 'ACTIVE' ? 'text-brand-400' : 'text-gray-600'}>{s.status.toLowerCase()}</span>
-                  {s.privacy !== 'PUBLIC' && <span className="ml-1 text-yellow-600">· {s.privacy.replace('_', ' ').toLowerCase()}</span>}
                 </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <a href={`/series/${s.id}`} target="_blank" rel="noreferrer"
-                  className="text-xs px-3 py-1.5 bg-surface-700 text-gray-400 rounded-lg hover:bg-surface-600 transition-colors">
-                  View
-                </a>
-                <button onClick={() => openEdit(s)}
-                  className="text-xs px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors">
-                  Edit
-                </button>
-                <button onClick={() => handleDeleteSeries(s.id)}
-                  className="text-xs px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors">
-                  Delete
-                </button>
+                <div className="flex gap-2">
+                  <a href={`/series/${s.id}`} target="_blank" rel="noreferrer"
+                    className="flex-1 text-center text-sm py-2.5 bg-surface-700 text-gray-300 rounded-xl hover:bg-surface-600 transition-colors font-semibold">
+                    View
+                  </a>
+                  <button onClick={() => openEdit(s)}
+                    className="flex-1 text-sm py-2.5 bg-brand-500/20 text-brand-400 rounded-xl hover:bg-brand-500/30 transition-colors font-bold">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDeleteSeries(s.id)}
+                    className="flex-1 text-sm py-2.5 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500/20 transition-colors font-semibold">
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -5745,7 +6038,7 @@ interface AlbumRow {
 
 interface AlbumTrackRow {
   albumId: string; contentId: string; trackNumber: number; discNumber: number;
-  content: { id: string; title: string; duration: number | null; thumbnailUrl: string | null; creator: { username: string; displayName: string | null } };
+  content: { id: string; title: string; duration: number | null; thumbnailUrl: string | null; mediaUrl: string | null; privacy: string; status: string; views: number; creator: { username: string; displayName: string | null } };
 }
 
 interface MusicContent {
@@ -5765,6 +6058,12 @@ function AlbumsTab() {
   const [saving, setSaving]             = useState(false);
   const [coverFile, setCoverFile]       = useState<File | null>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const [newTrackForm, setNewTrackForm] = useState<{ title: string; description: string; duration: string; privacy: string; discNumber: string } | null>(null);
+  const [newTrackArt, setNewTrackArt]   = useState<File | null>(null);
+  const newTrackArtRef = useRef<HTMLInputElement>(null);
+  const [addingTrack, setAddingTrack]   = useState(false);
+  const [editingTrack, setEditingTrack] = useState<AdminContent | null>(null);
 
   const [form, setForm] = useState({ title: '', description: '', releaseDate: '', genre: '', privacy: 'PUBLIC', releaseType: 'ALBUM' });
 
@@ -5803,6 +6102,7 @@ function AlbumsTab() {
       }
       setAlbums((prev) => [created, ...prev]);
       setShowCreate(false); resetForm();
+      openEdit(created);
     } catch { } finally { setSaving(false); }
   }
 
@@ -5849,6 +6149,49 @@ function AlbumsTab() {
     setForm({ title: album.title, description: album.description || '', releaseDate: album.releaseDate ? album.releaseDate.slice(0, 10) : '', genre: album.genre || '', privacy: album.privacy, releaseType: album.releaseType || 'ALBUM' });
     setCoverFile(null);
     setShowCreate(false);
+  }
+
+  async function openTrackEdit(contentId: string) {
+    try {
+      const { data } = await api.get(`/content/${contentId}`);
+      const c = data.content;
+      setEditingTrack({
+        id: c.id, title: c.title, description: c.description || '', type: c.type,
+        status: c.status, privacy: c.privacy, views: c.views ?? 0, createdAt: c.createdAt ?? '',
+        mediaUrl: c.mediaUrl ?? null, thumbnailUrl: c.thumbnailUrl ?? null,
+        tags: c.tags ?? [], featured: c.featured ?? false,
+        creator: { username: c.creator?.username ?? '', email: c.creator?.email ?? '' },
+        _count: { likes: c._count?.likes ?? 0, comments: c._count?.comments ?? 0 },
+        credits: c.credits ?? [],
+      });
+    } catch {}
+  }
+
+  async function handleCreateTrack() {
+    if (!newTrackForm?.title.trim() || !editAlbum) return;
+    setAddingTrack(true);
+    try {
+      const fd = new FormData();
+      fd.append('title', newTrackForm.title.trim());
+      if (newTrackForm.description.trim()) fd.append('description', newTrackForm.description.trim());
+      if (newTrackForm.duration.trim()) {
+        const parts = newTrackForm.duration.trim().split(':');
+        const secs = parts.length === 2 ? Number(parts[0]) * 60 + Number(parts[1]) : Number(parts[0]);
+        if (!isNaN(secs) && secs > 0) fd.append('duration', String(secs));
+      }
+      fd.append('privacy', newTrackForm.privacy);
+      fd.append('discNumber', newTrackForm.discNumber || '1');
+      fd.append('trackNumber', String(tracks.length + 1));
+      if (newTrackArt) fd.append('thumbnail', newTrackArt);
+      const r = await api.post(`/albums/${editAlbum.id}/tracks/create`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const newTrack = r.data.track;
+      setTracks((prev) => [...prev, newTrack]);
+      setNewTrackForm(null);
+      setNewTrackArt(null);
+      openTrackEdit(newTrack.contentId);
+    } catch {} finally { setAddingTrack(false); }
   }
 
   function fmtDur(s: number | null) {
@@ -6015,13 +6358,23 @@ function AlbumsTab() {
         <div className="sm:col-span-2">
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Cover Art</label>
           <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} />
-          <button onClick={() => coverInputRef.current?.click()}
-            className="px-4 py-2 bg-surface-800 border border-surface-600 text-gray-400 rounded-xl text-sm hover:border-surface-400 transition-colors">
-            {coverFile ? coverFile.name : 'Choose image…'}
-          </button>
-          {editAlbum?.coverUrl && !coverFile && (
-            <span className="ml-3 text-xs text-gray-600">Current cover saved</span>
-          )}
+          <div className="flex items-center gap-3">
+            <button onClick={() => coverInputRef.current?.click()}
+              className="w-16 h-16 bg-surface-700 rounded-xl overflow-hidden flex items-center justify-center text-2xl flex-shrink-0 hover:ring-2 hover:ring-brand-400 transition-all">
+              {coverFile
+                ? <img src={URL.createObjectURL(coverFile)} alt="" className="w-full h-full object-cover" />
+                : editAlbum?.coverUrl
+                  ? <img src={editAlbum.coverUrl} alt="" className="w-full h-full object-cover" />
+                  : '🎵'}
+            </button>
+            <button onClick={() => coverInputRef.current?.click()}
+              className="px-4 py-2 bg-surface-800 border border-surface-600 text-gray-400 rounded-xl text-sm hover:border-surface-400 transition-colors">
+              {coverFile ? coverFile.name : editAlbum?.coverUrl ? 'Replace cover' : 'Choose image…'}
+            </button>
+            {coverFile && (
+              <button onClick={() => setCoverFile(null)} className="text-red-500 text-xs hover:text-red-400 transition-colors">Remove</button>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex gap-3 pt-2">
@@ -6050,19 +6403,126 @@ function AlbumsTab() {
         </button>
       </div>
 
-      {(showCreate && !editAlbum) && <AlbumForm />}
+      {(showCreate && !editAlbum) && AlbumForm()}
 
       {editAlbum && (
         <div className="space-y-4">
-          <AlbumForm />
+          {AlbumForm()}
 
           {/* Track management */}
           <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
-            <h3 className="text-white font-semibold text-sm">Tracklist — {editAlbum.title}</h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-semibold text-sm">Tracklist — {editAlbum.title}</h3>
+                <p className="text-gray-600 text-xs mt-0.5">{tracks.length} track{tracks.length !== 1 ? 's' : ''} · no limit</p>
+              </div>
+              {!newTrackForm && (
+                <button
+                  onClick={() => setNewTrackForm({ title: '', description: '', duration: '', privacy: 'PUBLIC', discNumber: '1' })}
+                  className="text-xs px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors font-semibold"
+                >
+                  + Add Track
+                </button>
+              )}
+            </div>
 
-            {/* Add track search */}
+            {/* New track form */}
+            {newTrackForm && (
+              <div className="bg-surface-800 border border-brand-500/30 rounded-2xl p-4 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-brand-500">New Track</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Title *</label>
+                    <input
+                      value={newTrackForm.title}
+                      onChange={(e) => setNewTrackForm((t) => t && { ...t, title: e.target.value })}
+                      placeholder="Track title"
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Duration</label>
+                    <input
+                      value={newTrackForm.duration}
+                      onChange={(e) => setNewTrackForm((t) => t && { ...t, duration: e.target.value })}
+                      placeholder="e.g. 3:45"
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-24">
+                      <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Disc #</label>
+                      <input
+                        value={newTrackForm.discNumber}
+                        onChange={(e) => setNewTrackForm((t) => t && { ...t, discNumber: e.target.value })}
+                        placeholder="1"
+                        className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Visibility</label>
+                      <select
+                        value={newTrackForm.privacy}
+                        onChange={(e) => setNewTrackForm((t) => t && { ...t, privacy: e.target.value })}
+                        className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
+                      >
+                        <option value="PUBLIC">Public</option>
+                        <option value="SUBSCRIBERS_ONLY">Members Only</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Description / Lyrics / Notes</label>
+                    <textarea
+                      value={newTrackForm.description}
+                      onChange={(e) => setNewTrackForm((t) => t && { ...t, description: e.target.value })}
+                      placeholder="Optional — lyrics, production credits, notes…"
+                      rows={3}
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Track Artwork</label>
+                    <input ref={newTrackArtRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => setNewTrackArt(e.target.files?.[0] || null)} />
+                    <div className="flex items-center gap-3">
+                      {newTrackArt && (
+                        <img src={URL.createObjectURL(newTrackArt)} alt="" className="w-14 h-14 rounded-xl object-cover border border-surface-600" />
+                      )}
+                      <button
+                        onClick={() => newTrackArtRef.current?.click()}
+                        className="px-4 py-2 bg-surface-700 border border-surface-600 text-gray-400 rounded-xl text-sm hover:border-surface-400 hover:text-gray-200 transition-colors"
+                      >
+                        {newTrackArt ? 'Change image' : 'Upload track artwork'}
+                      </button>
+                      {newTrackArt && (
+                        <button onClick={() => setNewTrackArt(null)} className="text-red-500 text-xs hover:text-red-400 transition-colors">Remove</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={handleCreateTrack}
+                    disabled={addingTrack || !newTrackForm.title.trim()}
+                    className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors"
+                  >
+                    {addingTrack ? 'Adding…' : 'Add to Tracklist'}
+                  </button>
+                  <button
+                    onClick={() => { setNewTrackForm(null); setNewTrackArt(null); }}
+                    className="px-5 py-2 bg-surface-700 text-gray-400 rounded-xl text-sm hover:bg-surface-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Link existing uploaded content */}
             <div className="relative">
-              <input value={musicSearch} onChange={(e) => setMusicSearch(e.target.value)} placeholder="Search your music to add tracks…"
+              <p className="text-xs text-gray-600 mb-1.5">Or link already-uploaded music:</p>
+              <input value={musicSearch} onChange={(e) => setMusicSearch(e.target.value)} placeholder="Search your uploaded tracks…"
                 className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 placeholder:text-gray-700" />
               {musicResults.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-surface-800 border border-surface-600 rounded-xl overflow-hidden shadow-xl">
@@ -6079,21 +6539,36 @@ function AlbumsTab() {
               )}
             </div>
 
+            {/* Track list */}
             {tracksLoading ? (
-              <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-12 bg-surface-800 rounded-xl animate-pulse" />)}</div>
+              <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-14 bg-surface-800 rounded-xl animate-pulse" />)}</div>
             ) : tracks.length === 0 ? (
-              <p className="text-gray-600 text-sm text-center py-4">No tracks yet. Search above to add songs.</p>
+              <p className="text-gray-600 text-sm text-center py-6">No tracks yet. Use "+ Add Track" above to build the tracklist.</p>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {tracks.sort((a, b) => a.discNumber - b.discNumber || a.trackNumber - b.trackNumber).map((t) => (
                   <div key={t.contentId} className="flex items-center gap-3 px-3 py-2.5 bg-surface-800 rounded-xl group">
-                    <span className="text-gray-600 text-xs w-5 text-center">{t.trackNumber}</span>
+                    <span className="text-gray-600 text-xs w-5 text-center flex-shrink-0">{t.trackNumber}</span>
+                    <button onClick={() => openTrackEdit(t.contentId)} className="w-10 h-10 rounded-lg overflow-hidden bg-surface-700 flex-shrink-0 flex items-center justify-center text-base hover:ring-2 hover:ring-brand-400 transition-all">
+                      {t.content.thumbnailUrl
+                        ? <img src={t.content.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                        : '🎵'}
+                    </button>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">{t.content.title}</p>
-                      <p className="text-xs text-gray-500">{fmtDur(t.content.duration)}</p>
+                      <p className="text-xs text-gray-500">
+                        {fmtDur(t.content.duration) || 'no duration'}
+                        {t.content.mediaUrl
+                          ? <span className="ml-2 text-green-500">● audio</span>
+                          : <span className="ml-2 text-yellow-600">○ no audio</span>}
+                      </p>
                     </div>
+                    <button onClick={() => openTrackEdit(t.contentId)}
+                      className="opacity-0 group-hover:opacity-100 text-brand-400 hover:text-brand-300 text-xs px-2 py-1 transition-all flex-shrink-0">
+                      Edit
+                    </button>
                     <button onClick={() => handleRemoveTrack(t.contentId)}
-                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 text-xs px-2 py-1 transition-all">
+                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 text-xs px-2 py-1 transition-all flex-shrink-0">
                       Remove
                     </button>
                   </div>
@@ -6116,11 +6591,11 @@ function AlbumsTab() {
         <div className="space-y-3">
           {albums.map((album) => (
             <div key={album.id} className="flex items-center gap-4 bg-surface-800 border border-surface-700 rounded-2xl p-4">
-              <div className="w-14 h-14 bg-surface-700 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl">
+              <button onClick={() => openEdit(album)} className="w-14 h-14 bg-surface-700 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl hover:ring-2 hover:ring-brand-400 transition-all">
                 {album.coverUrl ? (
                   <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover" />
                 ) : '🎵'}
-              </div>
+              </button>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-semibold text-sm truncate">{album.title}</p>
                 <p className="text-gray-500 text-xs">
@@ -6148,6 +6623,21 @@ function AlbumsTab() {
             </div>
           ))}
         </div>
+      )}
+
+      {editingTrack && (
+        <EditContentModal
+          item={editingTrack}
+          onClose={() => setEditingTrack(null)}
+          onSaved={(updated) => {
+            setEditingTrack(null);
+            setTracks((prev) => prev.map((t) =>
+              t.contentId === updated.id
+                ? { ...t, content: { ...t.content, title: updated.title, mediaUrl: updated.mediaUrl ?? null, thumbnailUrl: updated.thumbnailUrl ?? null } }
+                : t
+            ));
+          }}
+        />
       )}
     </div>
   );
@@ -7073,6 +7563,7 @@ function AdminInner() {
   const [tab, setTab]                   = useState<Tab>(urlTab || 'overview');
   const [userPlanFilter, setPlanFilter] = useState('ALL');
   const [autoCreatePoll]                = useState(urlTab === 'polls' && urlAction === 'create');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   function navTo(targetTab: Tab, plan?: string) {
     setPlanFilter(plan || 'ALL');
@@ -7102,22 +7593,22 @@ function AdminInner() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
+      <div className="flex items-center justify-between mb-4 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Camp DaddyMan platform management</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Admin Panel</h1>
+          <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Camp DaddyMan platform management</p>
         </div>
         <span className="text-xs bg-brand-500 text-black px-3 py-1.5 rounded-full font-bold">Admin</span>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-2 mb-8 border-b border-surface-700 pb-1">
+      {/* Tab bar — desktop */}
+      <div className="hidden md:flex gap-2 mb-8 border-b border-surface-700 pb-1 overflow-x-auto">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
               tab === t.key
                 ? 'bg-surface-800 text-white border border-surface-700 border-b-surface-800 -mb-px'
                 : 'text-gray-400 hover:text-white'
@@ -7126,6 +7617,42 @@ function AdminInner() {
             <span>{t.emoji}</span> {t.label}
           </button>
         ))}
+      </div>
+
+      {/* Tab bar — mobile navigation */}
+      <div className="md:hidden mb-5">
+        <button
+          onClick={() => setMobileMenuOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-surface-800 border border-surface-700 rounded-xl text-white transition-colors active:bg-surface-700"
+        >
+          <span className="flex items-center gap-2.5">
+            <span className="text-lg">{TABS.find((t) => t.key === tab)?.emoji}</span>
+            <span className="text-white font-bold text-sm">{TABS.find((t) => t.key === tab)?.label}</span>
+          </span>
+          <span className="flex items-center gap-1.5 text-brand-400 text-sm font-semibold">
+            {mobileMenuOpen ? 'Close ▲' : 'Switch ▼'}
+          </span>
+        </button>
+
+        {mobileMenuOpen && (
+          <div className="mt-1.5 bg-surface-800 border border-surface-700 rounded-xl overflow-hidden shadow-xl">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => { setTab(t.key); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors border-b border-surface-700/60 last:border-0 text-left ${
+                  tab === t.key
+                    ? 'bg-brand-500 text-black'
+                    : 'text-gray-300 hover:bg-surface-700'
+                }`}
+              >
+                <span className="w-6 text-center flex-shrink-0">{t.emoji}</span>
+                <span className="flex-1">{t.label}</span>
+                {tab === t.key && <span className="text-xs font-black opacity-50">✓</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {tab === 'overview'  && <OverviewTab onNav={navTo} />}

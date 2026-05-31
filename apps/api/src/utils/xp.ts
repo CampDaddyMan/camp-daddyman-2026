@@ -37,6 +37,42 @@ export function getLevel(xp: number) {
   };
 }
 
+/** Fire-and-forget streak update. Increments for a new day, resets on a missed day. Never throws. */
+export function updateStreak(userId: string) {
+  (async () => {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { currentStreak: true, longestStreak: true, lastStreakDate: true },
+    });
+    if (!user) return;
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    const last = user.lastStreakDate ? new Date(user.lastStreakDate) : null;
+    if (last) last.setUTCHours(0, 0, 0, 0);
+
+    // Already logged today
+    if (last && last.getTime() === today.getTime()) return;
+
+    const yesterday = new Date(today);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+
+    const newStreak = last && last.getTime() === yesterday.getTime()
+      ? user.currentStreak + 1   // consecutive day
+      : 1;                        // first time or missed a day
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        currentStreak: newStreak,
+        longestStreak: Math.max(user.longestStreak, newStreak),
+        lastStreakDate: today,
+      },
+    });
+  })().catch(() => {});
+}
+
 /** Fire-and-forget — awards xp once per (userId, type, refId). Never throws. */
 export function awardXp(userId: string, type: XpEventType, refId: string) {
   const xp = XP_VALUES[type];

@@ -148,15 +148,15 @@ const LEVEL_COLORS = [
   'from-brand-500/20 to-brand-600/10 border-brand-500/40',
 ] as const;
 
-function XpCard({ xp }: { xp: number }) {
-  const { index, name, nextName, currentMin, nextMin, progress } = getLevel(xp);
+function XpCard({ xp, currentStreak, longestStreak }: { xp: number; currentStreak: number; longestStreak: number }) {
+  const { index, name, nextName, nextMin, progress } = getLevel(xp);
   const i = index - 1;
   const pct = Math.round(progress * 100);
 
   return (
     <div className={`bg-gradient-to-br ${LEVEL_COLORS[i]} border rounded-xl p-5 mb-8`}>
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="text-4xl leading-none">{LEVEL_EMOJI[i]}</div>
+      <div className="flex items-start gap-4 flex-wrap">
+        <div className="text-4xl leading-none mt-0.5">{LEVEL_EMOJI[i]}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="text-white font-bold text-base">{name}</span>
@@ -178,6 +178,23 @@ function XpCard({ xp }: { xp: number }) {
             <p className="text-xs text-brand-400 font-medium">Max level achieved 🏆</p>
           )}
         </div>
+
+        {/* Streak */}
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[64px]">
+          <div className={`text-3xl leading-none ${currentStreak > 0 ? '' : 'opacity-30'}`}>
+            🔥
+          </div>
+          <span className={`text-xl font-black leading-none ${currentStreak > 0 ? 'text-brand-400' : 'text-gray-600'}`}>
+            {currentStreak}
+          </span>
+          <span className="text-[10px] text-gray-500 uppercase tracking-wide">
+            {currentStreak === 1 ? 'day' : 'days'}
+          </span>
+          {longestStreak > 0 && (
+            <span className="text-[10px] text-gray-600 mt-0.5">best {longestStreak}</span>
+          )}
+        </div>
+
         <div className="text-right flex-shrink-0 hidden sm:block">
           <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Earn XP by</p>
           <p className="text-xs text-gray-500">Watching (+10) · Liking (+2)</p>
@@ -772,7 +789,11 @@ export default function DashboardPage() {
           </div>
 
           {/* ── XP Level card ── */}
-          <XpCard xp={(user as any).xp ?? 0} />
+          <XpCard
+            xp={(user as any).xp ?? 0}
+            currentStreak={(user as any).currentStreak ?? 0}
+            longestStreak={(user as any).longestStreak ?? 0}
+          />
 
           {/* ── Milestone progress ── */}
           <MilestoneProgress followers={data.stats.followerCount} views={data.stats.totalViews} />

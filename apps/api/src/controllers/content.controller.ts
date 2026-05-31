@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { uploadToS3, deleteFromS3, getSignedMediaUrl, signR2Url, getDownloadUrl, extractKey } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 import { notify, notifyFollowers, checkViewMilestone } from '../utils/notifications';
-import { awardXp } from '../utils/xp';
+import { awardXp, updateStreak } from '../utils/xp';
 import { getTranscodeQueue } from '../config/queue';
 
 const CONTENT_SELECT = {
@@ -357,6 +357,7 @@ export async function saveProgress(req: AuthRequest, res: Response) {
 
   if (progress >= 30) {
     awardXp(req.user!.id, 'WATCH', req.params.id);
+    updateStreak(req.user!.id);
   }
 
   if (profileId) {

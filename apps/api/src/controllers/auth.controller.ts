@@ -414,6 +414,7 @@ export async function getMe(req: AuthRequest, res: Response) {
       id: true, email: true, username: true, displayName: true,
       avatar: true, bio: true, isAdmin: true, isCreator: true,
       emailVerified: true, createdAt: true, xp: true,
+      currentStreak: true, longestStreak: true,
       subscription: { select: { plan: true, status: true, currentPeriodEnd: true } },
       _count: { select: { content: true, likes: true } },
     },

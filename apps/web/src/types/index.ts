@@ -16,6 +16,8 @@ export interface User {
   isTester?: boolean;
   emailVerified?: boolean;
   xp?: number;
+  currentStreak?: number;
+  longestStreak?: number;
   subscription?: { plan: SubscriptionPlan; status: SubscriptionStatus; currentPeriodEnd?: string } | null;
 }
 

@@ -8,6 +8,10 @@ npx prisma migrate resolve \
   --rolled-back 20260520000000_add_poll_starts_at_multi_select \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 
+npx prisma migrate resolve \
+  --rolled-back 20260524000001_add_series_trailer_url \
+  --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
+
 npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma || {
   echo "WARNING: prisma migrate deploy failed."
   echo "The API will start anyway — only features using new tables may be affected."

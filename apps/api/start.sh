@@ -9,6 +9,14 @@ npx prisma migrate resolve \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 
 npx prisma migrate resolve \
+  --rolled-back 20260521000001_add_series_tables \
+  --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
+
+npx prisma migrate resolve \
+  --rolled-back 20260522000001_fill_schema_gaps \
+  --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
+
+npx prisma migrate resolve \
   --rolled-back 20260524000001_add_series_trailer_url \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 

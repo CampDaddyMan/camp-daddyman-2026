@@ -30,10 +30,10 @@ Theme: *"Do I have the right to be here?"*
 | 1 | Welcome to the Ark | I don't matter. | You do. | ✅ WRITTEN |
 | 2 | The Seed | Nothing I do matters. | It does. | ✅ WRITTEN |
 | 3 | The Weight | I'm alone in this. | You are not the first. | ✅ WRITTEN |
-| 4 | Not Your Wounds | I am what was done to me. | You are not your wounds. | 🗺️ FRAMEWORK |
-| 5 | No Ticket Needed | I have to earn the right to belong. | You don't. | 🗺️ FRAMEWORK |
-| 6 | Not Too Late | It's too late for me. | The chrysalis doesn't care how old the caterpillar is. | 🗺️ FRAMEWORK |
-| 7 | Knowing Comes Later | I don't know who I am. | You don't need to know yet. Knowing is the journey. | 🗺️ FRAMEWORK |
+| 4 | Not Your Wounds | I am what was done to me. | You are not your wounds. | ✅ WRITTEN |
+| 5 | No Ticket Needed | I have to earn the right to belong. | You don't. | ✅ WRITTEN |
+| 6 | Not Too Late | It's too late for me. | The chrysalis doesn't care how old the caterpillar is. | ✅ WRITTEN |
+| 7 | Knowing Comes Later | I don't know who I am. | You don't need to know yet. Knowing is the journey. | ✅ WRITTEN |
 | 8 | Nobody Came | If I was important, someone would have come for me. | Their absence does not measure your worth. | 🗺️ FRAMEWORK |
 | 9 | The Hidden Self | I must hide the real me to survive. | Hiding protected you once, but it cannot become your home. | 🗺️ FRAMEWORK |
 | 10 | The Pain Is Real | My pain makes me weak. | Pain means something real happened; weakness is not the same as woundedness. | 🗺️ FRAMEWORK |

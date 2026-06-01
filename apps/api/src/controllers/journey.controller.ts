@@ -192,13 +192,236 @@ Real things are heavy.`,
   },
 ];
 
-// ── Seed utility (called once on startup if DB is empty) ──────────────────────
+  {
+    dayNumber: 4,
+    phase: 'EGG',
+    title: 'Not Your Wounds',
+    lie: 'I am what was done to me.',
+    truth: 'You are not your wounds.',
+    body: `Something happened to you.
+
+We are not going to tell you it didn't.
+
+We are not going to tell you it made you stronger. Or that everything happens for a reason. Or that you should be grateful for the lessons.
+
+Something happened.
+
+And it changed you.
+
+—
+
+But changed is not the same as became.
+
+A wound marks the body that carries it. It alters the way certain things feel, certain rooms feel, certain kinds of touch feel.
+
+But the wound is not the body.
+
+The body was there before the wound arrived.
+
+And the body is still there now.
+
+—
+
+Somewhere along the way, the thing that happened to you stopped being something you carried and started being something you were.
+
+That is the lie.
+
+Not the wound — the wound is real.
+
+The lie is that the wound is you.
+
+—
+
+The butterfly's wings are not the scars of the caterpillar.
+
+They grew in the same body that survived everything the caterpillar survived.
+
+But they are not the damage.
+
+They are what was already there, waiting.`,
+    daddyManism: 'Dem mark yuh. Dem neva mek yuh.',
+    reflectionPrompt: 'What is one thing about you that existed before the wound? A quality, a way of seeing, a part of yourself that was there before what happened. Can you still find it?',
+    challengePrompt: 'Write a list of three things that are true about you that have nothing to do with what was done to you. Not achievements. Not roles. Who you are underneath. Take as long as you need.',
+    livityPrompt: 'Do something today for someone who has been marked by something hard. Not to fix it. Just to remind them that the mark is not the whole of them.',
+    journalPrompt: 'Who was I before the wound became the story I told about myself?',
+    closingText: "You are not what was done to you.\n\nYou are what survived it.\n\n—\n\nThe field was here before the storm.\n\nAnd it is still here now.",
+    published: true,
+  },
+  {
+    dayNumber: 5,
+    phase: 'EGG',
+    title: 'No Ticket Needed',
+    lie: 'I have to earn the right to belong.',
+    truth: "You don't.",
+    body: `You have been paying rent on a place that was always yours.
+
+Working to justify a space you were born with the right to occupy.
+
+Performing to earn a belonging that was never meant to be earned.
+
+—
+
+Think about how long you have been keeping that ledger.
+
+Everything you have done.
+
+Everything you have provided.
+
+Everything you have produced.
+
+And underneath all of it — the quiet belief that if you stopped, if you had nothing left to offer, you would not deserve to be here.
+
+—
+
+That belief arrived before you could question it.
+
+You did not choose it.
+
+But you have been paying it ever since.
+
+—
+
+The field does not ask what the rain has earned before it receives it.
+
+The soil does not require the seed to prove its worth.
+
+Belonging is not a wage.
+
+You were not born owing the debt you have spent your whole life trying to repay.
+
+—
+
+You can stop buying a ticket to a place you already have the right to be.`,
+    daddyManism: 'Yuh nuh haffi earn di right fi belong to di earth yuh was born on.',
+    reflectionPrompt: 'Where in your life are you still trying to earn something you already have? Where have you been performing belonging instead of simply being here?',
+    challengePrompt: 'Do one thing today for no reason other than that you wanted to. Not because it was productive. Not because it proved something. Just because you are allowed to want things.',
+    livityPrompt: 'Welcome someone today who looks like they are waiting to be told they belong here. You do not need to say it in words. Show it in how you treat them.',
+    journalPrompt: 'If I already belonged here — fully, without having to earn it — what would I stop doing? What would I start?',
+    closingText: "You were never in debt.\n\nYou were always already home.\n\n—\n\nStop knocking on a door that was never locked.",
+    published: true,
+  },
+  {
+    dayNumber: 6,
+    phase: 'EGG',
+    title: 'Not Too Late',
+    lie: "It's too late for me.",
+    truth: "The chrysalis doesn't care how old the caterpillar is.",
+    body: `You have done the math.
+
+You have counted the years that passed while you were somewhere else.
+
+The choices that took you in the wrong direction.
+
+The time spent becoming something you did not want to be.
+
+And the calculation comes out the same every time:
+
+Too late.
+
+—
+
+But the calculation has a flaw.
+
+It assumes transformation has a deadline.
+
+It doesn't.
+
+—
+
+The chrysalis does not ask the caterpillar when it arrived.
+
+It does not check how long the journey took, or how many wrong turns were made, or how much time was spent in the wrong place.
+
+It only asks: are you here now?
+
+—
+
+What was wasted was wasted. We are not going to pretend otherwise.
+
+But the field that remains is still a field.
+
+The late rain still reaches the ground.
+
+The seed planted in a season you thought had passed can still become something.
+
+—
+
+The only arrival that counts for nothing is the one you never make.`,
+    daddyManism: 'Di chrysalis nuh ask di caterpillar how long it tek fi get here.',
+    reflectionPrompt: "What have you told yourself is too late — that you haven't fully examined? Write it down. Then ask honestly: is that true, or is that the fear talking?",
+    challengePrompt: 'Take one step today toward something you told yourself you missed your chance at. Not the whole thing. One step. The size of the step does not matter. Only the direction.',
+    livityPrompt: 'Tell someone today that it is not too late for them. Someone who needs to hear it. Not as empty encouragement. As truth you actually believe. Mean every word.',
+    journalPrompt: 'What would I begin if I truly believed it was not too late?',
+    closingText: "The field doesn't count the years between the rain.\n\nIt only knows: did the rain come?\n\nYou came.\n\nThat is enough to begin.",
+    published: true,
+  },
+  {
+    dayNumber: 7,
+    phase: 'EGG',
+    title: 'Knowing Comes Later',
+    lie: "I don't know who I am.",
+    truth: "You don't need to know yet. Knowing is the journey.",
+    body: `You have been waiting to know.
+
+Waiting until you understood yourself — what you stood for, what you were made of, what name to give yourself.
+
+As if identity was something that had to be found first and lived second.
+
+As if you needed the answer before you could take the step.
+
+—
+
+But no one is born knowing.
+
+The caterpillar does not know it is a butterfly before it enters the chrysalis.
+
+The seed does not know it is a forest before it cracks open in the ground.
+
+Identity is not a prerequisite for becoming.
+
+It is the result of it.
+
+—
+
+You will not figure out who you are by thinking harder about it.
+
+You will figure it out by doing something.
+
+By choosing something.
+
+By refusing something.
+
+By showing up somewhere you were afraid to show up.
+
+By staying when everything in you wanted to leave.
+
+—
+
+You do not need to know who you are to take the next step.
+
+You need to take the next step to find out.
+
+—
+
+Knowing comes later.
+
+Begin anyway.`,
+    daddyManism: 'Yuh nuh haffi know yuh name fi answer when life call yuh.',
+    reflectionPrompt: 'What are you waiting to know or understand before you feel ready to begin? Name it. Then ask: is that a real prerequisite, or a reason to wait?',
+    challengePrompt: 'Do one thing today as if you already knew who you were — as if the question had been answered. Act from that place for just today. Notice what it feels like.',
+    livityPrompt: 'Ask someone what they are becoming. Not what they do. Not what they have. What they are becoming. Then listen like the answer matters — because it does.',
+    journalPrompt: 'What would I do today if I stopped waiting to know who I am?',
+    closingText: "The butterfly did not know its name inside the chrysalis.\n\nIt came out flying anyway.\n\n—\n\nKnowing comes later.\n\nBegin now.",
+    published: true,
+  },
+];
+
+// ── Seed utility — runs on every startup, skips days that already exist ────────
 
 export async function seedJourneyDays() {
-  const count = await prisma.journeyDay.count();
-  if (count > 0) return;
   await prisma.journeyDay.createMany({ data: SEED_DAYS, skipDuplicates: true });
-  console.log('[Journey] Seeded Days 1-3');
+  const count = await prisma.journeyDay.count();
+  console.log(`[Journey] Seed complete — ${count} days in DB`);
 }
 
 // ── User: get or start journey ────────────────────────────────────────────────

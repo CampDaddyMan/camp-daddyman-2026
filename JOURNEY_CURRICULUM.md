@@ -34,10 +34,10 @@ Theme: *"Do I have the right to be here?"*
 | 5 | No Ticket Needed | I have to earn the right to belong. | You don't. | ✅ WRITTEN |
 | 6 | Not Too Late | It's too late for me. | The chrysalis doesn't care how old the caterpillar is. | ✅ WRITTEN |
 | 7 | Knowing Comes Later | I don't know who I am. | You don't need to know yet. Knowing is the journey. | ✅ WRITTEN |
-| 8 | Nobody Came | If I was important, someone would have come for me. | Their absence does not measure your worth. | 🗺️ FRAMEWORK |
-| 9 | The Hidden Self | I must hide the real me to survive. | Hiding protected you once, but it cannot become your home. | 🗺️ FRAMEWORK |
-| 10 | The Pain Is Real | My pain makes me weak. | Pain means something real happened; weakness is not the same as woundedness. | 🗺️ FRAMEWORK |
-| 11 | Still Growing | I am too damaged to grow. | Damage is not destiny. | 🗺️ FRAMEWORK |
+| 8 | Nobody Came | If I was important, someone would have come for me. | Their absence does not measure your worth. | ✅ WRITTEN |
+| 9 | The Hidden Self | I must hide the real me to survive. | Hiding protected you once, but it cannot become your home. | ✅ WRITTEN |
+| 10 | The Pain Is Real | My pain makes me weak. | Pain means something real happened; weakness is not the same as woundedness. | ✅ WRITTEN |
+| 11 | Still Growing | I am too damaged to grow. | Damage is not destiny. | ✅ WRITTEN |
 | 12 | Seen Anyway | Nobody sees me. | Being unseen is not the same as being invisible. | 🗺️ FRAMEWORK |
 | 13 | Sleeping Wings | I have nothing good inside me. | The wings were already there. | 🗺️ FRAMEWORK |
 | 14 | Imaginal Cells | The part of me trying to become is the enemy. | The imaginal cells were attacked before they became wings. | 🗺️ FRAMEWORK |

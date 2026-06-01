@@ -412,6 +412,252 @@ Begin anyway.`,
     closingText: "The butterfly did not know its name inside the chrysalis.\n\nIt came out flying anyway.\n\n—\n\nKnowing comes later.\n\nBegin now.",
     published: true,
   },
+  {
+    dayNumber: 8,
+    phase: 'EGG',
+    title: 'Nobody Came',
+    lie: 'If I was important, someone would have come for me.',
+    truth: 'Their absence does not measure your worth.',
+    body: `You waited for someone to come.
+
+Maybe as a child. Maybe as an adult. Maybe both.
+
+You waited for the parent who was supposed to show up. The friend who was supposed to notice. The person who should have known something was wrong without being told.
+
+And they didn't come.
+
+—
+
+And in that silence, a conclusion formed.
+
+Not out loud. Not in words you chose.
+
+It arrived the way these things always arrive — quietly, before you were old enough to question it:
+
+If I mattered, someone would have come.
+
+—
+
+That conclusion is wrong.
+
+Not because the people who didn't come weren't supposed to.
+
+But because what they did or didn't do was never a measure of you.
+
+Their absence measures them.
+
+Not you.
+
+—
+
+People fail to show up for many reasons.
+
+Most of them have nothing to do with the person they didn't show up for.
+
+They were broken. They were scared. They were somewhere inside their own damage, with nothing left to see past it.
+
+You were not invisible because you lacked worth.
+
+You were unseen because they lacked vision.
+
+—
+
+Those are different things.
+
+And the distinction matters more than you know.`,
+    daddyManism: 'Dem nuh come nuh mean yuh nuh matter. It mean dem never have eyes fi see.',
+    reflectionPrompt: 'Who did you wait for that never came? And what conclusion did you draw from their absence about your own worth?',
+    challengePrompt: "Write a letter to the person who didn't come — not to send, just to say what you needed from them. Then write one sentence that is true: their absence was about them, not about you.",
+    livityPrompt: 'Show up for someone today who is not expecting you. Not because they asked. Because someone should have shown up for them a long time ago, and you can be that person now.',
+    journalPrompt: "What did I decide about my own worth because someone didn't come?",
+    closingText: "Their absence was never a verdict on you.\n\nIt was a verdict on them.\n\n—\n\nYou were worth coming for.\n\nSomebody just didn't know how to get there.",
+    published: true,
+  },
+  {
+    dayNumber: 9,
+    phase: 'EGG',
+    title: 'The Hidden Self',
+    lie: 'I must hide the real me to survive.',
+    truth: 'Hiding protected you once. It cannot become your home.',
+    body: `You learned early that certain things about you were not safe to show.
+
+Maybe it was a feeling. A way of thinking. A part of your personality that got met with ridicule, or punishment, or silence.
+
+And so you hid it.
+
+Not because you were weak. Because you were smart.
+
+Hiding was the right decision in that room.
+
+—
+
+But you are not in that room anymore.
+
+Or at least — you don't have to be.
+
+—
+
+The problem with hiding is that it works.
+
+It keeps you safe. It keeps the peace. It keeps the people around you comfortable.
+
+And somewhere in the years of it working, you forgot it was a strategy.
+
+It started to feel like survival.
+
+Then it started to feel like you.
+
+—
+
+But the hidden thing is still there.
+
+Still yours.
+
+It did not stop existing because you stopped showing it.
+
+—
+
+You do not have to throw the door open today.
+
+You do not have to perform vulnerability for anyone.
+
+But you do have to say, quietly, to yourself:
+
+The hiding was the shelter.
+
+Not the self.`,
+    daddyManism: "Di mask did save yuh once. But yuh cyan't live inna it forever.",
+    reflectionPrompt: 'What part of you did you learn to hide? When did you learn to hide it? What were you afraid would happen if people saw it?',
+    challengePrompt: "Show one real thing today to one safe person. It doesn't have to be your deepest truth. Just something you would normally keep hidden. Notice whether the world ends. It won't.",
+    livityPrompt: 'Create a space today where someone else feels safe enough to be real. Ask a question that invites honesty. Hold what they give you carefully.',
+    journalPrompt: "What have I been hiding that I'm ready to let someone see?",
+    closingText: "The hiding kept you safe.\n\nBut safety is not the same as home.\n\n—\n\nThe real you has been waiting.\n\nIt is still there.",
+    published: true,
+  },
+  {
+    dayNumber: 10,
+    phase: 'EGG',
+    title: 'The Pain Is Real',
+    lie: 'My pain makes me weak.',
+    truth: 'Pain means something real happened. Weakness is not the same as woundedness.',
+    body: `There is a kind of strength that is not strength at all.
+
+It is performance.
+
+It is the face you hold while something breaks underneath.
+
+It is the "I'm fine" you have said so many times you started to believe it.
+
+It is the belief that feeling pain makes you weak — and that the solution is to feel less.
+
+—
+
+But pain is not weakness.
+
+Pain is information.
+
+It means something real happened.
+
+It means something in you was built to register damage — and it is doing exactly what it was built to do.
+
+—
+
+The person who touches fire and does not feel it is not strong.
+
+They are numb.
+
+And numbness is not a destination. It is a wound wearing a disguise.
+
+—
+
+Your pain is not evidence of failure.
+
+It is evidence that you were present for something that cost you.
+
+That you were there. That it mattered. That you are not made of stone.
+
+—
+
+You are allowed to hurt.
+
+The hurt does not mean you are losing.
+
+It means you are real.`,
+    daddyManism: 'Di one who feel pain is not weak. Di one who feel nothing — dat is di one in trouble.',
+    reflectionPrompt: 'Where are you performing strength right now instead of feeling what is actually there? What are you calling weakness that might just be humanness?',
+    challengePrompt: "Name one thing today that has been hurting that you have been pretending isn't. You don't have to tell anyone. Just tell yourself the truth about it.",
+    livityPrompt: 'Sit with someone who is hurting today. You do not need to fix it or explain it. Just stay. Your presence is the thing.',
+    journalPrompt: 'What pain have I been calling weakness that deserves to be called real?',
+    closingText: "You are not weak because you hurt.\n\nYou are human.\n\n—\n\nThe field feels the rain.\n\nThat is how it knows it is still alive.",
+    published: true,
+  },
+  {
+    dayNumber: 11,
+    phase: 'EGG',
+    title: 'Still Growing',
+    lie: 'I am too damaged to grow.',
+    truth: 'Damage is not destiny.',
+    body: `You have decided something about yourself.
+
+Not out loud. Not formally.
+
+But somewhere underneath the daily business of living, a determination was made:
+
+This is as far as I go.
+
+The damage is too deep.
+
+The patterns are too old.
+
+The window for becoming something different has closed.
+
+—
+
+That determination is the lie.
+
+Not the damage — the damage is real.
+
+The lie is that damage is the last word.
+
+—
+
+Consider the field.
+
+A field that has been flooded, or burned, or left untended for years looks like evidence that nothing will grow there again.
+
+But that is not what the evidence says.
+
+What it says is: something happened here.
+
+It does not say: nothing can happen here again.
+
+—
+
+You are not your worst season.
+
+You are not the sum of what broke you.
+
+You are a field that has been through something.
+
+And fields that have been through something — if they receive water, if they receive tending — grow things that fields that never suffered cannot.
+
+The roots go deeper.
+
+The soil holds more.
+
+—
+
+You are not too damaged to grow.
+
+You are deeply rooted.`,
+    daddyManism: "Damage is not di end of di story. Sometimes a just di beginning of di real one.",
+    reflectionPrompt: 'Where have you decided growth is no longer possible for you? What made you draw that line? When did damage become destiny in your mind?',
+    challengePrompt: 'Find one example — from history, from someone you know, from your own life — of something growing after damage. Let it be evidence. You are not the exception to this pattern.',
+    livityPrompt: 'Tell someone who has given up on their own growth that it is not over. Not with advice. With your presence and your belief in them.',
+    journalPrompt: 'What would I try if I believed damage was not my destiny?',
+    closingText: "You are not your worst season.\n\nYou are the field that survived it.\n\n—\n\nDeep roots grow in hard ground.\n\nYou are more ready than you know.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

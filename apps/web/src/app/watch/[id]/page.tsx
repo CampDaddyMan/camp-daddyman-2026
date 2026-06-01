@@ -586,6 +586,7 @@ export default function WatchPage() {
   }
 
   function handleProgress(secs: number) {
+    if (!content) return;
     currentProgressRef.current = secs;
     const c = content as any;
     if (c?.introStart != null && c?.introEnd != null) {

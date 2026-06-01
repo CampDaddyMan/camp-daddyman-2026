@@ -190,8 +190,6 @@ Real things are heavy.`,
     closingText: "You are not the first to carry this.\n\nYou will not be the last.\n\nBut today — you carried it forward.\n\nAnd the field remembers every step.",
     published: true,
   },
-];
-
   {
     dayNumber: 4,
     phase: 'EGG',

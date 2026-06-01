@@ -1,6 +1,11 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function resendClient(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
+const resend = { emails: { send: (opts: any) => resendClient().emails.send(opts) } };
 
 const FROM    = process.env.EMAIL_FROM    || 'Camp DaddyMan <onboarding@resend.dev>';
 const APP_URL = process.env.FRONTEND_URL  || 'http://localhost:3000';
@@ -277,6 +282,49 @@ export async function sendTipReceivedEmail(
   });
 }
 
+export async function sendGiftReceivedEmail(
+  to: string,
+  recipientUsername: string,
+  buyerDisplay: string,
+  planLabel: string,
+  message?: string | null,
+) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `You've been gifted a Camp DaddyMan membership! 🎁`,
+    html: base('You received a gift membership', `
+      ${h2('You just got a gift! 🎁')}
+      ${p(`Hey ${recipientUsername}, <strong style="color:#fff;">${buyerDisplay}</strong> just gifted you a <strong style="color:#f8c202;">${planLabel}</strong> on ${APP_NAME}. Your membership is active right now.`)}
+      ${message ? `<div style="background:#0f0f17;border:1px solid #2e2e3e;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+        <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">A message for you</p>
+        <p style="margin:0;color:#d0d0e0;font-size:15px;line-height:1.6;font-style:italic;">"${message}"</p>
+      </div>` : ''}
+      ${btn(APP_URL + '/browse', 'Start Watching Now')}
+      ${p(`<span style="font-size:13px;color:#555;">Your membership is already active — no action needed. Just log in and enjoy.</span>`)}
+    `),
+  });
+}
+
+export async function sendGiftConfirmedEmail(
+  to: string,
+  buyerUsername: string,
+  recipientEmail: string,
+  planLabel: string,
+) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Your Camp DaddyMan gift is confirmed 🎁`,
+    html: base('Gift confirmed', `
+      ${h2('Your gift is live!')}
+      ${p(`Hey ${buyerUsername}, your gift of a <strong style="color:#f8c202;">${planLabel}</strong> for <strong style="color:#fff;">${recipientEmail}</strong> has been activated. They can log in right now and access all members-only content.`)}
+      ${btn(APP_URL + '/gift', 'Give another gift')}
+      ${p(`<span style="font-size:13px;color:#555;">This was a one-time payment — no recurring charges. Thank you for spreading the Camp DaddyMan love.</span>`)}
+    `),
+  });
+}
+
 export async function sendNewContentEmail(
   to: string,
   recipientUsername: string,
@@ -297,6 +345,129 @@ export async function sendNewContentEmail(
         <p style="margin:0;color:#fff;font-size:15px;font-weight:600;">${contentTitle}</p>
       </div>
       ${btn(url, 'Watch now')}
+    `),
+  });
+}
+
+export async function sendReferralSignupEmail(to: string, recipientName: string, newUserName: string) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `${newUserName} just joined Camp DaddyMan using your invite link 🎉`,
+    html: base('Your referral joined!', `
+      ${h2('Your invite worked!')}
+      ${p(`Hey ${recipientName}, <strong style="color:#fff;">${newUserName}</strong> just signed up for Camp DaddyMan using your invite link. The family keeps growing!`)}
+      ${btn(`${APP_URL}/dashboard`, 'See your referrals')}
+    `),
+  });
+}
+
+export async function sendNewsletterWelcomeEmail(to: string, name: string | null, unsubscribeToken: string) {
+  const unsubUrl = `${APP_URL}/newsletter/unsubscribe?token=${unsubscribeToken}`;
+  const greeting = name ? `Hey ${name},` : 'Hey there,';
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Welcome to the Camp DaddyMan family 🎵`,
+    html: base('Welcome to Camp DaddyMan', `
+      ${h2('You\'re in the family now.')}
+      ${p(`${greeting} thanks for joining the Camp DaddyMan newsletter. You'll be the first to know about new music, films, podcasts, and exclusive drops.`)}
+      ${btn(`${APP_URL}/browse`, 'Explore Camp DaddyMan')}
+      <p style="margin:32px 0 0;color:#555;font-size:12px;text-align:center;">
+        Don't want these emails? <a href="${unsubUrl}" style="color:#888;text-decoration:underline;">Unsubscribe</a>
+      </p>
+    `),
+  });
+}
+
+// ── Ad booking emails ─────────────────────────────────────────────────────────
+
+export async function sendAdBookingConfirmation(to: string, contactName: string, adTitle: string, placement: string, startsAt: string, endsAt: string, amountPaid: number) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Ad Booking Received — "${adTitle}" is pending review`,
+    html: base('Ad Booking Received', `
+      ${h2('Your ad booking is confirmed!')}
+      ${p(`Hey ${contactName}, we received your ad submission and payment. Your creative is now pending review — we'll get back to you within 1 business day.`)}
+      <table cellpadding="0" cellspacing="0" style="margin-bottom:20px;width:100%;">
+        ${[
+          ['Ad Title',   adTitle],
+          ['Placement',  placement],
+          ['Start Date', startsAt],
+          ['End Date',   endsAt],
+          ['Amount Paid', `$${amountPaid.toFixed(2)}`],
+        ].map(([label, val]) => `<tr>
+          <td style="padding:6px 0;color:#888;font-size:13px;width:110px;">${label}</td>
+          <td style="padding:6px 0;color:#fff;font-size:13px;">${val}</td>
+        </tr>`).join('')}
+      </table>
+      ${p('We\'ll email you once your ad has been reviewed. Questions? Reply to this email.')}
+    `),
+  });
+}
+
+export async function sendAdPendingReviewToAdmin(adId: string, companyName: string, contactEmail: string, adTitle: string, placement: string, startsAt: string, endsAt: string, amountPaid: number, linkUrl: string, imageUrl?: string | null) {
+  const adminEmail = process.env.CONTACT_EMAIL || process.env.EMAIL_FROM;
+  if (!adminEmail) return;
+  const adminUrl = `${APP_URL}/admin?tab=ads`;
+  await resend.emails.send({
+    from: FROM,
+    to: adminEmail,
+    replyTo: contactEmail,
+    subject: `New Ad Submission — "${adTitle}" by ${companyName} — Needs Review`,
+    html: base('New Ad Submission', `
+      ${h2('New ad submission — action required')}
+      ${p(`A new ad has been paid for and is waiting for your approval.`)}
+      <table cellpadding="0" cellspacing="0" style="margin-bottom:20px;width:100%;">
+        ${[
+          ['Company',    companyName],
+          ['Contact',    `<a href="mailto:${contactEmail}" style="color:#a78bfa;">${contactEmail}</a>`],
+          ['Ad Title',   adTitle],
+          ['Placement',  placement],
+          ['Start Date', startsAt],
+          ['End Date',   endsAt],
+          ['Paid',       `$${amountPaid.toFixed(2)}`],
+          ['Link URL',   `<a href="${linkUrl}" style="color:#f8c202;">${linkUrl}</a>`],
+        ].map(([label, val]) => `<tr>
+          <td style="padding:6px 0;color:#888;font-size:13px;width:110px;">${label}</td>
+          <td style="padding:6px 0;color:#fff;font-size:13px;">${val}</td>
+        </tr>`).join('')}
+      </table>
+      ${imageUrl ? `<p style="margin:0 0 16px;color:#888;font-size:13px;">Ad Image:</p><img src="${imageUrl}" style="max-width:100%;border-radius:8px;margin-bottom:20px;" />` : ''}
+      ${btn(`${adminUrl}`, 'Review in Admin Panel')}
+    `),
+  });
+}
+
+export async function sendAdApproved(to: string, contactName: string, adTitle: string, startsAt: string, endsAt: string) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Your ad "${adTitle}" is approved and live!`,
+    html: base('Ad Approved', `
+      ${h2('Your ad is live! 🎉')}
+      ${p(`Hey ${contactName}, great news — your ad "<strong style="color:#fff;">${adTitle}</strong>" has been approved and is now live on Camp DaddyMan.`)}
+      ${p(`It will run from <strong style="color:#fff;">${startsAt}</strong> through <strong style="color:#fff;">${endsAt}</strong>.`)}
+      ${btn(`${APP_URL}/browse`, 'Visit Camp DaddyMan')}
+    `),
+  });
+}
+
+export async function sendAdRejected(to: string, contactName: string, adTitle: string, reason?: string | null) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Update on your ad submission — "${adTitle}"`,
+    html: base('Ad Submission Update', `
+      ${h2('We couldn\'t approve this ad')}
+      ${p(`Hey ${contactName}, after reviewing your ad "<strong style="color:#fff;">${adTitle}</strong>", we were unable to approve it for the Camp DaddyMan platform.`)}
+      ${reason ? `<div style="background:#0f0f17;border:1px solid #2e2e3e;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+        <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Reason</p>
+        <p style="margin:0;color:#d0d0e0;font-size:14px;line-height:1.6;">${reason}</p>
+      </div>` : ''}
+      ${p('A full refund has been issued to your original payment method. You should see it within 5–10 business days.')}
+      ${p('If you\'d like to revise your creative and resubmit, reply to this email and we\'ll get you set up.')}
     `),
   });
 }

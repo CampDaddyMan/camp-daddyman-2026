@@ -21,6 +21,7 @@ interface AdminUser {
   id: string; username: string; email: string; displayName?: string;
   isAdmin: boolean; isCreator: boolean; isBanned: boolean; createdAt: string;
   xp: number; currentStreak: number; longestStreak: number;
+  station?: string | null;
   subscription?: { plan: string; status: string } | null;
   _count: { content: number; followers: number; badges: number };
 }
@@ -44,7 +45,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'loyalty' | 'goodDone' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -454,6 +455,11 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
     setTotal((n) => n - 1);
   }
 
+  async function handleConferStation(id: string, station: string | null) {
+    const { data } = await api.post(`/admin/users/${id}/station`, { station });
+    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, station: data.user.station } : u));
+  }
+
   return (
     <div>
       {/* Filters */}
@@ -509,12 +515,28 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
                     {u.currentStreak > 0 && ` · 🔥${u.currentStreak}`}
                     {u._count.badges > 0 && ` · ${u._count.badges}🏅`}
                   </div>
+                  {u.station && (
+                    <div className="text-[10px] text-amber-400 mt-0.5">
+                      {{ ARK_BUILDER: '🌱 Ark Builder', GARDENER: '🌿 Gardener', FAADA: '🌍 Faada' }[u.station] ?? u.station}
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-right hidden sm:table-cell">{u._count.content}</td>
                 <td className="px-4 py-3 text-gray-400 text-right hidden lg:table-cell">{u._count.followers}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{fmtDate(u.createdAt)}</td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex gap-2 justify-end flex-wrap">
+                    <select
+                      value={u.station ?? ''}
+                      onChange={(e) => handleConferStation(u.id, e.target.value || null)}
+                      title="Confer station (Elder action)"
+                      className="text-xs px-2 py-1 rounded-lg bg-surface-700 border border-surface-600 text-amber-400 focus:outline-none focus:border-amber-500 cursor-pointer"
+                    >
+                      <option value="">— Station —</option>
+                      <option value="ARK_BUILDER">🌱 Ark Builder</option>
+                      <option value="GARDENER">🌿 Gardener</option>
+                      <option value="FAADA">🌍 Faada</option>
+                    </select>
                     <button
                       onClick={() => handleToggleBan(u.id)}
                       disabled={acting === u.id || u.isAdmin}
@@ -560,6 +582,7 @@ function EditContentModal({ item, onClose, onSaved }: {
   const [lyrics, setLyrics]             = useState(item.lyrics || '');
   const [introStart, setIntroStart]     = useState<string>(String((item as any).introStart ?? ''));
   const [introEnd, setIntroEnd]         = useState<string>(String((item as any).introEnd   ?? ''));
+  const [xpWatchSeconds, setXpWatch]   = useState<string>(String((item as any).xpWatchSeconds ?? 30));
   const [canvasUrl, setCanvasUrl]       = useState(item.canvasUrl || '');
   const [canvasUploading, setCanvasUp]  = useState(false);
   const canvasInputRef                  = useRef<HTMLInputElement>(null);
@@ -695,6 +718,8 @@ function EditContentModal({ item, onClose, onSaved }: {
       const parsedIntroEnd   = introEnd   !== '' ? Number(introEnd)   : null;
       if (parsedIntroStart !== ((item as any).introStart ?? null)) payload.introStart = parsedIntroStart;
       if (parsedIntroEnd   !== ((item as any).introEnd   ?? null)) payload.introEnd   = parsedIntroEnd;
+      const parsedXpWatch = xpWatchSeconds !== '' ? Number(xpWatchSeconds) : 30;
+      if (parsedXpWatch !== ((item as any).xpWatchSeconds ?? 30)) payload.xpWatchSeconds = parsedXpWatch;
       // Only include thumbnailUrl if manually pasted (upload already saved it to DB)
       if (!thumbUploadedRef.current && thumbnailUrl !== (item.thumbnailUrl || '')) {
         payload.thumbnailUrl = thumbnailUrl;
@@ -884,6 +909,24 @@ function EditContentModal({ item, onClose, onSaved }: {
               <p className="text-xs text-gray-500 mt-1">Use plain text. Optional section labels like [Verse 1] are supported.</p>
             </div>
           )}
+
+          {/* XP Watch Threshold */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">XP Watch Threshold</label>
+            <p className="text-xs text-gray-500 mb-2">Viewers earn +10 XP after watching this many seconds. Default is 30. Set lower for short clips (DaddyMan-Isms, trailers), higher for long films.</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min={0}
+                max={3600}
+                value={xpWatchSeconds}
+                onChange={(e) => setXpWatch(e.target.value)}
+                placeholder="30"
+                className="w-32 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
+              />
+              <span className="text-xs text-gray-500">seconds</span>
+            </div>
+          </div>
 
           {/* Skip Intro timestamps — video types only */}
           {['FILM'].includes(type) && (
@@ -3663,6 +3706,7 @@ function CouponFormModal({
     value: initial ? String(initial.value) : '',
     minOrderAmount: initial?.minOrderAmount ? String(initial.minOrderAmount) : '',
     maxUses: initial?.maxUses ? String(initial.maxUses) : '',
+    maxUsesPerUser: initial ? String((initial as any).maxUsesPerUser ?? 1) : '1',
     active: initial?.active ?? true,
     expiresAt: initial?.expiresAt ? initial.expiresAt.slice(0, 10) : '',
   });
@@ -3681,6 +3725,7 @@ function CouponFormModal({
         value: Number(form.value),
         minOrderAmount: form.minOrderAmount ? Number(form.minOrderAmount) : null,
         maxUses: form.maxUses ? Number(form.maxUses) : null,
+        maxUsesPerUser: Number(form.maxUsesPerUser) || 1,
         active: form.active,
         expiresAt: form.expiresAt || null,
       };
@@ -3747,11 +3792,22 @@ function CouponFormModal({
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Max uses</label>
+              <label className="block text-xs text-gray-400 mb-1">Max uses total</label>
               <input type="number" step="1" min="1" value={form.maxUses}
                 onChange={(e) => setF('maxUses', e.target.value)}
                 placeholder="Unlimited"
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Max uses per customer</label>
+              <input type="number" step="1" min="1" value={form.maxUsesPerUser}
+                onChange={(e) => setF('maxUsesPerUser', e.target.value)}
+                placeholder="1"
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
+              <p className="text-xs text-gray-600 mt-1">Default 1 — each customer can use this code once</p>
             </div>
           </div>
 
@@ -7593,6 +7649,8 @@ function AdminInner() {
     { key: 'live',      label: 'Live',      emoji: '📡' },
     { key: 'push',       label: 'Push',       emoji: '🔔' },
     { key: 'newsletter', label: 'Newsletter', emoji: '📧' },
+    { key: 'loyalty',    label: 'Loyalty',    emoji: '⭐' },
+    { key: 'goodDone',   label: 'Good Done',  emoji: '🌱' },
     { key: 'settings',   label: 'Settings',   emoji: '🎨' },
   ];
 
@@ -7671,7 +7729,140 @@ function AdminInner() {
       {tab === 'live'      && <LiveTab />}
       {tab === 'push'       && <PushTab />}
       {tab === 'newsletter' && <NewsletterTab />}
+      {tab === 'loyalty'    && <LoyaltyTab />}
+      {tab === 'goodDone'   && <GoodDoneAdminTab />}
       {tab === 'settings'   && <SettingsTab />}
+    </div>
+  );
+}
+
+// ── Loyalty Tab ───────────────────────────────────────────────────────────────
+
+function LoyaltyTab() {
+  const TYPES = ['DISCOUNT', 'EARLY_ACCESS', 'EXCLUSIVE_CONTENT', 'CUSTOM'];
+  const TYPE_LABEL: Record<string, string> = {
+    DISCOUNT: 'Discount Code', EARLY_ACCESS: 'Early Access',
+    EXCLUSIVE_CONTENT: 'Exclusive Content', CUSTOM: 'Custom Reward',
+  };
+  const [rewards, setRewards] = useState<any[]>([]);
+  const [form, setForm]       = useState({ name: '', description: '', xpCost: '', type: 'DISCOUNT', value: '', stock: '' });
+  const [editing, setEditing] = useState<any | null>(null);
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState('');
+
+  useEffect(() => { load(); }, []);
+
+  function load() {
+    api.get('/loyalty/admin/rewards').then((r) => setRewards(r.data.rewards)).catch(() => {});
+  }
+
+  function blank() { setForm({ name: '', description: '', xpCost: '', type: 'DISCOUNT', value: '', stock: '' }); setEditing(null); }
+
+  function startEdit(r: any) {
+    setEditing(r);
+    setForm({ name: r.name, description: r.description || '', xpCost: String(r.xpCost), type: r.type, value: r.value || '', stock: r.stock != null ? String(r.stock) : '' });
+  }
+
+  async function handleSave() {
+    if (!form.name.trim() || !form.xpCost) return;
+    setSaving(true); setMsg('');
+    const payload = { ...form, xpCost: Number(form.xpCost), stock: form.stock !== '' ? Number(form.stock) : null };
+    try {
+      if (editing) { await api.patch(`/loyalty/admin/rewards/${editing.id}`, payload); }
+      else { await api.post('/loyalty/admin/rewards', payload); }
+      setMsg('Saved!'); blank(); load();
+    } catch { setMsg('Save failed'); }
+    finally { setSaving(false); setTimeout(() => setMsg(''), 2500); }
+  }
+
+  async function handleToggle(r: any) {
+    await api.patch(`/loyalty/admin/rewards/${r.id}`, { active: !r.active }).catch(() => {});
+    load();
+  }
+
+  async function handleDelete(r: any) {
+    if (!confirm(`Delete "${r.name}"?`)) return;
+    await api.delete(`/loyalty/admin/rewards/${r.id}`).catch(() => {});
+    load();
+  }
+
+  const F = (k: keyof typeof form, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  return (
+    <div className="space-y-8">
+      <div className="bg-surface-800 border border-surface-700 rounded-xl p-6">
+        <h2 className="text-base font-bold text-white mb-4">{editing ? 'Edit Reward' : 'New Reward'}</h2>
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Name *</label>
+            <input value={form.name} onChange={(e) => F('name', e.target.value)} placeholder="e.g. 10% Off The Ark" className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Type *</label>
+            <select value={form.type} onChange={(e) => F('type', e.target.value)} className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400">
+              {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">XP Cost *</label>
+            <input type="number" min={1} value={form.xpCost} onChange={(e) => F('xpCost', e.target.value)} placeholder="500" className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Value (code / link / detail)</label>
+            <input value={form.value} onChange={(e) => F('value', e.target.value)} placeholder="e.g. CAMP10OFF" className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Stock (blank = unlimited)</label>
+            <input type="number" min={0} value={form.stock} onChange={(e) => F('stock', e.target.value)} placeholder="Unlimited" className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Description</label>
+            <input value={form.description} onChange={(e) => F('description', e.target.value)} placeholder="Short description shown to fans" className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+          </div>
+        </div>
+        <div className="flex gap-3 items-center">
+          <button onClick={handleSave} disabled={saving} className="bg-brand-500 hover:bg-brand-400 text-black font-semibold text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
+            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Reward'}
+          </button>
+          {editing && <button onClick={blank} className="text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>}
+          {msg && <span className="text-xs text-brand-400">{msg}</span>}
+        </div>
+      </div>
+
+      <div className="bg-surface-800 border border-surface-700 rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-surface-700 flex items-center justify-between">
+          <h2 className="text-base font-bold text-white">Rewards ({rewards.length})</h2>
+        </div>
+        {rewards.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-10">No rewards yet. Create one above.</p>
+        ) : (
+          <div className="divide-y divide-surface-700">
+            {rewards.map((r) => (
+              <div key={r.id} className="flex items-center gap-4 px-6 py-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-white font-semibold text-sm">{r.name}</p>
+                    <span className="text-xs bg-surface-700 text-gray-400 px-2 py-0.5 rounded-full">{TYPE_LABEL[r.type]}</span>
+                    {!r.active && <span className="text-xs bg-red-900/30 text-red-400 px-2 py-0.5 rounded-full">Inactive</span>}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    <span className="text-brand-400 font-semibold">{r.xpCost.toLocaleString()} XP</span>
+                    {r.stock != null && <span className="ml-2">{r.stock} remaining</span>}
+                    {r.value && <span className="ml-2 font-mono text-gray-600">{r.value}</span>}
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => handleToggle(r)} className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 bg-surface-700 rounded-lg">
+                    {r.active ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button onClick={() => startEdit(r)} className="text-xs text-brand-400 hover:text-brand-300 transition-colors px-2 py-1 bg-surface-700 rounded-lg">Edit</button>
+                  <button onClick={() => handleDelete(r)} className="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1 bg-surface-700 rounded-lg">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -7681,5 +7872,161 @@ export default function AdminPage() {
     <Suspense>
       <AdminInner />
     </Suspense>
+  );
+}
+
+// ── Good Done Admin Tab ───────────────────────────────────────────────────────
+
+interface GoodDoneAdminAct {
+  id: string;
+  type: string;
+  typeLabel: string;
+  description: string;
+  status: string;
+  witnessNote?: string | null;
+  verifiedAt?: string | null;
+  createdAt: string;
+  user: { id: string; username: string; displayName?: string; xp: number; station?: string | null };
+  verifiedBy?: { username: string } | null;
+}
+
+function GoodDoneAdminTab() {
+  const [acts, setActs]       = useState<GoodDoneAdminAct[]>([]);
+  const [total, setTotal]     = useState(0);
+  const [status, setStatus]   = useState('PENDING');
+  const [acting, setActing]   = useState<string | null>(null);
+  const [noteMap, setNoteMap] = useState<Record<string, string>>({});
+
+  useEffect(() => { load(); }, [status]); // eslint-disable-line
+
+  function load() {
+    api.get('/admin/good-done', { params: { status, limit: '50' } })
+      .then((r) => { setActs(r.data.acts); setTotal(r.data.total); })
+      .catch(() => {});
+  }
+
+  async function verify(id: string, action: 'APPROVED' | 'REJECTED') {
+    const witnessNote = noteMap[id] ?? '';
+    if (action === 'REJECTED' && !witnessNote.trim()) {
+      alert('A witness note is required when rejecting.');
+      return;
+    }
+    setActing(id);
+    try {
+      await api.post(`/admin/good-done/${id}/verify`, { action, witnessNote });
+      setActs((prev) => prev.filter((a) => a.id !== id));
+      setTotal((n) => n - 1);
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Verification failed.');
+    } finally {
+      setActing(null);
+    }
+  }
+
+  const STATUS_OPTS = ['PENDING', 'APPROVED', 'REJECTED', 'ALL'];
+  const STATUS_STYLE: Record<string, string> = {
+    PENDING:  'bg-amber-500/10 text-amber-400 border-amber-500/30',
+    APPROVED: 'bg-green-500/10 text-green-400 border-green-500/30',
+    REJECTED: 'bg-red-500/10  text-red-400  border-red-500/30',
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-5 flex-wrap">
+        <h2 className="text-white font-semibold">Good Done — Elder Verification</h2>
+        <span className="text-xs text-gray-500 ml-auto">{total} act{total !== 1 ? 's' : ''}</span>
+      </div>
+
+      <div className="flex gap-2 mb-5">
+        {STATUS_OPTS.map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              status === s
+                ? 'bg-brand-500 text-black'
+                : 'bg-surface-700 text-gray-400 hover:text-white border border-surface-600'
+            }`}
+          >
+            {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
+          </button>
+        ))}
+      </div>
+
+      {acts.length === 0 ? (
+        <div className="text-center py-16 text-gray-600">
+          No {status === 'ALL' ? '' : status.toLowerCase() + ' '}acts to show.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {acts.map((a) => (
+            <div key={a.id} className="bg-surface-800 border border-surface-700 rounded-xl p-5">
+              <div className="flex items-start gap-4 flex-wrap">
+                {/* User + meta */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-white font-semibold text-sm">
+                      {a.user.displayName || a.user.username}
+                    </span>
+                    <span className="text-gray-500 text-xs">@{a.user.username}</span>
+                    <span className="text-xs text-gray-600 font-mono">{a.user.xp.toLocaleString()} XP</span>
+                    {a.user.station && (
+                      <span className="text-[10px] text-amber-400 border border-amber-500/30 px-1.5 rounded">
+                        {{ ARK_BUILDER: '🌱', GARDENER: '🌿', FAADA: '🌍' }[a.user.station] ?? ''} {a.user.station.replace('_', ' ')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-brand-400 font-semibold">{a.typeLabel}</span>
+                    <span className="text-gray-600 text-xs">·</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_STYLE[a.status] ?? ''}`}>
+                      {a.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{a.description}</p>
+                  {a.witnessNote && (
+                    <p className="text-xs text-gray-500 mt-1.5 italic">
+                      Elder ({a.verifiedBy?.username}): &ldquo;{a.witnessNote}&rdquo;
+                    </p>
+                  )}
+                </div>
+
+                {/* Verification controls (PENDING only) */}
+                {a.status === 'PENDING' && (
+                  <div className="flex flex-col gap-2 flex-shrink-0 min-w-[200px]">
+                    <textarea
+                      placeholder="Witness note (required to reject)"
+                      rows={2}
+                      value={noteMap[a.id] ?? ''}
+                      onChange={(e) => setNoteMap((prev) => ({ ...prev, [a.id]: e.target.value }))}
+                      className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-brand-400 resize-none placeholder:text-gray-600"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => verify(a.id, 'APPROVED')}
+                        disabled={acting === a.id}
+                        className="flex-1 text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30 font-semibold transition-colors disabled:opacity-40"
+                      >
+                        {acting === a.id ? '…' : 'Approve'}
+                      </button>
+                      <button
+                        onClick={() => verify(a.id, 'REJECTED')}
+                        disabled={acting === a.id}
+                        className="flex-1 text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 font-semibold transition-colors disabled:opacity-40"
+                      >
+                        {acting === a.id ? '…' : 'Reject'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

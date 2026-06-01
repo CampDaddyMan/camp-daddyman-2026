@@ -24,6 +24,7 @@ export default function PlaylistsPage() {
   const [creating, setCreating]   = useState(false);
   const [newName, setNewName]     = useState('');
   const [showForm, setShowForm]   = useState(false);
+  const [copied, setCopied]       = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) router.replace('/login');
@@ -54,6 +55,18 @@ export default function PlaylistsPage() {
     if (!confirm('Delete this playlist?')) return;
     await api.delete(`/playlists/${id}`);
     setPlaylists((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  async function handleTogglePublic(p: Playlist) {
+    const { data } = await api.patch(`/playlists/${p.id}`, { isPublic: !p.isPublic });
+    setPlaylists((prev) => prev.map((pl) => pl.id === p.id ? { ...pl, isPublic: data.playlist.isPublic } : pl));
+  }
+
+  async function handleCopyLink(id: string) {
+    const url = `${window.location.origin}/playlists/${id}`;
+    await navigator.clipboard.writeText(url).catch(() => {});
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2500);
   }
 
   if (authLoading || !user) return null;
@@ -139,6 +152,24 @@ export default function PlaylistsPage() {
                   {p.description && <p className="text-gray-600 text-xs mt-0.5 truncate">{p.description}</p>}
                 </div>
               </Link>
+              {p.isPublic && (
+                <button
+                  onClick={() => handleCopyLink(p.id)}
+                  className="flex-shrink-0 text-xs text-gray-500 hover:text-brand-400 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  {copied === p.id ? '✓ Copied' : '↗ Share'}
+                </button>
+              )}
+              <button
+                onClick={() => handleTogglePublic(p)}
+                className={`flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors opacity-0 group-hover:opacity-100 ${
+                  p.isPublic
+                    ? 'border-brand-500/50 text-brand-400 hover:bg-brand-500/10'
+                    : 'border-surface-600 text-gray-600 hover:text-gray-400'
+                }`}
+              >
+                {p.isPublic ? 'Public' : 'Private'}
+              </button>
               <button
                 onClick={() => handleDelete(p.id)}
                 className="flex-shrink-0 text-gray-600 hover:text-red-400 transition-colors text-sm opacity-0 group-hover:opacity-100 px-2"

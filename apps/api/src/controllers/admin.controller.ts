@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { signR2Url } from '../utils/s3';
 import { sendAdminEmail } from '../utils/email';
-import { sendPushToAll } from './push.controller';
+import { sendPushToAll } from '../utils/push';
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 
@@ -116,7 +116,7 @@ export async function listUsers(req: Request, res: Response) {
       select: {
         id: true, email: true, username: true, displayName: true,
         isAdmin: true, isCreator: true, isBanned: true, createdAt: true,
-        xp: true, currentStreak: true, longestStreak: true,
+        xp: true, currentStreak: true, longestStreak: true, station: true,
         subscription: { select: { plan: true, status: true } },
         _count: { select: { content: true, followers: true, badges: true } },
       },
@@ -159,6 +159,29 @@ export async function deleteUser(req: Request, res: Response) {
 
   await prisma.user.delete({ where: { id: req.params.id } });
   res.json({ message: 'User deleted' });
+}
+
+export async function conferStation(req: Request, res: Response) {
+  const { id } = req.params;
+  const { station } = req.body;
+
+  const valid = [null, 'ARK_BUILDER', 'GARDENER', 'FAADA'];
+  if (!valid.includes(station)) {
+    return res.status(400).json({ error: 'Invalid station. Must be ARK_BUILDER, GARDENER, FAADA, or null to remove.' });
+  }
+
+  const user = await prisma.user.update({
+    where: { id },
+    data: { station: station ?? null },
+    select: { id: true, username: true, station: true },
+  });
+
+  // Ark Builder gets a badge; Gardener and Faada do not (Ark Constitution)
+  if (station === 'ARK_BUILDER') {
+    await prisma.userBadge.create({ data: { userId: id, badge: 'LEVEL_ARK_BUILDER' } }).catch(() => {});
+  }
+
+  res.json({ user });
 }
 
 export async function notifyUser(req: Request, res: Response) {
@@ -213,6 +236,7 @@ export async function listAllContent(req: Request, res: Response) {
       select: {
         id: true, title: true, description: true, type: true, status: true, privacy: true,
         mediaUrl: true, thumbnailUrl: true, tags: true, views: true, createdAt: true, featured: true,
+        xpWatchSeconds: true,
         creator: { select: { username: true, email: true } },
         _count: { select: { likes: true, comments: true } },
       },
@@ -255,15 +279,19 @@ export async function setContentStatus(req: Request, res: Response) {
 
 export async function updateContent(req: Request, res: Response) {
   try {
-    const { featured, title, description, type, privacy, tags, thumbnailUrl, rating } = req.body;
+    const { featured, title, description, type, privacy, tags, thumbnailUrl, rating, xpWatchSeconds } = req.body;
     const data: any = {};
-    if (featured !== undefined)     data.featured     = Boolean(featured);
-    if (rating !== undefined)       data.rating       = rating || null;
-    if (title !== undefined)        data.title        = title;
-    if (description !== undefined)  data.description  = description || null;
-    if (type !== undefined)         data.type         = type;
-    if (privacy !== undefined)      data.privacy      = privacy;
-    if (thumbnailUrl !== undefined)  data.thumbnailUrl = thumbnailUrl || null;
+    if (featured !== undefined)        data.featured        = Boolean(featured);
+    if (rating !== undefined)          data.rating          = rating || null;
+    if (title !== undefined)           data.title           = title;
+    if (description !== undefined)     data.description     = description || null;
+    if (type !== undefined)            data.type            = type;
+    if (privacy !== undefined)         data.privacy         = privacy;
+    if (thumbnailUrl !== undefined)    data.thumbnailUrl    = thumbnailUrl || null;
+    if (xpWatchSeconds !== undefined) {
+      const parsed = Number(xpWatchSeconds);
+      if (!isNaN(parsed) && parsed >= 0) data.xpWatchSeconds = parsed;
+    }
     if (tags !== undefined) {
       data.tags = Array.isArray(tags)
         ? tags
@@ -272,7 +300,7 @@ export async function updateContent(req: Request, res: Response) {
     const content = await prisma.content.update({
       where: { id: req.params.id },
       data,
-      select: { id: true, title: true, status: true, featured: true, type: true, privacy: true, thumbnailUrl: true, tags: true },
+      select: { id: true, title: true, status: true, featured: true, type: true, privacy: true, thumbnailUrl: true, tags: true, xpWatchSeconds: true },
     });
     res.json({ content });
   } catch {

@@ -35,7 +35,9 @@ export default function UploadPage() {
   const [rating, setRating] = useState('');
 
   useEffect(() => {
-    if (!loading && !user) router.push('/login');
+    if (loading) return;
+    if (!user) { router.push('/login'); return; }
+    if (!user.isAdmin && !(user as any).isCreator) router.push('/subscribe?reason=creator');
   }, [user, loading, router]);
 
   const onDropMedia = useCallback((accepted: File[]) => {

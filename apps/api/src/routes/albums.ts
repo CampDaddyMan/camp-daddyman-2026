@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import {
   listAlbums, getAlbum, createAlbum, updateAlbum,
-  uploadAlbumCover, addTrack, removeTrack, reorderTracks, deleteAlbum,
+  uploadAlbumCover, addTrack, createAndAddTrack, removeTrack, reorderTracks, deleteAlbum,
 } from '../controllers/album.controller';
 import { authMiddleware, adminMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -25,8 +25,9 @@ router.use(authMiddleware, adminMiddleware);
 router.post('/',                                            writeLimiter, createAlbum);
 router.patch('/:id',                                        writeLimiter, updateAlbum);
 router.post('/:id/cover', imgUpload.single('cover'),        writeLimiter, uploadAlbumCover);
-router.post('/:id/tracks',                                  writeLimiter, addTrack);
-router.delete('/:id/tracks/:contentId',                     writeLimiter, removeTrack);
+router.post('/:id/tracks',                                              writeLimiter, addTrack);
+router.post('/:id/tracks/create', imgUpload.single('thumbnail'),        writeLimiter, createAndAddTrack);
+router.delete('/:id/tracks/:contentId',                                 writeLimiter, removeTrack);
 router.patch('/:id/tracks/reorder',                         writeLimiter, reorderTracks);
 router.delete('/:id',                                       writeLimiter, deleteAlbum);
 

@@ -4,6 +4,7 @@ dist/
 .env
 .env.*
 !.env.example
+disaster-recovery/.env.production
 *.log
 .DS_Store
 Thumbs.db
@@ -12,3 +13,5 @@ tsconfig.tsbuildinfo
 
 .vercel
 .env*.local
+
+.vercel

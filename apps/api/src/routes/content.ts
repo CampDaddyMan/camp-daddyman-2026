@@ -9,6 +9,7 @@ import {
   deleteContent,
   updateContent,
   uploadThumbnail,
+  uploadCanvas,
   uploadMedia,
   likeContent,
   commentOnContent,
@@ -25,7 +26,11 @@ import {
   unreportContent,
   downloadContent,
   toggleCommentLike,
+  pinComment,
   getRecommended,
+  getWrapped,
+  uploadPreview,
+  getEmbedMeta,
 } from '../controllers/content.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { readLimiter, searchLimiter, uploadLimiter, writeLimiter } from '../middleware/rateLimiter';
@@ -60,8 +65,10 @@ router.get('/discover', optionalAuthMiddleware, readLimiter, getDiscovery);
 router.get('/recommended', optionalAuthMiddleware, readLimiter, getRecommended);
 router.get('/search', optionalAuthMiddleware, searchLimiter, searchContent);
 router.get('/history', authMiddleware, readLimiter, getWatchHistory);
+router.get('/wrapped', authMiddleware, readLimiter, getWrapped);
 router.get('/liked', authMiddleware, readLimiter, getLikedContent);
 router.get('/saved', authMiddleware, readLimiter, getSavedContent);
+router.get('/:id/embed-meta', readLimiter, getEmbedMeta);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getContent);
 router.get('/:id/comments', optionalAuthMiddleware, readLimiter, getComments);
 router.get('/:id/related', optionalAuthMiddleware, readLimiter, getRelatedContent);
@@ -76,12 +83,15 @@ router.post(
 );
 router.patch('/:id', authMiddleware, writeLimiter, updateContent);
 router.post('/:id/thumbnail', authMiddleware, writeLimiter, imageUpload.single('thumbnail'), uploadThumbnail);
+router.post('/:id/canvas',   authMiddleware, writeLimiter, upload.single('canvas'),   uploadCanvas);
+router.post('/:id/preview',  authMiddleware, writeLimiter, upload.single('preview'),  uploadPreview);
 router.post('/:id/media', authMiddleware, writeLimiter, upload.single('media'), uploadMedia);
 router.delete('/:id', authMiddleware, writeLimiter, deleteContent);
 router.post('/:id/like', authMiddleware, writeLimiter, likeContent);
 router.post('/:id/comment', authMiddleware, writeLimiter, commentOnContent);
 router.delete('/:id/comment/:commentId', authMiddleware, writeLimiter, deleteComment);
 router.post('/:id/comment/:commentId/like', authMiddleware, writeLimiter, toggleCommentLike);
+router.post('/:id/comment/:commentId/pin', authMiddleware, writeLimiter, pinComment);
 router.post('/:id/progress', authMiddleware, saveProgress);
 router.get('/:id/progress', authMiddleware, getProgress);
 router.post('/:id/save', authMiddleware, writeLimiter, toggleSaved);

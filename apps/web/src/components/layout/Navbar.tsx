@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, FormEvent } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { useProfile } from '@/context/ProfileContext';
 import NotificationBell from './NotificationBell';
 
 function IconCart() {
@@ -84,10 +85,9 @@ const BROWSE_ITEMS = [
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { activeProfile } = useProfile();
   const router = useRouter();
   const pathname = usePathname();
-
-  if (pathname?.startsWith('/embed/')) return null;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [browseOpen, setBrowseOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -112,6 +112,8 @@ export default function Navbar() {
     setMobileOpen(false);
     setBrowseOpen(false);
   }, [pathname]);
+
+  if (pathname?.startsWith('/embed/')) return null;
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -146,6 +148,13 @@ export default function Navbar() {
 
         {/* Desktop center nav */}
         <div className="hidden md:flex items-center gap-0.5 flex-1">
+
+          <Link
+            href="/"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            Home
+          </Link>
 
           {/* Browse dropdown */}
           <div ref={browseRef} className="relative">
@@ -206,6 +215,24 @@ export default function Navbar() {
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/partners' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
           >
             Partners
+          </Link>
+          <Link
+            href="/leaderboard"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/leaderboard' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            🏆 Leaderboard
+          </Link>
+          <Link
+            href="/loyalty"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/loyalty' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            ⭐ Rewards
+          </Link>
+          <Link
+            href="/advertise"
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === '/advertise' ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
+          >
+            Advertise
           </Link>
         </div>
 
@@ -274,18 +301,43 @@ export default function Navbar() {
               <div className="relative" ref={userRef}>
                 <button
                   onClick={() => setUserOpen((o) => !o)}
-                  className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-surface-800 max-w-[130px]"
+                  className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-surface-800 max-w-[150px]"
                 >
-                  <span className="truncate">{user.displayName || user.username}</span>
+                  {activeProfile ? (
+                    <>
+                      <span
+                        className="w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold text-black flex-shrink-0"
+                        style={{ backgroundColor: activeProfile.avatar || '#e8b800' }}
+                      >
+                        {activeProfile.name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="truncate">{activeProfile.name}</span>
+                    </>
+                  ) : (
+                    <span className="truncate">{user.displayName || user.username}</span>
+                  )}
                   <IconChevron open={userOpen} />
                 </button>
                 {userOpen && (
-                  <div className="absolute right-0 top-full mt-1.5 w-44 bg-surface-800 border border-surface-600/60 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-surface-800 border border-surface-600/60 rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+                    <Link href="/profiles" onClick={() => setUserOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">
+                      {activeProfile ? (
+                        <>
+                          <span className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-black flex-shrink-0" style={{ backgroundColor: activeProfile.avatar || '#e8b800' }}>{activeProfile.name.charAt(0).toUpperCase()}</span>
+                          <span className="truncate">{activeProfile.name}</span>
+                          <span className="ml-auto text-xs text-gray-500">Switch</span>
+                        </>
+                      ) : (
+                        <span>Profiles</span>
+                      )}
+                    </Link>
+                    <div className="border-t border-surface-700 my-1" />
                     <Link href="/dashboard" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Dashboard</Link>
                     <Link href="/feed" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Following</Link>
                     <Link href="/liked" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Liked</Link>
                     <Link href="/saved" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Watch Later</Link>
                     <Link href="/history" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">Watch History</Link>
+                    <Link href="/wrapped" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-brand-400 font-semibold hover:text-brand-300 hover:bg-surface-700 transition-colors">🎵 Wrapped</Link>
                     <Link href="/shop/orders" onClick={() => setUserOpen(false)} className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-surface-700 transition-colors">My Orders</Link>
                     <div className="border-t border-surface-700 my-1" />
                     <button onClick={() => { logout(); setUserOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-500 hover:text-white hover:bg-surface-700 transition-colors">
@@ -295,9 +347,11 @@ export default function Navbar() {
                 )}
               </div>
 
-              <Link href="/upload" className="text-sm bg-surface-700 hover:bg-surface-600 border border-surface-600 hover:border-surface-500 text-gray-200 px-3 py-1.5 rounded-lg font-medium transition-all">
-                Upload
-              </Link>
+              {(user.isAdmin || (user as any).isCreator) && (
+                <Link href="/upload" className="text-sm bg-surface-700 hover:bg-surface-600 border border-surface-600 hover:border-surface-500 text-gray-200 px-3 py-1.5 rounded-lg font-medium transition-all">
+                  Upload
+                </Link>
+              )}
               {user.isAdmin && (
                 <Link href="/admin" className="text-xs bg-brand-500 hover:bg-brand-400 text-black px-3 py-1 rounded-full font-semibold transition-colors">
                   Admin
@@ -362,6 +416,7 @@ export default function Navbar() {
 
           {/* Explore */}
           <MobileSection label="Explore">
+            <MobileLink href="/" onClick={() => setMobileOpen(false)}>Home</MobileLink>
             <MobileLink href="/browse" onClick={() => setMobileOpen(false)}>All Content</MobileLink>
             <MobileLink href="/browse?type=MUSIC" onClick={() => setMobileOpen(false)}>Music</MobileLink>
             <MobileLink href="/browse?type=FILM" onClick={() => setMobileOpen(false)}>Film</MobileLink>
@@ -376,6 +431,9 @@ export default function Navbar() {
             <MobileLink href="/albums" onClick={() => setMobileOpen(false)}>Albums</MobileLink>
             <MobileLink href="/polls" onClick={() => setMobileOpen(false)}>Polls</MobileLink>
             <MobileLink href="/partners" onClick={() => setMobileOpen(false)}>Partners</MobileLink>
+            <MobileLink href="/leaderboard" onClick={() => setMobileOpen(false)}>🏆 Leaderboard</MobileLink>
+            <MobileLink href="/loyalty" onClick={() => setMobileOpen(false)}>⭐ Rewards</MobileLink>
+            <MobileLink href="/advertise" onClick={() => setMobileOpen(false)}>Advertise</MobileLink>
           </MobileSection>
 
           {/* Store */}
@@ -403,14 +461,20 @@ export default function Navbar() {
           {/* Account */}
           {user ? (
             <MobileSection label="Account">
+              <MobileLink href="/profiles" onClick={() => setMobileOpen(false)}>
+                {activeProfile ? `Profile: ${activeProfile.name}` : 'Profiles'}
+              </MobileLink>
               <MobileLink href="/dashboard" onClick={() => setMobileOpen(false)}>{user.displayName || user.username}</MobileLink>
               <MobileLink href="/feed" onClick={() => setMobileOpen(false)}>Following</MobileLink>
               <MobileLink href="/liked" onClick={() => setMobileOpen(false)}>Liked</MobileLink>
               <MobileLink href="/saved" onClick={() => setMobileOpen(false)}>Watch Later</MobileLink>
               <MobileLink href="/history" onClick={() => setMobileOpen(false)}>Watch History</MobileLink>
+              <MobileLink href="/wrapped" onClick={() => setMobileOpen(false)} accent>🎵 Wrapped</MobileLink>
               <MobileLink href="/notifications" onClick={() => setMobileOpen(false)}>Notifications</MobileLink>
               <MobileLink href="/shop/orders" onClick={() => setMobileOpen(false)}>My Orders</MobileLink>
-              <MobileLink href="/upload" onClick={() => setMobileOpen(false)}>Upload</MobileLink>
+              {(user.isAdmin || (user as any).isCreator) && (
+                <MobileLink href="/upload" onClick={() => setMobileOpen(false)}>Upload</MobileLink>
+              )}
               {user.isAdmin && (
                 <MobileLink href="/admin" onClick={() => setMobileOpen(false)} accent>Admin Panel</MobileLink>
               )}

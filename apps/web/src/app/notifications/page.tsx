@@ -4,14 +4,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface NotificationItem {
   id: string;
-  type: 'NEW_CONTENT' | 'NEW_LIKE' | 'NEW_COMMENT' | 'NEW_FOLLOWER';
+  type: 'NEW_CONTENT' | 'NEW_LIKE' | 'NEW_COMMENT' | 'NEW_FOLLOWER' | 'NEW_TIP' | 'MILESTONE';
   read: boolean;
   createdAt: string;
   actor?: { username: string; displayName?: string } | null;
   content?: { id: string; title: string; type: string } | null;
+  milestone?: number | null;
+  milestoneKind?: 'FOLLOWERS' | 'VIEWS' | null;
 }
 
 const TYPE_ICON: Record<NotificationItem['type'], string> = {
@@ -19,6 +22,8 @@ const TYPE_ICON: Record<NotificationItem['type'], string> = {
   NEW_LIKE:     '👍',
   NEW_COMMENT:  '💬',
   NEW_FOLLOWER: '👤',
+  NEW_TIP:      '💛',
+  MILESTONE:    '🏆',
 };
 
 function timeAgo(iso: string) {
@@ -29,6 +34,12 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function formatMilestone(n: number) {
+  if (n >= 1000000) return `${n / 1000000}M`;
+  if (n >= 1000) return `${n / 1000}K`;
+  return String(n);
+}
+
 function notificationText(n: NotificationItem) {
   const name = n.actor?.displayName || n.actor?.username || 'Someone';
   switch (n.type) {
@@ -36,6 +47,10 @@ function notificationText(n: NotificationItem) {
     case 'NEW_LIKE':     return <><strong className="text-white">{name}</strong> liked <em className="text-gray-200">"{n.content?.title}"</em></>;
     case 'NEW_COMMENT':  return <><strong className="text-white">{name}</strong> commented on <em className="text-gray-200">"{n.content?.title}"</em></>;
     case 'NEW_FOLLOWER': return <><strong className="text-white">{name}</strong> started following you</>;
+    case 'NEW_TIP':      return <><strong className="text-white">{name}</strong> sent you a Strength</>;
+    case 'MILESTONE':    return n.milestoneKind === 'VIEWS'
+      ? <>You hit <strong className="text-brand-400">{formatMilestone(n.milestone ?? 0)} total views</strong> — keep going! 🎉</>
+      : <>You reached <strong className="text-brand-400">{formatMilestone(n.milestone ?? 0)} followers</strong> — the family keeps growing! 🎉</>;
   }
 }
 
@@ -48,6 +63,7 @@ function notificationHref(n: NotificationItem) {
 export default function NotificationsPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { supported, subscribed, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -101,6 +117,32 @@ export default function NotificationsPage() {
           </button>
         )}
       </div>
+
+      {supported && !subscribed && !pushLoading && (
+        <div className="flex items-center justify-between bg-surface-800 border border-surface-600 rounded-xl px-4 py-3 mb-6">
+          <div>
+            <p className="text-sm text-white font-medium">Get push notifications</p>
+            <p className="text-xs text-gray-500 mt-0.5">Stay notified even when you're not on the site.</p>
+          </div>
+          <button
+            onClick={subscribe}
+            className="ml-4 flex-shrink-0 text-sm bg-brand-500 hover:bg-brand-400 text-black font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Enable
+          </button>
+        </div>
+      )}
+      {supported && subscribed && (
+        <div className="flex items-center justify-between bg-surface-800 border border-surface-700 rounded-xl px-4 py-3 mb-6">
+          <p className="text-sm text-gray-400">Push notifications <span className="text-brand-400 font-medium">on</span></p>
+          <button
+            onClick={unsubscribe}
+            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            Turn off
+          </button>
+        </div>
+      )}
 
       {loading && notifications.length === 0 ? (
         <div className="space-y-3">

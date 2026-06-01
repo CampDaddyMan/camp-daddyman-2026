@@ -169,12 +169,52 @@ export default function CreatorPage() {
   const [followLoading, setFollowLoading]   = useState(false);
   const [tipOpen, setTipOpen]               = useState(false);
   const [tipped, setTipped]                 = useState(false);
+  const [showCommunity, setShowCommunity]   = useState(false);
+  const [posts, setPosts]                   = useState<{ id: string; text: string; imageUrl: string | null; createdAt: string; creator: { username: string; displayName?: string; avatar?: string } }[]>([]);
+  const [postsLoading, setPostsLoading]     = useState(false);
+  const [newPostText, setNewPostText]       = useState('');
+  const [postSubmitting, setPostSubmitting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('tipped=true')) {
       setTipped(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!showCommunity) return;
+    setPostsLoading(true);
+    api.get(`/creators/${username}/posts`)
+      .then((r) => setPosts(r.data.posts))
+      .catch(() => {})
+      .finally(() => setPostsLoading(false));
+  }, [showCommunity, username]);
+
+  async function handlePostSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newPostText.trim() || postSubmitting) return;
+    setPostSubmitting(true);
+    try {
+      const { data } = await api.post(`/creators/${username}/posts`, { text: newPostText.trim() });
+      setPosts((prev) => [data.post, ...prev]);
+      setNewPostText('');
+    } catch {}
+    finally { setPostSubmitting(false); }
+  }
+
+  async function handleDeletePost(postId: string) {
+    await api.delete(`/creators/${username}/posts/${postId}`);
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  }
+
+  function postTimeAgo(iso: string) {
+    const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (secs < 60) return 'just now';
+    if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+    if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+    if (secs < 604800) return `${Math.floor(secs / 86400)}d ago`;
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
 
   useEffect(() => {
     setCreatorLoading(true);
@@ -427,68 +467,158 @@ export default function CreatorPage() {
         />
       )}
 
-      {/* ── Type filter + sort ── */}
-      <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
-        <div className="flex gap-2 flex-wrap">
-          {TYPES.map((t) => (
-            <button
-              key={t.value}
-              onClick={() => setActiveType(t.value)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                activeType === t.value
-                  ? 'bg-brand-500 text-black'
-                  : 'bg-surface-700 text-gray-300 hover:bg-surface-600 hover:text-white'
-              }`}
-            >
-              <span>{t.emoji}</span>{t.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-1 bg-surface-800 rounded-lg p-1 flex-shrink-0">
-          <button
-            onClick={() => setSort('latest')}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${sort === 'latest' ? 'bg-surface-600 text-white' : 'text-gray-500 hover:text-white'}`}
-          >
-            Latest
-          </button>
-          <button
-            onClick={() => setSort('popular')}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${sort === 'popular' ? 'bg-surface-600 text-white' : 'text-gray-500 hover:text-white'}`}
-          >
-            Popular
-          </button>
-        </div>
+      {/* ── Top-level tabs: Content / Community ── */}
+      <div className="flex gap-1 mb-5 border-b border-surface-700">
+        <button
+          onClick={() => setShowCommunity(false)}
+          className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${!showCommunity ? 'text-white bg-surface-800 border border-surface-700 border-b-surface-800 -mb-px' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          Content
+        </button>
+        <button
+          onClick={() => setShowCommunity(true)}
+          className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${showCommunity ? 'text-white bg-surface-800 border border-surface-700 border-b-surface-800 -mb-px' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          Community
+        </button>
       </div>
 
-      {/* ── Content grid ── */}
-      {contentLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="aspect-video bg-surface-700 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : content.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-3">🎵</p>
-          <p>No {activeType ? activeType.toLowerCase().replace('_', ' ') : 'public'} content yet.</p>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {content.map((item) => <ContentCard key={item.id} item={item} />)}
-          </div>
+      {/* ── Community tab ── */}
+      {showCommunity && (
+        <div className="space-y-4">
+          {user?.username === username && (
+            <form onSubmit={handlePostSubmit} className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+              <textarea
+                value={newPostText}
+                onChange={(e) => setNewPostText(e.target.value)}
+                placeholder="Share an update with your followers…"
+                rows={3}
+                maxLength={2000}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+              />
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-gray-600 text-xs">{newPostText.length}/2000</span>
+                <button
+                  type="submit"
+                  disabled={!newPostText.trim() || postSubmitting}
+                  className="px-4 py-1.5 bg-brand-500 hover:bg-brand-400 disabled:opacity-40 text-black text-sm font-semibold rounded-lg transition-colors"
+                >
+                  {postSubmitting ? 'Posting…' : 'Post'}
+                </button>
+              </div>
+            </form>
+          )}
 
-          {hasMore && (
-            <div className="text-center mt-8">
+          {postsLoading ? (
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => <div key={i} className="h-24 bg-surface-700 rounded-xl animate-pulse" />)}
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-16 text-gray-600">
+              <p className="text-3xl mb-3">📝</p>
+              <p className="text-sm">No community posts yet.</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <div key={post.id} className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-surface-600 overflow-hidden flex-shrink-0">
+                      {post.creator.avatar
+                        ? <img src={post.creator.avatar} alt="" className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{(post.creator.displayName || post.creator.username)[0].toUpperCase()}</div>
+                      }
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-semibold">{post.creator.displayName || post.creator.username}</p>
+                      <p className="text-gray-500 text-xs">{postTimeAgo(post.createdAt)}</p>
+                    </div>
+                  </div>
+                  {(user?.username === username || (user as any)?.isAdmin) && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="text-gray-600 hover:text-red-400 transition-colors text-sm flex-shrink-0"
+                      title="Delete post"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">{post.text}</p>
+                {post.imageUrl && (
+                  <img src={post.imageUrl} alt="" className="mt-3 w-full rounded-lg object-cover max-h-80" />
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ── Type filter + sort + content grid (content tab only) ── */}
+      {!showCommunity && (
+        <>
+          <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+            <div className="flex gap-2 flex-wrap">
+              {TYPES.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => setActiveType(t.value)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    activeType === t.value
+                      ? 'bg-brand-500 text-black'
+                      : 'bg-surface-700 text-gray-300 hover:bg-surface-600 hover:text-white'
+                  }`}
+                >
+                  <span>{t.emoji}</span>{t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-1 bg-surface-800 rounded-lg p-1 flex-shrink-0">
               <button
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-                className="bg-surface-700 hover:bg-surface-600 text-white px-8 py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                onClick={() => setSort('latest')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${sort === 'latest' ? 'bg-surface-600 text-white' : 'text-gray-500 hover:text-white'}`}
               >
-                {loadingMore ? 'Loading...' : `Load more (${total - content.length} remaining)`}
+                Latest
+              </button>
+              <button
+                onClick={() => setSort('popular')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${sort === 'popular' ? 'bg-surface-600 text-white' : 'text-gray-500 hover:text-white'}`}
+              >
+                Popular
               </button>
             </div>
+          </div>
+
+          {contentLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="aspect-video bg-surface-700 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : content.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              <p className="text-4xl mb-3">🎵</p>
+              <p>No {activeType ? activeType.toLowerCase().replace('_', ' ') : 'public'} content yet.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {content.map((item) => <ContentCard key={item.id} item={item} />)}
+              </div>
+
+              {hasMore && (
+                <div className="text-center mt-8">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="bg-surface-700 hover:bg-surface-600 text-white px-8 py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? 'Loading...' : `Load more (${total - content.length} remaining)`}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}

@@ -32,6 +32,7 @@ export default function GiftPage() {
   const router = useRouter();
   const [plan, setPlan]               = useState<'PRO' | 'PREMIUM'>('PREMIUM');
   const [email, setEmail]             = useState('');
+  const [message, setMessage]         = useState('');
   const [submitting, setSubmitting]   = useState(false);
   const [error, setError]             = useState('');
 
@@ -42,7 +43,7 @@ export default function GiftPage() {
     setError('');
     setSubmitting(true);
     try {
-      const { data } = await api.post('/subscriptions/gift', { recipientEmail: email.trim(), plan });
+      const { data } = await api.post('/subscriptions/gift', { recipientEmail: email.trim(), plan, message: message.trim() || undefined });
       window.location.href = data.url;
     } catch (err: any) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');
@@ -116,7 +117,22 @@ export default function GiftPage() {
             placeholder="friend@example.com"
             className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 transition-colors"
           />
-          <p className="text-gray-600 text-xs mt-1.5">They must already have a Camp DaddyMan account.</p>
+          <p className="text-gray-600 text-xs mt-1.5">They'll receive an email letting them know — they must have a Camp DaddyMan account to claim it.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm text-gray-400 mb-1.5">Personal message <span className="text-gray-600">(optional)</span></label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Write them a note — it'll be included in their gift email…"
+            rows={3}
+            maxLength={500}
+            className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-400 transition-colors resize-none"
+          />
+          {message.length > 0 && (
+            <p className="text-gray-600 text-xs mt-1 text-right">{message.length}/500</p>
+          )}
         </div>
 
         <div className="bg-surface-700/50 border border-surface-600 rounded-xl p-4 text-sm text-gray-400 space-y-1">

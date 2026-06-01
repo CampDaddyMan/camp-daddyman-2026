@@ -8,6 +8,8 @@ api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    const profileId = localStorage.getItem('cdm_active_profile_id');
+    if (profileId) config.headers['X-Profile-Id'] = profileId;
   }
   return config;
 });

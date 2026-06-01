@@ -87,6 +87,11 @@ export default function ProductDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [myReviewId, setMyReviewId] = useState<string | null>(null);
+  const [related, setRelated] = useState<Product[]>([]);
+  const [wishlisted, setWishlisted] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifySubmitted, setNotifySubmitted] = useState(false);
+  const [notifyLoading, setNotifyLoading] = useState(false);
 
   function handleImageMouseMove(e: MouseEvent<HTMLDivElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -112,9 +117,22 @@ export default function ProductDetailPage() {
         const p: Product = r.data.product;
         setProduct(p);
         if (p.variants.length === 1) setFlatVariant(p.variants[0]);
+        try {
+          const key = 'camp_recently_viewed';
+          const prev = JSON.parse(localStorage.getItem(key) || '[]') as any[];
+          const entry = { id: p.id, slug: p.slug, name: p.name, price: p.price, comparePrice: p.comparePrice, imageUrl: p.imageUrl, type: p.type };
+          const next = [entry, ...prev.filter((x: any) => x.id !== p.id)].slice(0, 6);
+          localStorage.setItem(key, JSON.stringify(next));
+        } catch {}
       })
       .catch(() => router.push('/shop'))
       .finally(() => setLoading(false));
+    api.get(`/shop/products/${id}/related`)
+      .then((r) => setRelated(r.data.products))
+      .catch(() => {});
+    api.get('/shop/wishlist')
+      .then((r) => setWishlisted(r.data.products.some((p: any) => p.id === id)))
+      .catch(() => {});
     loadReviews();
   }, [id, router, loadReviews]);
 
@@ -202,6 +220,24 @@ export default function ProductDetailPage() {
     await api.delete(`/shop/products/${id}/reviews/${myReviewId}`);
     setMyReviewId(null);
     loadReviews();
+  }
+
+  async function handleNotifySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const email = (notifyEmail || user?.email || '').trim();
+    if (!email) return;
+    setNotifyLoading(true);
+    try {
+      await api.post(`/shop/products/${product!.id}/notify`, { email });
+      setNotifySubmitted(true);
+    } catch {}
+    finally { setNotifyLoading(false); }
+  }
+
+  async function handleToggleWishlist() {
+    if (!user) return router.push('/login');
+    const { data } = await api.post(`/shop/wishlist/${product!.id}`);
+    setWishlisted(data.wishlisted);
   }
 
   function handleAddToCart() {
@@ -423,6 +459,17 @@ export default function ProductDetailPage() {
             >
               {outOfStock ? 'Out of Stock' : needsVariant ? 'Select an option' : added ? '✓ Added to Cart' : 'Add to Cart'}
             </button>
+            <button
+              onClick={handleToggleWishlist}
+              title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              className={`px-4 py-3.5 rounded-xl border transition-colors text-xl leading-none ${
+                wishlisted
+                  ? 'border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                  : 'border-surface-600 hover:border-surface-400 text-gray-400 hover:text-red-400'
+              }`}
+            >
+              {wishlisted ? '♥' : '♡'}
+            </button>
             <Link
               href="/shop/cart"
               className="px-5 py-3.5 rounded-xl border border-surface-600 hover:border-surface-400 text-gray-300 hover:text-white font-medium transition-colors text-sm flex items-center"
@@ -432,7 +479,33 @@ export default function ProductDetailPage() {
           </div>
 
           {outOfStock && (
-            <p className="text-red-400 text-sm">This item is currently out of stock.</p>
+            notifySubmitted ? (
+              <div className="flex items-center gap-2 bg-camp-500/10 border border-camp-500/30 rounded-xl px-4 py-3 text-sm text-camp-400">
+                <span>✓</span>
+                <span>We'll email you when this is back in stock.</span>
+              </div>
+            ) : (
+              <form onSubmit={handleNotifySubmit} className="space-y-2">
+                <p className="text-gray-500 text-sm">This item is out of stock. Get notified when it's back:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={notifyEmail || user?.email || ''}
+                    onChange={(e) => setNotifyEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                    className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    disabled={notifyLoading}
+                    className="px-4 py-2.5 bg-surface-700 hover:bg-surface-600 border border-surface-600 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {notifyLoading ? '…' : 'Notify Me'}
+                  </button>
+                </div>
+              </form>
+            )
           )}
 
           {product.type === 'DIGITAL' && (
@@ -523,6 +596,44 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {/* You May Also Like */}
+      {related.length > 0 && (
+        <div className="mt-16 border-t border-surface-700 pt-10">
+          <h2 className="text-xl font-bold text-white mb-6">You May Also Like</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+            {related.map((p) => {
+              const outOfStock = p.variants.length > 0 && p.variants.every((v) => v.inventory <= 0);
+              const hasDiscount = !!(p.comparePrice && p.comparePrice > p.price);
+              const savePct = hasDiscount ? Math.round((1 - p.price / p.comparePrice!) * 100) : 0;
+              return (
+                <Link key={p.id} href={`/shop/${p.slug || p.id}`} className="group block">
+                  <div className="relative aspect-[4/5] bg-surface-800 rounded-xl overflow-hidden border border-surface-700 group-hover:border-brand-500/50 transition-all">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-5xl opacity-20">
+                        {p.type === 'DIGITAL' ? '📦' : '👕'}
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      {hasDiscount && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">−{savePct}%</span>}
+                      {outOfStock && <span className="bg-black/70 text-gray-400 text-[10px] font-medium px-2 py-0.5 rounded-full border border-surface-600">Sold Out</span>}
+                    </div>
+                  </div>
+                  <div className="mt-2.5 px-0.5">
+                    <p className="text-white text-sm font-semibold truncate group-hover:text-brand-400 transition-colors">{p.name}</p>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-brand-400 font-bold">${p.price.toFixed(2)}</span>
+                      {hasDiscount && <span className="text-gray-600 text-xs line-through">${p.comparePrice!.toFixed(2)}</span>}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

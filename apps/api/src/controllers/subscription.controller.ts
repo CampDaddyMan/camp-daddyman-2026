@@ -3,6 +3,7 @@ import { prisma } from '../config/database';
 import { stripe, PLANS } from '../config/stripe';
 import { AuthRequest } from '../middleware/auth';
 import { notifyTip } from '../utils/notifications';
+import { sendGiftReceivedEmail, sendGiftConfirmedEmail } from '../utils/email';
 
 export function getPlans(_req: Request, res: Response) {
   res.json({ plans: PLANS });
@@ -121,7 +122,7 @@ export async function createTipCheckout(req: AuthRequest, res: Response) {
 }
 
 export async function createGiftCheckout(req: AuthRequest, res: Response) {
-  const { recipientEmail, plan } = req.body as { recipientEmail: string; plan: string };
+  const { recipientEmail, plan, message } = req.body as { recipientEmail: string; plan: string; message?: string };
 
   if (!['PRO', 'PREMIUM'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan. Choose PRO or PREMIUM.' });
@@ -167,6 +168,7 @@ export async function createGiftCheckout(req: AuthRequest, res: Response) {
       recipientId:   recipient.id,
       buyerId:       req.user!.id,
       recipientEmail,
+      message:       message?.trim().slice(0, 500) || '',
     },
   });
 
@@ -233,7 +235,7 @@ export async function stripeWebhook(req: Request, res: Response) {
 
         // Gift subscription
         if (meta.type === 'GIFT') {
-          const { plan, recipientId } = meta;
+          const { plan, recipientId, buyerId, recipientEmail, message } = meta;
           if (plan && recipientId) {
             const now = new Date();
             const end = new Date(now);
@@ -244,6 +246,41 @@ export async function stripeWebhook(req: Request, res: Response) {
               update: { plan, status: 'ACTIVE', currentPeriodStart: now, currentPeriodEnd: end },
               create: { userId: recipientId, plan, status: 'ACTIVE', currentPeriodStart: now, currentPeriodEnd: end },
             }).catch(() => {});
+
+            const planLabel = plan === 'PRO' ? 'Monthly Membership (1 month)' : 'Annual Membership (1 year)';
+
+            // Email recipient
+            const recipient = await prisma.user.findUnique({
+              where: { id: recipientId },
+              select: { email: true, username: true, displayName: true },
+            }).catch(() => null);
+
+            // Email buyer
+            const buyer = await prisma.user.findUnique({
+              where: { id: buyerId },
+              select: { email: true, username: true, displayName: true },
+            }).catch(() => null);
+
+            const buyerDisplay = buyer?.displayName || buyer?.username || 'Someone';
+
+            if (recipient) {
+              sendGiftReceivedEmail(
+                recipient.email,
+                recipient.displayName || recipient.username,
+                buyerDisplay,
+                planLabel,
+                message || null,
+              ).catch(() => {});
+            }
+
+            if (buyer) {
+              sendGiftConfirmedEmail(
+                buyer.email,
+                buyer.displayName || buyer.username,
+                recipientEmail || recipient?.email || '',
+                planLabel,
+              ).catch(() => {});
+            }
           }
           break;
         }
@@ -287,6 +324,9 @@ export async function stripeWebhook(req: Request, res: Response) {
             stripeSubscriptionId: session.subscription,
           },
         });
+        if (plan === 'CREATOR') {
+          await prisma.user.update({ where: { id: userId }, data: { isCreator: true } });
+        }
         break;
       }
 

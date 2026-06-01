@@ -5,6 +5,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { PlayerProvider } from '@/context/PlayerContext';
+import { ProfileProvider } from '@/context/ProfileContext';
 import Navbar from '@/components/layout/Navbar';
 import MiniPlayer from '@/components/layout/MiniPlayer';
 import ConditionalFooter from '@/components/layout/ConditionalFooter';
@@ -71,14 +72,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
         <ServiceWorkerRegistrar />
         <AuthProvider>
-          <CartProvider>
-            <PlayerProvider>
-              <Navbar />
-              <main className="min-h-screen pb-24">{children}</main>
-              <ConditionalFooter />
-              <MiniPlayer />
-            </PlayerProvider>
-          </CartProvider>
+          <ProfileProvider>
+            <CartProvider>
+              <PlayerProvider>
+                <Navbar />
+                <main className="min-h-screen pb-24">{children}</main>
+                <ConditionalFooter />
+                <MiniPlayer />
+              </PlayerProvider>
+            </CartProvider>
+          </ProfileProvider>
         </AuthProvider>
       </body>
     </html>

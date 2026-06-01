@@ -80,6 +80,13 @@ model User {
   currentStreak          Int              @default(0)
   longestStreak          Int              @default(0)
   lastStreakDate         DateTime?        @db.Date
+  loyaltyRedemptions     LoyaltyRedemption[]
+  // Conferred stations — set by Elder/admin, never by XP alone
+  // Values: ARK_BUILDER | GARDENER | FAADA | null
+  // GARDENER and FAADA have no badge and no public announcement (by constitution)
+  station                String?
+  goodDones              GoodDone[]      @relation("GoodDoneSubmitter")
+  verifiedGoodDones      GoodDone[]      @relation("GoodDoneVerifier")
 }
 
 model Token {
@@ -153,8 +160,9 @@ model Content {
   canvasUrl   String? // short looping background video for audio content
   introStart  Int?    // seconds — when "Skip Intro" button appears
   introEnd    Int?    // seconds — where playhead jumps to on skip
-  previewUrl  String? // short muted clip shown on hover in content rows
-  chapters    Json?   // Array of {time: number, label: string}
+  previewUrl      String? // short muted clip shown on hover in content rows
+  chapters        Json?   // Array of {time: number, label: string}
+  xpWatchSeconds  Int     @default(30) // seconds watched before XP is awarded
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -746,12 +754,24 @@ model Coupon {
   value          Float
   minOrderAmount Float?
   maxUses        Int?
+  maxUsesPerUser Int        @default(1)
   usedCount      Int        @default(0)
   active         Boolean    @default(true)
   expiresAt      DateTime?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   orders         Order[]
+  uses           CouponUse[]
+}
+
+model CouponUse {
+  id        String   @id @default(cuid())
+  couponId  String
+  userId    String
+  createdAt DateTime @default(now())
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@index([couponId, userId])
 }
 
 enum ProductStatus {
@@ -1078,4 +1098,66 @@ model BannerSlide {
   createdAt      DateTime @default(now())
 
   @@index([page, sortOrder])
+}
+
+// ── Loyalty Shop ──────────────────────────────────────────────────────────────
+
+model LoyaltyReward {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  xpCost      Int
+  type        String   // DISCOUNT | EARLY_ACCESS | EXCLUSIVE_CONTENT | CUSTOM
+  value       String?  // coupon code, content id, or custom detail
+  stock       Int?     // null = unlimited
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  redemptions LoyaltyRedemption[]
+}
+
+model LoyaltyRedemption {
+  id        String        @id @default(cuid())
+  userId    String
+  rewardId  String
+  xpSpent   Int
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward    LoyaltyReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, rewardId])
+  @@index([userId])
+}
+
+// ── Good Done ─────────────────────────────────────────────────────────────────
+// Witnessed acts of service — the real currency from J-Shape up.
+// Never self-reported as valid: every act requires Elder verification.
+
+model GoodDone {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation("GoodDoneSubmitter", fields: [userId], references: [id], onDelete: Cascade)
+  type         GoodDoneType
+  description  String
+  status       GoodDoneStatus @default(PENDING)
+  witnessNote  String?        // Elder's note on verification
+  verifiedById String?
+  verifiedBy   User?          @relation("GoodDoneVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt   DateTime?
+  createdAt    DateTime       @default(now())
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+enum GoodDoneType {
+  GOOD           // Acts of Good — helping an elder, mentoring a youth, community cleanup
+  CREATION       // Acts of Creation — song, poem, book, film, artwork
+  PRESERVATION   // Acts of Preservation — culture, wisdom, stories, history
+  RECONCILIATION // Acts of Reconciliation — healing relationships, peacemaking
+}
+
+enum GoodDoneStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

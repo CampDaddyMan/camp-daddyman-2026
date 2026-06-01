@@ -125,12 +125,18 @@ function ProductCard({ product }: { product: Product }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+interface RecentItem {
+  id: string; slug: string; name: string; price: number;
+  comparePrice?: number; imageUrl?: string; type: string;
+}
+
 export default function ShopPage() {
   const { user } = useAuth();
   const collectionRef = useRef<HTMLDivElement>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recentlyViewed, setRecentlyViewed] = useState<RecentItem[]>([]);
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'PHYSICAL' | 'DIGITAL'>('ALL');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<'featured' | 'newest' | 'price_asc' | 'price_desc'>('featured');
@@ -142,6 +148,11 @@ export default function ShopPage() {
   const [carouselPaused, setCarouselPaused] = useState(false);
 
   useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('camp_recently_viewed') || '[]');
+      if (Array.isArray(saved) && saved.length > 0) setRecentlyViewed(saved);
+    } catch {}
+
     api.get('/shop/products')
       .then((r) => setProducts(r.data.products))
       .catch(() => {})
@@ -320,6 +331,37 @@ export default function ShopPage() {
       {/* ── Sponsored banner — between hero and collection ──────────────────── */}
       <AdSlot location="shop-banner" wrapperClassName="px-8 md:px-14 py-6 bg-black" />
 
+      {/* ── Recently Viewed ─────────────────────────────────────────────────── */}
+      {recentlyViewed.length > 0 && (
+        <div className="px-8 md:px-14 pt-8 pb-2">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-4">Recently Viewed</h2>
+          <div className="flex gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {recentlyViewed.map((item) => {
+              const hasDiscount = !!(item.comparePrice && item.comparePrice > item.price);
+              const savePct = hasDiscount ? Math.round((1 - item.price / item.comparePrice!) * 100) : 0;
+              return (
+                <Link key={item.id} href={`/shop/${item.slug || item.id}`} className="flex-shrink-0 w-32 group">
+                  <div className="relative w-32 h-36 bg-surface-800 rounded-xl overflow-hidden border border-surface-700 group-hover:border-brand-500/40 transition-colors">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl opacity-20">
+                        {item.type === 'DIGITAL' ? '📦' : '👕'}
+                      </div>
+                    )}
+                    {hasDiscount && (
+                      <span className="absolute top-1.5 left-1.5 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">−{savePct}%</span>
+                    )}
+                  </div>
+                  <p className="text-white text-xs font-medium mt-2 truncate group-hover:text-brand-400 transition-colors">{item.name}</p>
+                  <p className="text-brand-400 text-xs font-bold">${item.price.toFixed(2)}</p>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── Collection — full width ─────────────────────────────────────────── */}
       <div ref={collectionRef} className="pb-28">
 
@@ -355,6 +397,9 @@ export default function ShopPage() {
                 </button>
               ))}
               <div className="flex-1 min-w-[16px]" />
+              {user && (
+                <Link href="/shop/wishlist" className="flex-shrink-0 text-gray-500 hover:text-red-400 transition-colors text-sm" title="My Wishlist">♡</Link>
+              )}
               <span className="flex-shrink-0 text-gray-700 text-xs tabular-nums">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
               <select
                 value={sort}

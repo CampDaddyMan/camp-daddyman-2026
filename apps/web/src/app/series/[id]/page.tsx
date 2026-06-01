@@ -6,22 +6,17 @@ import Image from 'next/image';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
-interface EpisodeContent {
+interface Episode {
   id: string;
+  episodeNumber: number;
   title: string;
   description: string | null;
-  type: string;
   thumbnailUrl: string | null;
+  mediaUrl: string | null;
+  hlsUrl: string | null;
   duration: number | null;
   views: number;
-  privacy: string;
   rating: string | null;
-  createdAt: string;
-}
-
-interface Episode {
-  episodeNumber: number;
-  content: EpisodeContent;
 }
 
 interface Season {
@@ -53,6 +48,7 @@ interface SeriesDetail {
   description: string | null;
   coverUrl: string | null;
   bannerUrl: string | null;
+  trailerUrl: string | null;
   genre: string | null;
   tags: string[];
   status: string;
@@ -67,13 +63,6 @@ function formatDuration(secs: number) {
   const m = Math.floor((secs % 3600) / 60);
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
-}
-
-function typeEmoji(type: string) {
-  const map: Record<string, string> = {
-    FILM: '🎬', MUSIC: '🎵', PODCAST: '🎙️', SPOKEN_WORD: '🎤', DADDYMAN_ISMS: '💡', BOOK: '📖',
-  };
-  return map[type] ?? '🎬';
 }
 
 function timeAgo(dateStr: string) {
@@ -93,6 +82,10 @@ export default function SeriesDetailPage() {
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState('');
   const [activeSeason, setActiveSeason]   = useState(0);
+  const [playingEpId, setPlayingEpId]     = useState<string | null>(null);
+  const [autoplayNext, setAutoplayNext]   = useState<{
+    epId: string; title: string; countdown: number; seasonIdx: number;
+  } | null>(null);
 
   // Comments
   const [comments, setComments]           = useState<SeriesComment[]>([]);
@@ -101,6 +94,52 @@ export default function SeriesDetailPage() {
   const [replyText, setReplyText]         = useState('');
   const [submitting, setSubmitting]       = useState(false);
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
+  const [episodeProgress, setEpisodeProgress] = useState<Record<string, number>>({});
+  const [resumeEpId, setResumeEpId] = useState<string | null>(null);
+  const resumeRef = useRef<HTMLDivElement>(null);
+
+  // Autoplay next episode
+  function findNextEpisode(currentEpId: string): { ep: Episode; seasonIdx: number } | null {
+    if (!series) return null;
+    for (let si = 0; si < series.seasons.length; si++) {
+      const epIdx = series.seasons[si].episodes.findIndex((e) => e.id === currentEpId);
+      if (epIdx === -1) continue;
+      if (epIdx + 1 < series.seasons[si].episodes.length) {
+        return { ep: series.seasons[si].episodes[epIdx + 1], seasonIdx: si };
+      }
+      if (si + 1 < series.seasons.length && series.seasons[si + 1].episodes.length > 0) {
+        return { ep: series.seasons[si + 1].episodes[0], seasonIdx: si + 1 };
+      }
+      return null;
+    }
+    return null;
+  }
+
+  function handleVideoEnded(epId: string) {
+    const next = findNextEpisode(epId);
+    if (!next) return;
+    setAutoplayNext({ epId: next.ep.id, title: next.ep.title, countdown: 10, seasonIdx: next.seasonIdx });
+  }
+
+  function cancelAutoplay() {
+    setAutoplayNext(null);
+  }
+
+  useEffect(() => {
+    if (!autoplayNext) return;
+    if (autoplayNext.countdown <= 0) {
+      const { epId, seasonIdx } = autoplayNext;
+      setAutoplayNext(null);
+      setActiveSeason(seasonIdx);
+      setPlayingEpId(epId);
+      return;
+    }
+    const t = setTimeout(
+      () => setAutoplayNext((prev) => prev ? { ...prev, countdown: prev.countdown - 1 } : null),
+      1000,
+    );
+    return () => clearTimeout(t);
+  }, [autoplayNext]);
 
   useEffect(() => {
     api.get(`/series/${id}`)
@@ -120,6 +159,52 @@ export default function SeriesDetailPage() {
       .then((r) => setComments(r.data.comments))
       .catch(() => {});
   }, [id]);
+
+  useEffect(() => {
+    if (!series || !user) return;
+    const allEps = series.seasons.flatMap(s => s.episodes);
+    if (allEps.length === 0) return;
+    Promise.all(
+      allEps.map(ep =>
+        api.get(`/content/${ep.id}/progress`)
+          .then(r => ({ id: ep.id, progress: (r.data.progress as number) || 0 }))
+          .catch(() => ({ id: ep.id, progress: 0 }))
+      )
+    ).then(results => {
+      const map: Record<string, number> = {};
+      for (const { id: epId, progress } of results) {
+        if (progress > 0) map[epId] = progress;
+      }
+      setEpisodeProgress(map);
+      let resumeId: string | null = null;
+      let resumeSeasonIdx = 0;
+      let found = false;
+      for (let si = 0; si < series.seasons.length && !found; si++) {
+        for (const ep of series.seasons[si].episodes) {
+          const prog = map[ep.id] || 0;
+          if (prog > 30) {
+            const pct = ep.duration ? prog / ep.duration : 0;
+            if (pct < 0.95) {
+              resumeId = ep.id;
+              resumeSeasonIdx = si;
+              found = true;
+              break;
+            }
+          }
+        }
+      }
+      if (resumeId) {
+        setResumeEpId(resumeId);
+        setActiveSeason(resumeSeasonIdx);
+      }
+    });
+  }, [series, user]);
+
+  useEffect(() => {
+    if (!resumeEpId || !resumeRef.current) return;
+    const t = setTimeout(() => resumeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+    return () => clearTimeout(t);
+  }, [resumeEpId]);
 
   async function submitComment(e: React.FormEvent) {
     e.preventDefault();
@@ -233,6 +318,21 @@ export default function SeriesDetailPage() {
         <p className="text-gray-400 text-sm leading-relaxed mb-8">{series.description}</p>
       )}
 
+      {/* Trailer */}
+      {series.trailerUrl && (
+        <div className="mb-8">
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Trailer</p>
+          <div className="rounded-2xl overflow-hidden bg-black aspect-video">
+            <video
+              src={series.trailerUrl}
+              controls
+              className="w-full h-full"
+              preload="metadata"
+            />
+          </div>
+        </div>
+      )}
+
       {series.seasons.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
           <p className="text-4xl mb-3">🎬</p>
@@ -243,10 +343,10 @@ export default function SeriesDetailPage() {
           {/* Season tabs */}
           {series.seasons.length > 1 && (
             <div className="flex gap-1 mb-6 border-b border-surface-700 pb-0 overflow-x-auto">
-              {series.seasons.map((s, i) => (
+              {(series.seasons ?? []).filter(Boolean).map((s, i) => (
                 <button
                   key={s.id}
-                  onClick={() => setActiveSeason(i)}
+                  onClick={() => { setActiveSeason(i); setPlayingEpId(null); }}
                   className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg whitespace-nowrap ${
                     activeSeason === i
                       ? 'text-white bg-surface-800 border border-surface-700 border-b-surface-800 -mb-px'
@@ -277,15 +377,12 @@ export default function SeriesDetailPage() {
             <p className="text-gray-600 text-sm py-8 text-center">No episodes in this season yet.</p>
           ) : (
             <div className="space-y-2">
-              {(season?.episodes ?? []).map((ep) => {
-                const c = ep.content;
-                const href = `/watch/${c.id}`;
-
-                return (
-                  <Link
-                    key={c.id}
-                    href={href}
-                    className="group flex gap-4 items-center bg-surface-800 hover:bg-surface-700 border border-surface-700 hover:border-surface-600 rounded-xl p-4 transition-colors"
+              {(season?.episodes ?? []).map((ep) => (
+                <div key={ep.id} ref={resumeEpId === ep.id ? resumeRef : undefined}>
+                  <button
+                    onClick={() => { cancelAutoplay(); setPlayingEpId(playingEpId === ep.id ? null : ep.id); }}
+                    className="w-full group flex gap-4 items-center bg-surface-800 hover:bg-surface-700 border border-surface-700 hover:border-surface-600 rounded-xl p-4 transition-colors text-left"
+                    style={{ borderBottomLeftRadius: playingEpId === ep.id ? 0 : undefined, borderBottomRightRadius: playingEpId === ep.id ? 0 : undefined }}
                   >
                     {/* Episode number */}
                     <div className="flex-shrink-0 w-8 text-center">
@@ -294,40 +391,101 @@ export default function SeriesDetailPage() {
 
                     {/* Thumbnail */}
                     <div className="relative w-24 flex-shrink-0 aspect-video bg-surface-700 rounded-lg overflow-hidden">
-                      {c.thumbnailUrl ? (
-                        <Image src={c.thumbnailUrl} alt={c.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                      {ep.thumbnailUrl ? (
+                        <Image src={ep.thumbnailUrl} alt={ep.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-xl">{typeEmoji(c.type)}</div>
+                        <div className="absolute inset-0 flex items-center justify-center text-xl">🎬</div>
                       )}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 bg-brand-500 rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-black text-xs ml-0.5">▶</span>
+                          <span className="text-black text-xs ml-0.5">{playingEpId === ep.id ? '⏸' : '▶'}</span>
                         </div>
                       </div>
+                      {(episodeProgress[ep.id] || 0) > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
+                          <div
+                            className="h-full bg-brand-500"
+                            style={{ width: `${Math.min(100, ep.duration ? (episodeProgress[ep.id] / ep.duration) * 100 : 5)}%` }}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium text-sm group-hover:text-brand-400 transition-colors truncate">{c.title}</p>
-                      {c.description && (
-                        <p className="text-gray-500 text-xs mt-0.5 line-clamp-2 leading-relaxed">{c.description}</p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <p className="text-white font-medium text-sm group-hover:text-brand-400 transition-colors truncate flex-1 min-w-0">{ep.title}</p>
+                        {resumeEpId === ep.id && (
+                          <span className="flex-shrink-0 text-[10px] bg-brand-500 text-black font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Resume</span>
+                        )}
+                      </div>
+                      {ep.description && (
+                        <p className="text-gray-500 text-xs mt-0.5 line-clamp-2 leading-relaxed">{ep.description}</p>
                       )}
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-600">
-                        {c.duration && <span>{formatDuration(c.duration)}</span>}
-                        <span>{c.views.toLocaleString()} views</span>
-                        {c.rating && (
-                          <span className="border border-gray-700 text-gray-500 px-1.5 py-0 rounded font-bold text-[10px]">{c.rating}</span>
+                        {ep.duration && <span>{formatDuration(ep.duration)}</span>}
+                        {ep.rating && (
+                          <span className="border border-gray-700 text-gray-500 px-1.5 py-0 rounded font-bold text-[10px]">{ep.rating}</span>
                         )}
-                        {c.privacy === 'SUBSCRIBERS_ONLY' && (
-                          <span className="text-brand-400 font-semibold">Members</span>
-                        )}
+                        {!ep.mediaUrl && <span className="text-gray-700 italic">coming soon</span>}
                       </div>
                     </div>
 
-                    <div className="flex-shrink-0 text-gray-600 group-hover:text-gray-400 transition-colors ml-2">›</div>
-                  </Link>
-                );
-              })}
+                    <div className="flex-shrink-0 text-gray-600 group-hover:text-gray-400 transition-colors ml-2">
+                      {playingEpId === ep.id ? '▲' : '▼'}
+                    </div>
+                  </button>
+
+                  {/* Inline player */}
+                  {playingEpId === ep.id && (
+                    <div className="relative bg-black rounded-b-xl border border-t-0 border-surface-700 overflow-hidden">
+                      {ep.mediaUrl ? (
+                        <video
+                          src={ep.mediaUrl}
+                          controls
+                          autoPlay
+                          className="w-full"
+                          style={{ maxHeight: '60vh' }}
+                          onEnded={() => handleVideoEnded(ep.id)}
+                        />
+                      ) : (
+                        <div className="py-12 text-center text-gray-600">
+                          <p className="text-2xl mb-2">🎬</p>
+                          <p className="text-sm">Video coming soon</p>
+                        </div>
+                      )}
+                      {/* Autoplay countdown overlay */}
+                      {autoplayNext && (
+                        <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center text-center p-6">
+                          <p className="text-white/50 text-xs uppercase tracking-widest mb-2">Up next</p>
+                          <p className="text-white font-semibold text-lg mb-5 max-w-xs">{autoplayNext.title}</p>
+                          <div className="relative w-16 h-16 mb-5">
+                            <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                              <circle cx="32" cy="32" r="28" fill="none" stroke="#ffffff20" strokeWidth="4" />
+                              <circle
+                                cx="32" cy="32" r="28" fill="none" stroke="#f8c202" strokeWidth="4"
+                                strokeDasharray={`${2 * Math.PI * 28}`}
+                                strokeDashoffset={`${2 * Math.PI * 28 * (1 - autoplayNext.countdown / 10)}`}
+                                strokeLinecap="round"
+                                style={{ transition: 'stroke-dashoffset 1s linear' }}
+                              />
+                            </svg>
+                            <span className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
+                              {autoplayNext.countdown}
+                            </span>
+                          </div>
+                          <button
+                            onClick={cancelAutoplay}
+                            className="px-5 py-2 border border-white/20 text-white/60 text-sm rounded-xl hover:bg-white/10 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </>
@@ -343,7 +501,6 @@ export default function SeriesDetailPage() {
           Comments <span className="text-gray-500 font-normal text-sm">({comments.length})</span>
         </h3>
 
-        {/* New comment form */}
         {user ? (
           <form onSubmit={submitComment} className="mb-8">
             <textarea
@@ -369,19 +526,17 @@ export default function SeriesDetailPage() {
           </p>
         )}
 
-        {/* Comment list */}
         <div className="space-y-6">
           {comments.length === 0 && (
             <p className="text-gray-600 text-sm text-center py-8">No comments yet. Be the first!</p>
           )}
           {comments.map((c) => (
             <div key={c.id}>
-              {/* Top-level comment */}
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-surface-700 overflow-hidden flex-shrink-0">
                   {c.user.avatar
                     ? <img src={c.user.avatar} alt="" className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{(c.user.displayName || c.user.username)[0].toUpperCase()}</div>
+                    : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{(c.user.displayName || c.user.username || '?')[0].toUpperCase()}</div>
                   }
                 </div>
                 <div className="flex-1 min-w-0">
@@ -409,7 +564,6 @@ export default function SeriesDetailPage() {
                     )}
                   </div>
 
-                  {/* Reply form */}
                   {replyTo?.id === c.id && (
                     <form onSubmit={submitReply} className="mt-3">
                       <textarea
@@ -433,7 +587,6 @@ export default function SeriesDetailPage() {
                     </form>
                   )}
 
-                  {/* Replies */}
                   {c.replies.length > 0 && (
                     <div className="mt-4 space-y-3 pl-4 border-l border-surface-700">
                       {c.replies.map((r) => (
@@ -441,7 +594,7 @@ export default function SeriesDetailPage() {
                           <div className="w-6 h-6 rounded-full bg-surface-700 overflow-hidden flex-shrink-0">
                             {r.user.avatar
                               ? <img src={r.user.avatar} alt="" className="w-full h-full object-cover" />
-                              : <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">{(r.user.displayName || r.user.username)[0].toUpperCase()}</div>
+                              : <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">{(r.user.displayName || r.user.username || '?')[0].toUpperCase()}</div>
                             }
                           </div>
                           <div className="flex-1 min-w-0">

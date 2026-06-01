@@ -19,12 +19,24 @@ app.set('trust proxy', 1);
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
+
+// Lock CORS to your own domains — set ALLOWED_ORIGINS as a comma-separated list in Railway env vars
+// e.g. ALLOWED_ORIGINS=https://campdaddyman.com,https://www.campdaddyman.com,https://admin.campdaddyman.com
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,https://campdaddyman.com,https://www.campdaddyman.com')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    // Allow requests with no Origin header (mobile apps, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 app.use('/api', router);
 

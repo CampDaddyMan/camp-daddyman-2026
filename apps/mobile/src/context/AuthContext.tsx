@@ -10,14 +10,14 @@ interface User {
   avatar?: string;
   isAdmin: boolean;
   isCreator: boolean;
+  station?: string | null;
 }
 
 interface AuthContextValue {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, username: string, password: string) => Promise<void>;
+  setAuth: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -29,32 +29,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem('token').then(async (t) => {
-      if (t) {
-        setToken(t);
-        try {
-          const { data } = await api.get('/auth/me');
-          setUser(data.user);
-        } catch {
-          await AsyncStorage.removeItem('token');
+    AsyncStorage.getItem('token')
+      .then(async (t) => {
+        if (t) {
+          setToken(t);
+          try {
+            const { data } = await api.get('/auth/me');
+            setUser(data.user);
+          } catch {
+            await AsyncStorage.removeItem('token').catch(() => {});
+          }
         }
-      }
-      setLoading(false);
-    });
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  async function login(email: string, password: string) {
-    const { data } = await api.post('/auth/login', { email, password });
-    await AsyncStorage.setItem('token', data.token);
-    setToken(data.token);
-    setUser(data.user);
-  }
-
-  async function register(email: string, username: string, password: string) {
-    const { data } = await api.post('/auth/register', { email, username, password });
-    await AsyncStorage.setItem('token', data.token);
-    setToken(data.token);
-    setUser(data.user);
+  async function setAuth(t: string, u: User) {
+    await AsyncStorage.setItem('token', t);
+    setToken(t);
+    setUser(u);
   }
 
   async function logout() {
@@ -64,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, setAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Content } from '@/types';
-import ContentRow from '@/components/content/ContentRow';
+import ContentRow, { Top10Row } from '@/components/content/ContentRow';
 import AdSlot from '@/components/ads/AdSlot';
 import RotatingBanner, { BannerSlide } from '@/components/ui/RotatingBanner';
 import { useAuth } from '@/context/AuthContext';
@@ -230,6 +230,7 @@ export default function HomePage() {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>([]);
   const [recommended, setRecommended] = useState<Content[]>([]);
+  const [becauseYouWatched, setBecauseYouWatched] = useState<Array<{ seedTitle: string; items: Content[] }>>([]);
   const [liveStreams, setLiveStreams] = useState<LiveStreamItem[]>([]);
 
   useEffect(() => {
@@ -258,7 +259,21 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) return;
     api.get('/content/history')
-      .then((r) => setHistory(r.data.items))
+      .then((r) => {
+        const items: HistoryItem[] = r.data.items;
+        setHistory(items);
+        const seeds = items.slice(0, 2);
+        if (seeds.length === 0) return;
+        Promise.all(
+          seeds.map(seed =>
+            api.get(`/content/${seed.id}/related`)
+              .then(rel => ({ seedTitle: seed.title, items: (rel.data.items as Content[]).filter((c: Content) => c.id !== seed.id).slice(0, 10) }))
+              .catch(() => null)
+          )
+        ).then(results => {
+          setBecauseYouWatched(results.filter(Boolean) as Array<{ seedTitle: string; items: Content[] }>);
+        });
+      })
       .catch(() => {});
     api.get('/content/recommended')
       .then((r) => setRecommended(r.data.items ?? []))
@@ -491,6 +506,18 @@ export default function HomePage() {
 
             <ContinueWatchingRow items={history} />
 
+            {becauseYouWatched.map(({ seedTitle, items }) =>
+              items.length > 0 ? (
+                <ContentRow
+                  key={seedTitle}
+                  title={`Because you watched "${seedTitle}"`}
+                  items={items}
+                  seeAllHref="/browse"
+                  emptyText=""
+                />
+              ) : null
+            )}
+
             {recommended.length > 0 && (
               <ContentRow title="✨ For You" items={recommended} seeAllHref="/browse" emptyText="" />
             )}
@@ -499,7 +526,7 @@ export default function HomePage() {
               <ContentRow title="⭐ Featured" items={data!.featured} seeAllHref="/browse" emptyText="" />
             )}
 
-            <ContentRow title="🔥 Trending" items={data?.trending ?? []} seeAllHref="/browse?sort=trending" emptyText="New drops coming soon." />
+            <Top10Row title="🔥 Top 10 Today" items={data?.trending ?? []} seeAllHref="/browse?sort=trending" />
 
             <AdSlot location="home-mid-banner" className="mb-8 rounded-2xl" />
 

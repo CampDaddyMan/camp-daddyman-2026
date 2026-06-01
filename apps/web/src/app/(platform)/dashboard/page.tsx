@@ -138,12 +138,155 @@ function EngagementChart({ data }: { data: ActivityDay[] }) {
   );
 }
 
+// ── Good Done ─────────────────────────────────────────────────────────────────
+
+interface GoodDoneAct {
+  id: string;
+  type: string;
+  description: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  witnessNote?: string | null;
+  verifiedAt?: string | null;
+  createdAt: string;
+}
+
+const GD_TYPES = [
+  { value: 'GOOD',           label: 'Act of Good',           hint: 'Helping an elder, mentoring a youth, community cleanup' },
+  { value: 'CREATION',       label: 'Act of Creation',       hint: 'Song, poem, book, film, artwork' },
+  { value: 'PRESERVATION',   label: 'Act of Preservation',   hint: 'Culture, wisdom, stories, history' },
+  { value: 'RECONCILIATION', label: 'Act of Reconciliation', hint: 'Healing relationships, peacemaking' },
+];
+
+const GD_STATUS_STYLE: Record<string, string> = {
+  PENDING:  'bg-amber-500/10 text-amber-400 border-amber-500/30',
+  APPROVED: 'bg-green-500/10 text-green-400 border-green-500/30',
+  REJECTED: 'bg-red-500/10  text-red-400  border-red-500/30',
+};
+
+function GoodDoneSection({ acts, onSubmit }: {
+  acts: GoodDoneAct[];
+  onSubmit: (type: string, description: string) => Promise<void>;
+}) {
+  const [open, setOpen]   = useState(false);
+  const [type, setType]   = useState('GOOD');
+  const [desc, setDesc]   = useState('');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg]     = useState('');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (desc.trim().length < 10) return setMsg('Describe the act in at least 10 characters.');
+    setSaving(true);
+    setMsg('');
+    try {
+      await onSubmit(type, desc.trim());
+      setDesc('');
+      setOpen(false);
+      setMsg('Logged. An Elder will witness it.');
+      setTimeout(() => setMsg(''), 4000);
+    } catch {
+      setMsg('Failed to submit. Try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-5 mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">Good Done</h2>
+          <p className="text-xs text-gray-500 mt-0.5">Witnessed acts of service — the real currency</p>
+        </div>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="text-xs bg-brand-500 text-black font-bold px-3 py-1.5 rounded-lg hover:bg-brand-400 transition-colors"
+        >
+          {open ? 'Cancel' : '+ Log an act'}
+        </button>
+      </div>
+
+      {open && (
+        <form onSubmit={handleSubmit} className="mb-5 space-y-3 border border-surface-700 rounded-xl p-4 bg-surface-900/50">
+          <div className="grid grid-cols-2 gap-2">
+            {GD_TYPES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setType(t.value)}
+                className={`text-left px-3 py-2.5 rounded-lg border text-xs transition-colors ${
+                  type === t.value
+                    ? 'border-brand-500 bg-brand-500/10 text-brand-400'
+                    : 'border-surface-600 bg-surface-800 text-gray-400 hover:border-surface-500'
+                }`}
+              >
+                <span className="font-semibold block">{t.label}</span>
+                <span className="text-gray-600 mt-0.5 block leading-tight">{t.hint}</span>
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            rows={3}
+            maxLength={1000}
+            placeholder="Describe what you did, where, and who was affected. Be specific — an Elder will witness this."
+            className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none placeholder:text-gray-600"
+          />
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="text-sm bg-brand-500 text-black font-bold px-4 py-2 rounded-lg hover:bg-brand-400 transition-colors disabled:opacity-50"
+            >
+              {saving ? 'Submitting…' : 'Submit for witnessing'}
+            </button>
+            <span className="text-xs text-gray-600">{desc.length}/1000</span>
+          </div>
+          {msg && <p className="text-xs text-brand-400">{msg}</p>}
+        </form>
+      )}
+
+      {acts.length === 0 ? (
+        <p className="text-sm text-gray-600 text-center py-4">
+          No acts logged yet. Every act you log goes to an Elder for witnessing.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {acts.map((a) => (
+            <div key={a.id} className="flex items-start gap-3 px-3 py-3 rounded-lg bg-surface-900/40">
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 mt-0.5 ${GD_STATUS_STYLE[a.status]}`}>
+                {a.status}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-400 font-semibold mb-0.5">
+                  {GD_TYPES.find((t) => t.value === a.type)?.label ?? a.type}
+                </p>
+                <p className="text-sm text-white leading-snug">{a.description}</p>
+                {a.witnessNote && (
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Elder: &ldquo;{a.witnessNote}&rdquo;
+                  </p>
+                )}
+              </div>
+              <span className="text-[10px] text-gray-600 flex-shrink-0 mt-0.5">
+                {new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── XP Level card ─────────────────────────────────────────────────────────────
 
-const LEVEL_EMOJI = ['🥚', '🐛', '🫘', '🦋'] as const;
+const LEVEL_EMOJI = ['🥚', '🐛', '🔄', '🫘', '🦋'] as const;
 const LEVEL_COLORS = [
   'from-stone-500/20 to-stone-600/10 border-stone-600/40',
   'from-green-700/20 to-green-900/10 border-green-700/40',
+  'from-amber-700/20 to-amber-900/10 border-amber-700/40',
   'from-violet-700/20 to-violet-900/10 border-violet-700/40',
   'from-brand-500/20 to-brand-600/10 border-brand-500/40',
 ] as const;
@@ -196,10 +339,26 @@ function XpCard({ xp, currentStreak, longestStreak }: { xp: number; currentStrea
         </div>
 
         <div className="text-right flex-shrink-0 hidden sm:block">
-          <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Earn XP by</p>
-          <p className="text-xs text-gray-500">Watching (+10) · Liking (+2)</p>
-          <p className="text-xs text-gray-500">Commenting (+5) · Following (+10)</p>
-          <p className="text-xs text-gray-500">Purchasing (+25)</p>
+          {index <= 1 ? (
+            <>
+              <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Earn XP by</p>
+              <p className="text-xs text-gray-500">Watching (+10) · Liking (+2)</p>
+              <p className="text-xs text-gray-500">Commenting (+5) · Following (+10)</p>
+              <p className="text-xs text-gray-500">Purchasing (+25)</p>
+            </>
+          ) : index === 2 ? (
+            <>
+              <p className="text-xs text-brand-400 font-semibold mb-1">Good Done unlocked ↓</p>
+              <p className="text-xs text-gray-500">XP still counts. Start logging</p>
+              <p className="text-xs text-gray-500">acts of service below.</p>
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-brand-400 font-semibold mb-1">Good Done only ↓</p>
+              <p className="text-xs text-gray-500">XP stops mattering here.</p>
+              <p className="text-xs text-gray-500">Service is the currency.</p>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -613,6 +772,8 @@ export default function DashboardPage() {
   const [referralCount, setReferralCount] = useState<number | null>(null);
   const [linkCopied, setLinkCopied]       = useState(false);
   const [badges, setBadges]               = useState<BadgeData[]>([]);
+  const [liveXp, setLiveXp]               = useState<{ xp: number; currentStreak: number; longestStreak: number } | null>(null);
+  const [goodDones, setGoodDones]         = useState<GoodDoneAct[]>([]);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -640,7 +801,13 @@ export default function DashboardPage() {
       .then((r) => setReferralCount(r.data.count))
       .catch(() => {});
     api.get('/xp')
-      .then((r) => setBadges(r.data.badges ?? []))
+      .then((r) => {
+        setBadges(r.data.badges ?? []);
+        setLiveXp({ xp: r.data.xp ?? 0, currentStreak: r.data.currentStreak ?? 0, longestStreak: r.data.longestStreak ?? 0 });
+        if ((r.data.xp ?? 0) >= 100) {
+          api.get('/good-done').then((g) => setGoodDones(g.data.acts ?? [])).catch(() => {});
+        }
+      })
       .catch(() => {});
   }, [user, days]);
 
@@ -721,6 +888,11 @@ export default function DashboardPage() {
     } catch { setPortalLoading(false); }
   }
 
+  async function handleSubmitGoodDone(type: string, description: string) {
+    const { data } = await api.post('/good-done', { type, description });
+    setGoodDones((prev) => [data.act, ...prev]);
+  }
+
   async function handleResend() {
     setResending(true);
     try {
@@ -755,7 +927,9 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <Link href="/shop/orders"><Button variant="secondary" size="md">My Orders</Button></Link>
-          <Link href="/upload"><Button size="md">+ Upload</Button></Link>
+          {(user.isAdmin || (user as any).isCreator) && (
+            <Link href="/upload"><Button size="md">+ Upload</Button></Link>
+          )}
           {!user.isAdmin && !user.isTester && (
             plan === 'FREE'
               ? <Link href="/subscribe"><Button variant="secondary" size="md">Upgrade</Button></Link>
@@ -840,13 +1014,18 @@ export default function DashboardPage() {
 
           {/* ── XP Level card ── */}
           <XpCard
-            xp={(user as any).xp ?? 0}
-            currentStreak={(user as any).currentStreak ?? 0}
-            longestStreak={(user as any).longestStreak ?? 0}
+            xp={liveXp?.xp ?? (user as any).xp ?? 0}
+            currentStreak={liveXp?.currentStreak ?? (user as any).currentStreak ?? 0}
+            longestStreak={liveXp?.longestStreak ?? (user as any).longestStreak ?? 0}
           />
 
           {/* ── Badges ── */}
           {badges.length > 0 && <BadgesSection badges={badges} />}
+
+          {/* ── Good Done ── */}
+          {(liveXp?.xp ?? 0) >= 100 && (
+            <GoodDoneSection acts={goodDones} onSubmit={handleSubmitGoodDone} />
+          )}
 
           {/* ── Milestone progress ── */}
           <MilestoneProgress followers={data.stats.followerCount} views={data.stats.totalViews} />

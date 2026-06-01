@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { signR2Url } from '../utils/s3';
+import { signR2Url, uploadToS3 } from '../utils/s3';
 import { AuthRequest } from '../middleware/auth';
 
 const SERIES_SELECT = {
-  id: true, title: true, description: true, coverUrl: true, bannerUrl: true,
+  id: true, title: true, description: true, coverUrl: true, bannerUrl: true, trailerUrl: true,
   genre: true, tags: true, status: true, privacy: true, createdAt: true,
   creator: { select: { username: true, displayName: true, avatar: true } },
   _count: { select: { seasons: true } },
@@ -13,8 +13,17 @@ const SERIES_SELECT = {
 async function signSeries(s: any) {
   return {
     ...s,
-    coverUrl:  await signR2Url(s.coverUrl),
-    bannerUrl: await signR2Url(s.bannerUrl),
+    coverUrl:   await signR2Url(s.coverUrl),
+    bannerUrl:  await signR2Url(s.bannerUrl),
+    trailerUrl: await signR2Url(s.trailerUrl, 4 * 3600),
+  };
+}
+
+async function signEpisode(ep: any) {
+  return {
+    ...ep,
+    thumbnailUrl: await signR2Url(ep.thumbnailUrl),
+    mediaUrl:     await signR2Url(ep.mediaUrl, 4 * 3600),
   };
 }
 
@@ -23,10 +32,14 @@ async function signSeries(s: any) {
 export async function listSeries(req: AuthRequest, res: Response) {
   const { genre, creator } = req.query;
   const userId = req.user?.id;
+  const isAdmin = (req.user as any)?.role === 'ADMIN';
 
-  const where: any = { status: 'ACTIVE' };
-  if (!userId) where.privacy = 'PUBLIC';
-  else where.OR = [{ privacy: 'PUBLIC' }, { privacy: 'SUBSCRIBERS_ONLY' }];
+  const where: any = {};
+  if (!isAdmin) {
+    where.status = 'ACTIVE';
+    if (!userId) where.privacy = 'PUBLIC';
+    else where.OR = [{ privacy: 'PUBLIC' }, { privacy: 'SUBSCRIBERS_ONLY' }];
+  }
   if (genre)   where.genre   = String(genre);
   if (creator) where.creator = { username: String(creator) };
 
@@ -61,16 +74,6 @@ export async function getSeries(req: AuthRequest, res: Response) {
         include: {
           episodes: {
             orderBy: { episodeNumber: 'asc' },
-            include: {
-              content: {
-                select: {
-                  id: true, title: true, description: true, type: true,
-                  thumbnailUrl: true, hlsUrl: true, mediaUrl: true,
-                  duration: true, views: true, privacy: true, rating: true,
-                  createdAt: true,
-                },
-              },
-            },
           },
         },
       },
@@ -82,28 +85,20 @@ export async function getSeries(req: AuthRequest, res: Response) {
     return res.status(403).json({ error: 'Private series' });
   }
 
-  // Sign media URLs
   const signedSeasons = await Promise.all(
     series.seasons.map(async (season) => ({
       ...season,
-      episodes: await Promise.all(
-        season.episodes.map(async (ep) => ({
-          ...ep,
-          content: {
-            ...ep.content,
-            thumbnailUrl: await signR2Url(ep.content.thumbnailUrl),
-            mediaUrl:     await signR2Url(ep.content.mediaUrl, 4 * 3600),
-          },
-        }))
-      ),
+      coverUrl: await signR2Url((season as any).coverUrl),
+      episodes: await Promise.all(season.episodes.map(signEpisode)),
     }))
   );
 
   res.json({
     series: {
       ...series,
-      coverUrl:  await signR2Url(series.coverUrl),
-      bannerUrl: await signR2Url(series.bannerUrl),
+      coverUrl:   await signR2Url(series.coverUrl),
+      bannerUrl:  await signR2Url(series.bannerUrl),
+      trailerUrl: await signR2Url((series as any).trailerUrl, 4 * 3600),
       seasons: signedSeasons,
     },
   });
@@ -132,7 +127,7 @@ export async function createSeries(req: Request, res: Response) {
 }
 
 export async function updateSeries(req: Request, res: Response) {
-  const { title, description, genre, tags, privacy, status, coverUrl, bannerUrl } = req.body;
+  const { title, description, genre, tags, privacy, status, coverUrl, bannerUrl, trailerUrl } = req.body;
   const data: any = {};
   if (title       !== undefined) data.title       = title.trim();
   if (description !== undefined) data.description = description || null;
@@ -141,6 +136,7 @@ export async function updateSeries(req: Request, res: Response) {
   if (status      !== undefined) data.status      = status;
   if (coverUrl    !== undefined) data.coverUrl    = coverUrl || null;
   if (bannerUrl   !== undefined) data.bannerUrl   = bannerUrl || null;
+  if (trailerUrl  !== undefined) data.trailerUrl  = trailerUrl || null;
   if (tags        !== undefined) {
     data.tags = Array.isArray(tags) ? tags : String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
   }
@@ -152,6 +148,42 @@ export async function updateSeries(req: Request, res: Response) {
 export async function deleteSeries(req: Request, res: Response) {
   await prisma.series.delete({ where: { id: req.params.id } });
   res.json({ ok: true });
+}
+
+// ── Series media uploads ──────────────────────────────────────────────────────
+
+export async function uploadSeriesCover(req: Request, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'No file provided' });
+  const url = await uploadToS3(file, 'series/covers');
+  const series = await prisma.series.update({
+    where: { id: req.params.id },
+    data: { coverUrl: url },
+    select: SERIES_SELECT,
+  });
+  res.json({ series: await signSeries(series) });
+}
+
+const VIDEO_MIME: Record<string, string> = {
+  mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime',
+  avi: 'video/x-msvideo', mkv: 'video/x-matroska', ogv: 'video/ogg',
+};
+
+export async function uploadSeriesTrailer(req: Request, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'No file provided' });
+  const ext = file.originalname.split('.').pop()?.toLowerCase() ?? '';
+  if (VIDEO_MIME[ext]) file.mimetype = VIDEO_MIME[ext];
+  if (!file.mimetype.startsWith('video/')) {
+    return res.status(400).json({ error: 'File must be a video (mp4, webm, mov, etc.)' });
+  }
+  const url = await uploadToS3(file, 'series/trailers');
+  const series = await prisma.series.update({
+    where: { id: req.params.id },
+    data: { trailerUrl: url },
+    select: SERIES_SELECT,
+  });
+  res.json({ series: await signSeries(series) });
 }
 
 // ── Seasons ───────────────────────────────────────────────────────────────────
@@ -184,41 +216,91 @@ export async function deleteSeason(req: Request, res: Response) {
   res.json({ ok: true });
 }
 
+export async function uploadSeasonCover(req: Request, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'No file provided' });
+  const url = await uploadToS3(file, 'series/season-covers');
+  const season = await prisma.season.update({
+    where: { id: req.params.seasonId },
+    data: { coverUrl: url },
+  });
+  res.json({ season: { ...season, coverUrl: await signR2Url(season.coverUrl) } });
+}
+
 // ── Episodes ──────────────────────────────────────────────────────────────────
 
 export async function addEpisode(req: Request, res: Response) {
-  const { contentId, episodeNumber } = req.body;
-  if (!contentId || !episodeNumber) return res.status(400).json({ error: 'contentId and episodeNumber required' });
+  const { title, description, episodeNumber } = req.body;
+  if (!title?.trim())  return res.status(400).json({ error: 'title required' });
+  if (!episodeNumber)  return res.status(400).json({ error: 'episodeNumber required' });
 
   try {
     const episode = await prisma.episode.create({
-      data: { seasonId: req.params.seasonId, contentId, episodeNumber: Number(episodeNumber) },
-      include: { content: { select: { id: true, title: true, type: true, duration: true } } },
+      data: {
+        seasonId: req.params.seasonId,
+        episodeNumber: Number(episodeNumber),
+        title: title.trim(),
+        description: description || null,
+      },
     });
     res.status(201).json({ episode });
   } catch {
-    res.status(409).json({ error: 'Episode number already taken or content already assigned to a series' });
+    res.status(409).json({ error: 'Episode number already taken in this season' });
   }
 }
 
+export async function updateEpisode(req: Request, res: Response) {
+  const { title, description, rating } = req.body;
+  const data: any = {};
+  if (title       !== undefined) data.title       = title.trim();
+  if (description !== undefined) data.description = description || null;
+  if (rating      !== undefined) data.rating      = rating || null;
+  const episode = await prisma.episode.update({ where: { id: req.params.episodeId }, data });
+  res.json({ episode: await signEpisode(episode) });
+}
+
 export async function removeEpisode(req: Request, res: Response) {
-  await prisma.episode.deleteMany({ where: { seasonId: req.params.seasonId, contentId: req.params.contentId } });
+  await prisma.episode.delete({ where: { id: req.params.episodeId } });
   res.json({ ok: true });
 }
 
 export async function reorderEpisodes(req: Request, res: Response) {
-  const { order } = req.body; // [{ contentId, episodeNumber }]
+  const { order } = req.body; // [{ episodeId, episodeNumber }]
   if (!Array.isArray(order)) return res.status(400).json({ error: 'order array required' });
 
   await Promise.all(
-    order.map(({ contentId, episodeNumber }: { contentId: string; episodeNumber: number }) =>
-      prisma.episode.updateMany({
-        where: { seasonId: req.params.seasonId, contentId },
-        data: { episodeNumber },
-      })
+    order.map(({ episodeId, episodeNumber }: { episodeId: string; episodeNumber: number }) =>
+      prisma.episode.update({ where: { id: episodeId }, data: { episodeNumber } })
     )
   );
   res.json({ ok: true });
+}
+
+export async function uploadEpisodeThumbnail(req: Request, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'No file provided' });
+  const url = await uploadToS3(file, 'series/episode-thumbnails');
+  const episode = await prisma.episode.update({
+    where: { id: req.params.episodeId },
+    data: { thumbnailUrl: url },
+  });
+  res.json({ episode: await signEpisode(episode) });
+}
+
+export async function uploadEpisodeVideo(req: Request, res: Response) {
+  const file = (req as any).file as Express.Multer.File | undefined;
+  if (!file) return res.status(400).json({ error: 'No file provided' });
+  const ext = file.originalname.split('.').pop()?.toLowerCase() ?? '';
+  if (VIDEO_MIME[ext]) file.mimetype = VIDEO_MIME[ext];
+  if (!file.mimetype.startsWith('video/')) {
+    return res.status(400).json({ error: 'File must be a video (mp4, webm, mov, etc.)' });
+  }
+  const url = await uploadToS3(file, 'series/episode-videos');
+  const episode = await prisma.episode.update({
+    where: { id: req.params.episodeId },
+    data: { mediaUrl: url },
+  });
+  res.json({ episode: await signEpisode(episode) });
 }
 
 // ── Series Comments ───────────────────────────────────────────────────────────

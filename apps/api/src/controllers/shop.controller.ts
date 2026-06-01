@@ -169,7 +169,7 @@ export async function subscribeBackInStock(req: AuthRequest, res: Response) {
 
 // ── Coupon validation (public) ────────────────────────────────────────────────
 
-export async function validateCoupon(req: Request, res: Response) {
+export async function validateCoupon(req: AuthRequest, res: Response) {
   const { code, subtotal } = req.body;
   if (!code) return res.status(400).json({ valid: false, error: 'No code provided' });
 
@@ -185,6 +185,12 @@ export async function validateCoupon(req: Request, res: Response) {
   }
   if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) {
     return res.json({ valid: false, error: 'This coupon has reached its usage limit' });
+  }
+  if (req.user) {
+    const userUseCount = await prisma.couponUse.count({ where: { couponId: coupon.id, userId: req.user.id } });
+    if (userUseCount >= coupon.maxUsesPerUser) {
+      return res.json({ valid: false, error: 'You have already used this coupon the maximum number of times' });
+    }
   }
 
   const orderSubtotal = Number(subtotal) || 0;
@@ -303,6 +309,12 @@ export async function createCheckoutSession(req: AuthRequest, res: Response) {
     }
     if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) {
       return res.status(400).json({ error: 'Coupon usage limit reached' });
+    }
+    if (req.user) {
+      const userUseCount = await prisma.couponUse.count({ where: { couponId: coupon.id, userId: req.user.id } });
+      if (userUseCount >= coupon.maxUsesPerUser) {
+        return res.status(400).json({ error: 'You have already used this coupon the maximum number of times' });
+      }
     }
     if (coupon.minOrderAmount != null && subtotal < coupon.minOrderAmount) {
       return res.status(400).json({
@@ -452,6 +464,11 @@ export async function handleWebhook(req: Request, res: Response) {
         where: { id: order.couponId },
         data: { usedCount: { increment: 1 } },
       });
+      if (order.userId) {
+        await prisma.couponUse.create({
+          data: { couponId: order.couponId, userId: order.userId },
+        }).catch(() => {});
+      }
     }
 
     // Award XP to logged-in buyer
@@ -747,7 +764,7 @@ export async function adminListCoupons(req: AuthRequest, res: Response) {
 }
 
 export async function adminCreateCoupon(req: AuthRequest, res: Response) {
-  const { code, type, value, minOrderAmount, maxUses, active, expiresAt } = req.body;
+  const { code, type, value, minOrderAmount, maxUses, maxUsesPerUser, active, expiresAt } = req.body;
 
   if (!code || !type || value == null) {
     return res.status(400).json({ error: 'code, type, and value are required' });
@@ -766,6 +783,7 @@ export async function adminCreateCoupon(req: AuthRequest, res: Response) {
       value: Number(value),
       minOrderAmount: minOrderAmount ? Number(minOrderAmount) : null,
       maxUses: maxUses ? Number(maxUses) : null,
+      maxUsesPerUser: maxUsesPerUser ? Number(maxUsesPerUser) : 1,
       active: active ?? true,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
     },
@@ -775,7 +793,7 @@ export async function adminCreateCoupon(req: AuthRequest, res: Response) {
 }
 
 export async function adminUpdateCoupon(req: AuthRequest, res: Response) {
-  const { code, type, value, minOrderAmount, maxUses, active, expiresAt } = req.body;
+  const { code, type, value, minOrderAmount, maxUses, maxUsesPerUser, active, expiresAt } = req.body;
 
   const data: any = {};
   if (code !== undefined) data.code = String(code).toUpperCase().trim();
@@ -783,6 +801,7 @@ export async function adminUpdateCoupon(req: AuthRequest, res: Response) {
   if (value !== undefined) data.value = Number(value);
   if (minOrderAmount !== undefined) data.minOrderAmount = minOrderAmount ? Number(minOrderAmount) : null;
   if (maxUses !== undefined) data.maxUses = maxUses ? Number(maxUses) : null;
+  if (maxUsesPerUser !== undefined) data.maxUsesPerUser = Number(maxUsesPerUser) || 1;
   if (active !== undefined) data.active = active;
   if (expiresAt !== undefined) data.expiresAt = expiresAt ? new Date(expiresAt) : null;
 

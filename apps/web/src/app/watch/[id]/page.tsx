@@ -17,11 +17,13 @@ function HlsVideoPlayer({
   hlsUrl,
   onReady,
   onProgress,
+  onEnded,
   videoRef,
 }: {
   hlsUrl: string;
   onReady: () => void;
   onProgress: (seconds: number) => void;
+  onEnded: () => void;
   videoRef: React.RefObject<HTMLVideoElement>;
 }) {
   useEffect(() => {
@@ -70,6 +72,7 @@ function HlsVideoPlayer({
       disablePictureInPicture
       className="w-full h-full"
       playsInline
+      onEnded={onEnded}
       onContextMenu={(e) => e.preventDefault()}
     />
   );
@@ -320,6 +323,8 @@ function MiniContentCard({ item }: { item: RelatedContent }) {
   );
 }
 
+const LYRICS_AUDIO_TYPES = ['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'];
+
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -336,6 +341,7 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const [related, setRelated] = useState<{ fromCreator: RelatedContent[]; sameType: RelatedContent[] }>({ fromCreator: [], sameType: [] });
   const [reportOpen, setReportOpen] = useState(false);
+  const [lyricsExpanded, setLyricsExpanded] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [embedOpen, setEmbedOpen] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
@@ -345,11 +351,16 @@ export default function WatchPage() {
   const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [chaptersExpanded, setChaptersExpanded] = useState(true);
+  const [currentChapterIdx, setCurrentChapterIdx] = useState(-1);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   // Resume playback state
   const [savedProgress, setSavedProgress] = useState(0);
   const [showResumeBanner, setShowResumeBanner] = useState(false);
   const [hasResumed, setHasResumed] = useState(false);
+  const [showSkipIntro, setShowSkipIntro] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const currentProgressRef = useRef(0);
   const saveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -358,6 +369,10 @@ export default function WatchPage() {
     if (!user || seconds < 5) return;
     api.post(`/content/${id}/progress`, { progress: Math.floor(seconds) }).catch(() => {});
   }, [id, user]);
+
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.playbackRate = playbackSpeed;
+  }, [playbackSpeed]);
 
   useEffect(() => {
     api.get(`/content/${id}`)
@@ -517,6 +532,14 @@ export default function WatchPage() {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
   }
 
+  async function handlePinComment(commentId: string) {
+    const { data } = await api.post(`/content/${id}/comment/${commentId}/pin`);
+    setComments((prev) => prev.map((c) => ({
+      ...c,
+      isPinned: data.isPinned && c.id === commentId,
+    })));
+  }
+
   async function handleUnreport() {
     await api.delete(`/content/${id}/report`).catch(() => {});
     setHidden(false);
@@ -562,6 +585,22 @@ export default function WatchPage() {
     if (videoRef.current) videoRef.current.currentTime = seconds;
   }
 
+  function handleProgress(secs: number) {
+    currentProgressRef.current = secs;
+    const c = content as any;
+    if (c?.introStart != null && c?.introEnd != null) {
+      setShowSkipIntro(secs >= c.introStart && secs < c.introEnd);
+    }
+    const chaps = content?.chapters as Array<{ time: number; label: string }> | null | undefined;
+    if (chaps && chaps.length > 0) {
+      let idx = -1;
+      for (let i = chaps.length - 1; i >= 0; i--) {
+        if (secs >= chaps[i].time) { idx = i; break; }
+      }
+      setCurrentChapterIdx(idx);
+    }
+  }
+
   function handlePlayerReady() {
     if (hasResumed || savedProgress <= 0) return;
     if (!showResumeBanner) {
@@ -602,7 +641,8 @@ export default function WatchPage() {
             hlsUrl={content.hlsUrl!}
             videoRef={videoRef}
             onReady={handlePlayerReady}
-            onProgress={(s) => { currentProgressRef.current = s; }}
+            onProgress={handleProgress}
+            onEnded={() => setVideoEnded(true)}
           />
         ) : content.type === 'BOOK' ? (
           content.mediaUrl ? (
@@ -622,38 +662,54 @@ export default function WatchPage() {
             </div>
           )
         ) : AUDIO_TYPES.includes(content.type) ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-900 px-6 gap-2">
-            {content.thumbnailUrl ? (
-              <img src={content.thumbnailUrl} alt={content.title}
-                className="w-28 h-28 rounded-2xl object-cover mb-2 shadow-lg" />
-            ) : (
-              <div className="text-5xl mb-2">
-                {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : content.type === 'DADDYMAN_ISMS' ? '💡' : '🎤'}
-              </div>
-            )}
-            <p className="text-white font-semibold text-center line-clamp-2">{content.title}</p>
-            <p className="text-gray-400 text-sm">{content.creator.displayName || content.creator.username}</p>
-            <button
-              onClick={player.toggle}
-              className="mt-3 w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-400 text-black flex items-center justify-center text-xl font-bold transition-colors"
-            >
-              {player.playing && player.track?.id === content.id ? '❚❚' : '▶'}
-            </button>
-            {player.track?.id === content.id && player.duration > 0 && (
-              <div className="w-full max-w-sm mt-4 flex items-center gap-3">
-                <span className="text-gray-500 text-xs font-mono tabular-nums w-10 text-right">{formatTime(player.progress)}</span>
-                <input
-                  type="range" min={0} max={player.duration} step={1} value={player.progress}
-                  onChange={(e) => player.seek(Number(e.target.value))}
-                  className="flex-1 accent-brand-500 cursor-pointer h-1"
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 gap-2 overflow-hidden bg-surface-900">
+            {/* Canvas background video */}
+            {(content as any).canvasUrl && (
+              <>
+                <video
+                  key={(content as any).canvasUrl}
+                  src={(content as any).canvasUrl}
+                  autoPlay loop muted playsInline
+                  className="absolute inset-0 w-full h-full object-cover opacity-60"
                 />
-                <span className="text-gray-500 text-xs font-mono tabular-nums w-10">{formatTime(player.duration)}</span>
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/50" />
+              </>
             )}
+            {/* Artwork + controls — sit above canvas */}
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              {content.thumbnailUrl ? (
+                <img src={content.thumbnailUrl} alt={content.title}
+                  className="w-28 h-28 rounded-2xl object-cover mb-2 shadow-2xl" />
+              ) : (
+                <div className="text-5xl mb-2">
+                  {content.type === 'MUSIC' ? '🎵' : content.type === 'PODCAST' ? '🎙️' : content.type === 'DADDYMAN_ISMS' ? '💡' : '🎤'}
+                </div>
+              )}
+              <p className="text-white font-semibold text-center line-clamp-2 drop-shadow">{content.title}</p>
+              <p className="text-gray-300 text-sm drop-shadow">{content.creator.displayName || content.creator.username}</p>
+              <button
+                onClick={player.toggle}
+                className="mt-3 w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-400 text-black flex items-center justify-center text-xl font-bold transition-colors shadow-lg"
+              >
+                {player.playing && player.track?.id === content.id ? '❚❚' : '▶'}
+              </button>
+              {player.track?.id === content.id && player.duration > 0 && (
+                <div className="w-full max-w-sm mt-4 flex items-center gap-3">
+                  <span className="text-gray-400 text-xs font-mono tabular-nums w-10 text-right drop-shadow">{formatTime(player.progress)}</span>
+                  <input
+                    type="range" min={0} max={player.duration} step={1} value={player.progress}
+                    onChange={(e) => player.seek(Number(e.target.value))}
+                    className="flex-1 accent-brand-500 cursor-pointer h-1"
+                  />
+                  <span className="text-gray-400 text-xs font-mono tabular-nums w-10 drop-shadow">{formatTime(player.duration)}</span>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <>
             <video
+              ref={videoRef}
               src={content.mediaUrl ?? undefined}
               controls
               controlsList="nodownload noremoteplayback"
@@ -662,7 +718,8 @@ export default function WatchPage() {
               className="w-full h-full"
               onContextMenu={(e) => e.preventDefault()}
               onLoadedMetadata={handlePlayerReady}
-              onTimeUpdate={(e) => { currentProgressRef.current = (e.target as HTMLVideoElement).currentTime; }}
+              onTimeUpdate={(e) => handleProgress((e.target as HTMLVideoElement).currentTime)}
+              onEnded={() => setVideoEnded(true)}
               onError={(e) => {
                 const el = e.target as HTMLVideoElement;
                 const code = el.error?.code;
@@ -682,7 +739,85 @@ export default function WatchPage() {
             />
           </>
         )}
+
+        {/* End screen overlay */}
+        {videoEnded && !AUDIO_TYPES.includes(content.type) && content.type !== 'BOOK' && (() => {
+          const endItems = [...related.fromCreator, ...related.sameType]
+            .filter((item, idx, arr) => arr.findIndex(i => i.id === item.id) === idx)
+            .slice(0, 3);
+          return (
+            <div className="absolute inset-0 z-30 bg-black/92 flex flex-col items-center justify-center p-6">
+              <p className="text-white/40 text-[11px] uppercase tracking-widest mb-6">Up Next</p>
+              {endItems.length > 0 ? (
+                <div className="flex gap-4 flex-wrap justify-center mb-8 w-full max-w-2xl">
+                  {endItems.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/watch/${item.id}`}
+                      onClick={() => setVideoEnded(false)}
+                      className="group flex-1 min-w-[130px] max-w-[190px]"
+                    >
+                      <div className="relative aspect-video bg-surface-700 rounded-xl overflow-hidden mb-2 ring-2 ring-transparent group-hover:ring-brand-400 transition-all duration-200">
+                        {item.thumbnailUrl
+                          ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          : <div className="absolute inset-0 flex items-center justify-center text-2xl">🎬</div>
+                        }
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="w-10 h-10 bg-brand-500 rounded-full flex items-center justify-center shadow-lg">
+                            <span className="text-black text-sm ml-0.5">▶</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-white text-xs font-medium line-clamp-2 group-hover:text-brand-400 transition-colors leading-snug">{item.title}</p>
+                      <p className="text-gray-500 text-[11px] mt-0.5">{item.creator.displayName || item.creator.username}</p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="mb-8 text-gray-500 text-sm">No related content yet.</div>
+              )}
+              <button
+                onClick={() => { setVideoEnded(false); seekTo(0); }}
+                className="px-6 py-2 border border-white/20 text-white/50 text-sm rounded-xl hover:bg-white/10 hover:text-white transition-colors"
+              >
+                ↺ Replay
+              </button>
+            </div>
+          );
+        })()}
+
+        {/* Skip Intro button */}
+        {showSkipIntro && (
+          <button
+            onClick={() => { seekTo((content as any).introEnd); setShowSkipIntro(false); }}
+            className="absolute bottom-14 right-4 z-20 bg-black/80 hover:bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-lg border border-white/30 transition-all backdrop-blur-sm"
+          >
+            Skip Intro ›
+          </button>
+        )}
       </div>
+
+      {/* Speed selector */}
+      {!AUDIO_TYPES.includes(content.type) && content.type !== 'BOOK' && (
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs text-gray-500 font-medium flex-shrink-0">Speed</span>
+          <div className="flex gap-1">
+            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
+              <button
+                key={s}
+                onClick={() => setPlaybackSpeed(s)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  playbackSpeed === s
+                    ? 'bg-brand-500 text-black'
+                    : 'bg-surface-700 text-gray-400 hover:bg-surface-600 hover:text-white'
+                }`}
+              >
+                {s === 1 ? '1×' : `${s}×`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {content.type === 'BOOK' && content.mediaUrl && (
         <div className="flex items-center justify-between bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5 mb-3 text-sm">
@@ -731,6 +866,38 @@ export default function WatchPage() {
               Resume
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Chapters */}
+      {content.chapters && (content.chapters as any[]).length > 0 && (
+        <div className="mb-4 bg-surface-800/60 border border-surface-700 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setChaptersExpanded(v => !v)}
+            className="w-full flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+          >
+            <span>Chapters ({(content.chapters as any[]).length})</span>
+            <span className="ml-auto">{chaptersExpanded ? '▲' : '▼'}</span>
+          </button>
+          {chaptersExpanded && (
+            <div className="border-t border-surface-700 py-1">
+              {(content.chapters as Array<{ time: number; label: string }>).map((ch, i) => (
+                <button
+                  key={i}
+                  onClick={() => AUDIO_TYPES.includes(content.type) ? player.seek(ch.time) : seekTo(ch.time)}
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${
+                    currentChapterIdx === i
+                      ? 'bg-brand-500/15 text-brand-400'
+                      : 'text-gray-400 hover:bg-surface-700 hover:text-white'
+                  }`}
+                >
+                  <span className="font-mono text-[11px] text-gray-500 w-12 flex-shrink-0">{formatTime(ch.time)}</span>
+                  <span className="flex-1 truncate">{ch.label}</span>
+                  {currentChapterIdx === i && <span className="text-brand-400 text-[10px] font-bold flex-shrink-0">▶ NOW</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -900,6 +1067,54 @@ export default function WatchPage() {
         </div>
       )}
 
+      {/* Lyrics */}
+      {(content as any).lyrics && LYRICS_AUDIO_TYPES.includes(content.type) && (
+        <div className="mb-8">
+          <button
+            onClick={() => setLyricsExpanded((v) => !v)}
+            className="flex items-center justify-between w-full text-left group"
+          >
+            <h3 className="text-sm font-semibold text-gray-300">Lyrics</h3>
+            <span className="text-gray-500 group-hover:text-gray-300 transition-colors text-xs">
+              {lyricsExpanded ? '▲ Show less' : '▼ Show all'}
+            </span>
+          </button>
+          <div className={`mt-3 relative overflow-hidden transition-all duration-300 ${lyricsExpanded ? '' : 'max-h-48'}`}>
+            <pre className="text-gray-400 text-sm whitespace-pre-wrap font-sans leading-relaxed">
+              {(content as any).lyrics}
+            </pre>
+            {!lyricsExpanded && (
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
+            )}
+          </div>
+          {!lyricsExpanded && (
+            <button
+              onClick={() => setLyricsExpanded(true)}
+              className="mt-2 text-xs text-brand-400 hover:text-brand-300 transition-colors font-semibold"
+            >
+              Show full lyrics
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Credits */}
+      {content.credits && content.credits.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">Credits</h3>
+          <div className="flex flex-col gap-2">
+            {content.credits.map((c) => (
+              <div key={c.id} className="flex items-center gap-3">
+                <span className="text-gray-500 text-xs w-32 flex-shrink-0">{c.role}</span>
+                <Link href={`/creator/${c.user.username}`} className="text-sm text-white hover:text-brand-400 transition-colors font-medium">
+                  {c.user.displayName || c.user.username}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Comments */}
       <div>
         <h3 className="font-semibold text-white mb-4">
@@ -936,8 +1151,13 @@ export default function WatchPage() {
             {comments.map((c) => {
               const name = c.user.displayName || c.user.username;
               return (
-                <div key={c.id}>
+                <div key={c.id} className={c.isPinned ? 'bg-surface-800/50 rounded-xl p-3 -mx-3' : ''}>
                   {/* Top-level comment */}
+                  {c.isPinned && (
+                    <div className="flex items-center gap-1 text-[11px] text-gray-500 mb-2">
+                      <span>📌</span><span>Pinned comment</span>
+                    </div>
+                  )}
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-surface-600 flex-shrink-0 flex items-center justify-center text-sm font-semibold text-white overflow-hidden mt-0.5">
                       {c.user.avatar
@@ -948,8 +1168,17 @@ export default function WatchPage() {
                       <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
                         <span className="text-sm font-medium text-white">{name}</span>
                         <span className="text-xs text-gray-500">{timeAgo(c.createdAt)}</span>
+                        {user && (user.username === content?.creator?.username || user.isAdmin) && (
+                          <button
+                            onClick={() => handlePinComment(c.id)}
+                            className={`ml-auto text-xs transition-colors ${c.isPinned ? 'text-brand-400 hover:text-gray-400' : 'text-gray-600 hover:text-brand-400'}`}
+                            title={c.isPinned ? 'Unpin' : 'Pin comment'}
+                          >
+                            📌
+                          </button>
+                        )}
                         {user && (user.id === c.user.id || user.isAdmin) && (
-                          <button onClick={() => handleDeleteComment(c.id)} className="ml-auto text-xs text-gray-600 hover:text-red-400 transition-colors">Delete</button>
+                          <button onClick={() => handleDeleteComment(c.id)} className={`text-xs text-gray-600 hover:text-red-400 transition-colors ${!(user.username === content?.creator?.username || user.isAdmin) ? 'ml-auto' : ''}`}>Delete</button>
                         )}
                       </div>
                       <p className="text-sm text-gray-300 leading-relaxed mb-1.5">{c.text}</p>
@@ -1036,6 +1265,59 @@ export default function WatchPage() {
           </div>
         )}
       </div>
+      {/* ── Mobile-only related content (desktop shows sidebar) ── */}
+      {(related.fromCreator.length > 0 || related.sameType.length > 0) && (
+        <div className="lg:hidden mt-10 space-y-8">
+          {related.fromCreator.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-300">
+                  More from {content.creator.displayName || content.creator.username}
+                </h3>
+                <Link href={`/creator/${content.creator.username}`} className="text-xs text-brand-400 hover:text-brand-300 transition-colors">
+                  View all
+                </Link>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                {related.fromCreator.map((item) => (
+                  <Link key={item.id} href={`/watch/${item.id}`} className="flex-shrink-0 w-36 group">
+                    <div className="relative w-full aspect-video bg-surface-700 rounded-lg overflow-hidden mb-2">
+                      {item.thumbnailUrl && (
+                        item.thumbnailUrl.startsWith('http')
+                          ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                      )}
+                    </div>
+                    <p className="text-white text-xs font-medium line-clamp-2 group-hover:text-brand-400 transition-colors">{item.title}</p>
+                    <p className="text-gray-500 text-[11px] mt-0.5">{(item as any).creator?.displayName || (item as any).creator?.username}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {related.sameType.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">More Like This</h3>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                {related.sameType.map((item) => (
+                  <Link key={item.id} href={`/watch/${item.id}`} className="flex-shrink-0 w-36 group">
+                    <div className="relative w-full aspect-video bg-surface-700 rounded-lg overflow-hidden mb-2">
+                      {item.thumbnailUrl && (
+                        item.thumbnailUrl.startsWith('http')
+                          ? <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          : <Image src={item.thumbnailUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                      )}
+                    </div>
+                    <p className="text-white text-xs font-medium line-clamp-2 group-hover:text-brand-400 transition-colors">{item.title}</p>
+                    <p className="text-gray-500 text-[11px] mt-0.5">{(item as any).creator?.displayName || (item as any).creator?.username}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       </div>{/* end left column */}
 
       {/* ── Right sidebar ── */}

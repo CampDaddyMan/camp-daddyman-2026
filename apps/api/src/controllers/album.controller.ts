@@ -158,6 +158,50 @@ export async function uploadAlbumCover(req: AuthRequest, res: Response) {
   res.json({ coverUrl: await signR2Url(publicUrl) });
 }
 
+// ── Create new content + add as track (admin only) ───────────────────────────
+
+export async function createAndAddTrack(req: AuthRequest, res: Response) {
+  const album = await prisma.album.findUnique({ where: { id: req.params.id }, select: { id: true } });
+  if (!album) return res.status(404).json({ error: 'Album not found' });
+
+  const { title, description, duration, privacy = 'PUBLIC', trackNumber, discNumber = 1 } = req.body;
+  if (!title?.trim()) return res.status(400).json({ error: 'Title required' });
+
+  const existing = await prisma.albumTrack.count({ where: { albumId: req.params.id } });
+  const tNum = trackNumber !== undefined ? Number(trackNumber) : existing + 1;
+
+  let thumbnailUrl: string | null = null;
+  if (req.file) {
+    thumbnailUrl = await uploadToS3(req.file, 'thumbnails');
+  }
+
+  const content = await prisma.content.create({
+    data: {
+      title: title.trim(),
+      description: description?.trim() || null,
+      type: 'MUSIC',
+      privacy,
+      thumbnailUrl,
+      duration: duration ? Number(duration) : null,
+      status: 'ACTIVE',
+      tags: [],
+      creatorId: req.user!.id,
+    },
+  });
+
+  const track = await prisma.albumTrack.create({
+    data: {
+      albumId: req.params.id,
+      contentId: content.id,
+      trackNumber: tNum,
+      discNumber: Number(discNumber),
+    },
+    include: trackInclude,
+  });
+
+  res.status(201).json({ track: await enrichTrack(track, false) });
+}
+
 // ── Add track (admin only) ────────────────────────────────────────────────────
 
 export async function addTrack(req: AuthRequest, res: Response) {

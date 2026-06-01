@@ -1,8 +1,16 @@
+import Stripe from 'stripe';
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { uploadToS3, signR2Url } from '../utils/s3';
-import { sendPartnerInquiryEmail, sendPartnerInquiryAcknowledgement } from '../utils/email';
+import {
+  sendPartnerInquiryEmail, sendPartnerInquiryAcknowledgement,
+  sendAdBookingConfirmation, sendAdPendingReviewToAdmin,
+  sendAdApproved, sendAdRejected,
+} from '../utils/email';
 import { AuthRequest } from '../middleware/auth';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2024-06-20' });
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // ── Public: partner inquiry form ──────────────────────────────────────────────
 
@@ -31,6 +39,229 @@ export async function submitInquiry(req: Request, res: Response) {
   ]).catch(() => {});
 
   res.json({ ok: true });
+}
+
+// ── Public: list active placements with pricing ───────────────────────────────
+
+export async function listPublicPlacements(_req: Request, res: Response) {
+  try {
+    const placements = await prisma.adPlacement.findMany({
+      where: { active: true },
+      orderBy: { pricePerDay: 'asc' },
+      select: { id: true, name: true, location: true, description: true, pricePerDay: true, width: true, height: true },
+    });
+    res.json({ placements });
+  } catch {
+    res.json({ placements: [] });
+  }
+}
+
+// ── Self-serve ad booking ─────────────────────────────────────────────────────
+
+export async function selfServeApply(req: Request, res: Response) {
+  try {
+    const {
+      companyName, contactName, email, website,
+      placementId, startsAt, endsAt,
+      adTitle, adBody, adLinkUrl, adImageUrl,
+    } = req.body;
+
+    if (!companyName?.trim()) return res.status(400).json({ error: 'Company name required' });
+    if (!email?.trim())       return res.status(400).json({ error: 'Email required' });
+    if (!placementId)         return res.status(400).json({ error: 'Placement required' });
+    if (!startsAt || !endsAt) return res.status(400).json({ error: 'Date range required' });
+    if (!adTitle?.trim())     return res.status(400).json({ error: 'Ad title required' });
+    if (!adLinkUrl?.trim())   return res.status(400).json({ error: 'Destination URL required' });
+
+    const start = new Date(startsAt);
+    const end   = new Date(endsAt);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+      return res.status(400).json({ error: 'Invalid date range' });
+    }
+
+    const placement = await prisma.adPlacement.findUnique({ where: { id: placementId, active: true } });
+    if (!placement) return res.status(404).json({ error: 'Placement not found or unavailable' });
+
+    const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    const totalCents = Math.round(placement.pricePerDay * days * 100);
+
+    if (totalCents < 50) return res.status(400).json({ error: 'Minimum booking is $0.50' });
+
+    // Create partner + ad with PENDING status — will be activated by webhook
+    const cleanEmail = email.trim().toLowerCase();
+    const partner = await prisma.partner.upsert({
+      where:  { email: cleanEmail },
+      update: { name: companyName.trim(), website: website?.trim() || null, contactName: contactName?.trim() || null, status: 'PENDING' },
+      create: { name: companyName.trim(), email: cleanEmail, website: website?.trim() || null, contactName: contactName?.trim() || null, type: 'ADVERTISER', status: 'PENDING' },
+    });
+
+    const ad = await prisma.ad.create({
+      data: {
+        partnerId:       partner.id,
+        placementId:     placement.id,
+        title:           adTitle.trim(),
+        body:            adBody?.trim() || null,
+        linkUrl:         adLinkUrl.trim(),
+        imageUrl:        adImageUrl?.trim() || null,
+        startsAt:        start,
+        endsAt:          end,
+        paidAmount:      totalCents / 100,
+        advertiserEmail: cleanEmail,
+        status:          'PENDING',
+      },
+    });
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount:        totalCents,
+      currency:      'usd',
+      receipt_email: cleanEmail,
+      description:   `${placement.name} Ad — ${adTitle.trim()} (${days} day${days !== 1 ? 's' : ''})`,
+      metadata:      { adId: ad.id, partnerId: partner.id },
+    });
+
+    await prisma.ad.update({
+      where: { id: ad.id },
+      data:  { stripePaymentIntentId: paymentIntent.id },
+    });
+
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (e: any) {
+    console.error('[selfServeApply]', e.message);
+    res.status(500).json({ error: 'Booking failed. Please try again.' });
+  }
+}
+
+/** Called from /advertise/success page — verifies payment directly via Stripe API, no webhook needed */
+export async function confirmAdBooking(req: Request, res: Response) {
+  try {
+    const { paymentIntentId } = req.body;
+    if (!paymentIntentId) return res.status(400).json({ error: 'paymentIntentId required' });
+
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (intent.status !== 'succeeded') {
+      return res.status(402).json({ error: 'Payment not completed' });
+    }
+
+    const { adId, partnerId } = (intent.metadata ?? {}) as { adId?: string; partnerId?: string };
+    if (!adId) return res.status(400).json({ error: 'Invalid payment intent' });
+
+    const ad = await prisma.ad.findUnique({
+      where: { id: adId },
+      include: { partner: true, placement: { select: { name: true } } },
+    });
+    if (!ad) return res.status(404).json({ error: 'Ad not found' });
+
+    // Idempotent — if already confirmed, just return success
+    if (ad.status !== 'PENDING') return res.json({ ok: true, status: ad.status });
+
+    await Promise.all([
+      prisma.partner.update({ where: { id: partnerId! }, data: { status: 'APPROVED' } }),
+      prisma.ad.update({ where: { id: adId }, data: { status: 'PENDING_REVIEW' } }),
+    ]);
+
+    const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const advertiserEmail = ad.advertiserEmail || ad.partner.email;
+
+    sendAdBookingConfirmation(
+      advertiserEmail,
+      ad.partner.contactName || ad.partner.name,
+      ad.title,
+      ad.placement.name,
+      fmt(ad.startsAt),
+      fmt(ad.endsAt),
+      ad.paidAmount,
+    ).catch(() => {});
+
+    sendAdPendingReviewToAdmin(
+      adId,
+      ad.partner.name,
+      advertiserEmail,
+      ad.title,
+      ad.placement.name,
+      fmt(ad.startsAt),
+      fmt(ad.endsAt),
+      ad.paidAmount,
+      ad.linkUrl,
+      ad.imageUrl,
+    ).catch(() => {});
+
+    res.json({ ok: true, status: 'PENDING_REVIEW' });
+  } catch (e: any) {
+    console.error('[confirmAdBooking]', e.message);
+    res.status(500).json({ error: 'Failed to confirm booking' });
+  }
+}
+
+// ── Admin: approve / reject ad ────────────────────────────────────────────────
+
+export async function approveAd(req: AuthRequest, res: Response) {
+  try {
+    const ad = await prisma.ad.findUnique({
+      where: { id: req.params.id },
+      include: { partner: true, placement: { select: { name: true } } },
+    });
+    if (!ad) return res.status(404).json({ error: 'Ad not found' });
+    if (ad.status !== 'PENDING_REVIEW') return res.status(400).json({ error: 'Ad is not pending review' });
+
+    await prisma.ad.update({ where: { id: ad.id }, data: { status: 'ACTIVE' } });
+
+    const advertiserEmail = ad.advertiserEmail || ad.partner.email;
+    const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    sendAdApproved(
+      advertiserEmail,
+      ad.partner.contactName || ad.partner.name,
+      ad.title,
+      fmt(ad.startsAt),
+      fmt(ad.endsAt),
+    ).catch(() => {});
+
+    res.json({ ok: true });
+  } catch (e: any) {
+    console.error('[approveAd]', e.message);
+    res.status(500).json({ error: 'Failed to approve ad' });
+  }
+}
+
+export async function rejectAd(req: AuthRequest, res: Response) {
+  try {
+    const { reason } = req.body;
+    const ad = await prisma.ad.findUnique({
+      where: { id: req.params.id },
+      include: { partner: true },
+    });
+    if (!ad) return res.status(404).json({ error: 'Ad not found' });
+    if (!['PENDING_REVIEW', 'ACTIVE'].includes(ad.status)) {
+      return res.status(400).json({ error: 'Ad cannot be rejected in its current state' });
+    }
+
+    let refundId: string | null = null;
+    if (ad.stripePaymentIntentId) {
+      try {
+        const refund = await stripe.refunds.create({ payment_intent: ad.stripePaymentIntentId });
+        refundId = refund.id;
+      } catch (e: any) {
+        console.error('[rejectAd] Stripe refund failed:', e.message);
+      }
+    }
+
+    await prisma.ad.update({
+      where: { id: ad.id },
+      data: { status: 'CANCELLED', refundId },
+    });
+
+    const advertiserEmail = ad.advertiserEmail || ad.partner.email;
+    sendAdRejected(
+      advertiserEmail,
+      ad.partner.contactName || ad.partner.name,
+      ad.title,
+      reason?.trim() || null,
+    ).catch(() => {});
+
+    res.json({ ok: true, refunded: !!refundId });
+  } catch (e: any) {
+    console.error('[rejectAd]', e.message);
+    res.status(500).json({ error: 'Failed to reject ad' });
+  }
 }
 
 // ── Partners ──────────────────────────────────────────────────────────────────

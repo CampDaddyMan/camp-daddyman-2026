@@ -1,0 +1,2 @@
+ALTER TABLE "Content" ADD COLUMN "introStart" INTEGER;
+ALTER TABLE "Content" ADD COLUMN "introEnd" INTEGER;

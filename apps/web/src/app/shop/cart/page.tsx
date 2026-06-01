@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -7,14 +7,47 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import api from '@/lib/api';
 
+interface UpsellProduct {
+  id: string; name: string; slug: string; price: number;
+  comparePrice?: number; imageUrl?: string; type: string;
+  variants: { id: string; inventory: number }[];
+}
+
 export default function CartPage() {
   const { user } = useAuth();
-  const { items, removeItem, updateQty, clearCart, subtotal } = useCart();
+  const { items, removeItem, updateQty, clearCart, subtotal, addItem } = useCart();
   const router = useRouter();
 
   const [guestEmail, setGuestEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [upsells, setUpsells] = useState<UpsellProduct[]>([]);
+  const [addedUpsell, setAddedUpsell] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get('/shop/products').then((r) => {
+      const cartIds = new Set(items.map((i) => i.productId));
+      const candidates: UpsellProduct[] = r.data.products
+        .filter((p: UpsellProduct) => !cartIds.has(p.id) && p.variants.some((v) => v.inventory > 0))
+        .sort((a: UpsellProduct, b: UpsellProduct) => (b as any).featured ? 1 : -1);
+      setUpsells(candidates.slice(0, 3));
+    }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleAddUpsell(p: UpsellProduct) {
+    const variant = p.variants.find((v) => v.inventory > 0);
+    addItem({
+      productId: p.id,
+      variantId: variant?.id,
+      name: p.name,
+      price: p.price,
+      imageUrl: p.imageUrl,
+      type: p.type as 'PHYSICAL' | 'DIGITAL',
+      quantity: 1,
+    });
+    setAddedUpsell(p.id);
+    setTimeout(() => setAddedUpsell(null), 2000);
+  }
 
   // Coupon state
   const [couponInput, setCouponInput] = useState('');
@@ -168,6 +201,59 @@ export default function CartPage() {
           >
             Clear cart
           </button>
+
+          {/* ── Upsells ── */}
+          {upsells.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-surface-700">
+              <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500 mb-4">You Might Also Like</h3>
+              <div className="space-y-3">
+                {upsells.map((p) => {
+                  const hasDiscount = !!(p.comparePrice && p.comparePrice > p.price);
+                  const savePct = hasDiscount ? Math.round((1 - p.price / p.comparePrice!) * 100) : 0;
+                  const singleVariant = p.variants.length === 1;
+                  return (
+                    <div key={p.id} className="flex items-center gap-3 bg-surface-800/60 border border-surface-700/60 rounded-xl p-3 hover:border-surface-600 transition-colors">
+                      <Link href={`/shop/${p.slug || p.id}`} className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-surface-700">
+                        {p.imageUrl
+                          ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full flex items-center justify-center text-xl opacity-20">{p.type === 'DIGITAL' ? '📦' : '👕'}</div>
+                        }
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/shop/${p.slug || p.id}`} className="text-white text-xs font-semibold truncate block hover:text-brand-400 transition-colors">
+                          {p.name}
+                        </Link>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-brand-400 text-xs font-bold">${p.price.toFixed(2)}</span>
+                          {hasDiscount && <span className="text-gray-600 text-[10px] line-through">${p.comparePrice!.toFixed(2)}</span>}
+                          {hasDiscount && <span className="text-[10px] text-red-400 font-medium">−{savePct}%</span>}
+                        </div>
+                      </div>
+                      {singleVariant ? (
+                        <button
+                          onClick={() => handleAddUpsell(p)}
+                          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                            addedUpsell === p.id
+                              ? 'bg-camp-500 text-white'
+                              : 'bg-brand-500 hover:bg-brand-400 text-black'
+                          }`}
+                        >
+                          {addedUpsell === p.id ? '✓' : '+ Add'}
+                        </button>
+                      ) : (
+                        <Link
+                          href={`/shop/${p.slug || p.id}`}
+                          className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-surface-600 hover:bg-surface-500 text-white transition-colors"
+                        >
+                          View
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Summary */}

@@ -36,7 +36,7 @@ export const writeLimiter = rateLimit({
 // Generous — normal browsing should never hit this
 export const readLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProd ? 300 : 3000,
+  max: isProd ? 900 : 9000, // polling endpoints (live, notifications) can fire every 5s
   message: { error: 'Too many requests. Please try again shortly.' },
   standardHeaders: true,
   legacyHeaders: false,

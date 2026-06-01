@@ -32,7 +32,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete('code');
+      window.history.replaceState({}, '', clean.toString());
+      api.post('/auth/exchange-handoff', { code })
+        .then(({ data }) => {
+          localStorage.setItem('token', data.token);
+          setUser(data.user);
+        })
+        .catch(() => {})
+        .finally(() => { setLoading(false); });
+      return;
+    }
+    refresh();
+  }, [refresh]);
 
   const setAuth = useCallback((token: string, newUser: User) => {
     localStorage.setItem('token', token);

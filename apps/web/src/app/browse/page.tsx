@@ -5,6 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { Content, ContentType } from '@/types';
 import ContentCard from '@/components/content/ContentCard';
+import ContentRow from '@/components/content/ContentRow';
 import AdSlot from '@/components/ads/AdSlot';
 
 const TYPES: { value: ContentType | ''; label: string; emoji: string }[] = [
@@ -34,6 +35,8 @@ function BrowseContent() {
   const [page, setPage]             = useState(1);
   const [loading, setLoading]       = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [tagItems, setTagItems]     = useState<Content[]>([]);
+  const [tagLoading, setTagLoading] = useState(false);
 
   // Sync state when URL params change
   useEffect(() => {
@@ -73,6 +76,15 @@ function BrowseContent() {
     setPage(1);
   }, [activeType, activeSort, tagParam, fetchPage]);
 
+  useEffect(() => {
+    if (!tagParam) { setTagItems([]); return; }
+    setTagLoading(true);
+    api.get('/content', { params: { tag: tagParam, limit: '60', sort: 'popular' } })
+      .then(r => setTagItems(r.data.items ?? []))
+      .catch(() => {})
+      .finally(() => setTagLoading(false));
+  }, [tagParam]);
+
   function pushParams(type: ContentType | '', sort: string) {
     const p = new URLSearchParams();
     if (type) p.set('type', type);
@@ -96,6 +108,81 @@ function BrowseContent() {
   }
 
   const hasMore = items.length < total;
+
+  const TYPE_ORDER = ['MUSIC', 'FILM', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS', 'BOOK'];
+  const TYPE_META: Record<string, { label: string; emoji: string }> = {
+    MUSIC: { label: 'Music', emoji: '🎵' },
+    FILM: { label: 'Film', emoji: '🎬' },
+    PODCAST: { label: 'Podcasts', emoji: '🎙️' },
+    SPOKEN_WORD: { label: 'Spoken Word', emoji: '🎤' },
+    DADDYMAN_ISMS: { label: 'DaddyMan-Isms', emoji: '💡' },
+    BOOK: { label: 'Books', emoji: '📖' },
+  };
+
+  if (tagParam) {
+    const grouped: Record<string, Content[]> = {};
+    for (const item of tagItems) {
+      if (!grouped[item.type]) grouped[item.type] = [];
+      grouped[item.type].push(item);
+    }
+    return (
+      <div>
+        <div className="relative border-b border-surface-700/50 px-4 py-14 text-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-500/10 via-surface-900/80 to-surface-900" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_50%_0%,rgba(248,194,2,0.12),transparent_70%)]" />
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <p className="text-brand-500/40 text-5xl font-black leading-none mb-1 select-none">#</p>
+            <h1 className="text-4xl md:text-5xl font-black text-white capitalize leading-tight">
+              {tagParam.replace(/-/g, ' ')}
+            </h1>
+            <p className="text-gray-500 text-sm mt-3">
+              {tagLoading ? 'Loading…' : `${tagItems.length} piece${tagItems.length !== 1 ? 's' : ''} of content`}
+            </p>
+            <Link href="/browse" className="inline-block mt-4 text-xs text-gray-600 hover:text-brand-400 transition-colors">
+              ← Browse all content
+            </Link>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          {tagLoading ? (
+            <div className="space-y-10">
+              {[0, 1, 2].map((i) => (
+                <div key={i}>
+                  <div className="h-5 w-40 bg-surface-700 rounded animate-pulse mb-4" />
+                  <div className="flex gap-3">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <div key={j} className="flex-shrink-0 w-56 aspect-video bg-surface-700 rounded-xl animate-pulse" />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : tagItems.length === 0 ? (
+            <div className="text-center py-24">
+              <p className="text-5xl mb-4">🔍</p>
+              <p className="text-gray-400">No content tagged #{tagParam} yet.</p>
+            </div>
+          ) : (
+            TYPE_ORDER.map((type) => {
+              const typeItems = grouped[type];
+              if (!typeItems || typeItems.length === 0) return null;
+              const { label, emoji } = TYPE_META[type] || { label: type, emoji: '🎬' };
+              return (
+                <ContentRow
+                  key={type}
+                  title={`${emoji} ${label}`}
+                  items={typeItems}
+                  seeAllHref={`/browse?type=${type}&tag=${tagParam}`}
+                  emptyText=""
+                />
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">

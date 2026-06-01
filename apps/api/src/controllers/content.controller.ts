@@ -208,6 +208,10 @@ export async function getContent(req: AuthRequest, res: Response) {
 }
 
 export async function uploadContent(req: AuthRequest, res: Response) {
+  if (!req.user!.isAdmin && !req.user!.isCreator) {
+    return res.status(403).json({ error: 'Creator access required. Upgrade to the Creator plan to upload content.' });
+  }
+
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
   if (!files?.media?.[0]) {
@@ -245,11 +249,6 @@ export async function uploadContent(req: AuthRequest, res: Response) {
       rating: rating || null,
     },
   });
-
-  // Mark user as creator if not already
-  if (!req.user!.isCreator) {
-    await prisma.user.update({ where: { id: req.user!.id }, data: { isCreator: true } });
-  }
 
   // Only notify followers immediately for live content; scheduler handles scheduled content
   if (!isScheduled) notifyFollowers(req.user!.id, content.id);
@@ -351,13 +350,19 @@ export async function saveProgress(req: AuthRequest, res: Response) {
 
   const profileId = req.headers['x-profile-id'] as string | undefined;
 
+  const contentMeta = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: { xpWatchSeconds: true },
+  });
+
   const record = await prisma.watchHistory.upsert({
     where: { userId_contentId: { userId: req.user!.id, contentId: req.params.id } },
     update: { progress, watchedAt: new Date() },
     create: { userId: req.user!.id, contentId: req.params.id, progress },
   });
 
-  if (progress >= 30) {
+  const threshold = contentMeta?.xpWatchSeconds ?? 30;
+  if (progress >= threshold) {
     awardXp(req.user!.id, 'WATCH', req.params.id);
     updateStreak(req.user!.id);
     checkBadges(req.user!.id, 'WATCH');
@@ -375,6 +380,21 @@ export async function saveProgress(req: AuthRequest, res: Response) {
   }
 
   res.json({ progress: record.progress });
+}
+
+export async function getEmbedMeta(req: Request, res: Response) {
+  const content = await prisma.content.findUnique({
+    where: { id: req.params.id },
+    select: {
+      id: true, title: true, type: true, thumbnailUrl: true, status: true,
+      creator: { select: { username: true, displayName: true } },
+    },
+  });
+  if (!content || content.status === 'DELETED') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  const thumbnailUrl = await signR2Url(content.thumbnailUrl);
+  res.json({ content: { ...content, thumbnailUrl } });
 }
 
 export async function getProgress(req: AuthRequest, res: Response) {

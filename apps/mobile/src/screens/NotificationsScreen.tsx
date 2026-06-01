@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import api from '../lib/api';
@@ -10,24 +11,43 @@ import { RootStackParamList } from '../navigation/RootNavigator';
 
 interface NotificationItem {
   id: string;
-  type: 'NEW_CONTENT' | 'NEW_LIKE' | 'NEW_COMMENT' | 'NEW_FOLLOWER';
+  type: 'NEW_CONTENT' | 'NEW_LIKE' | 'NEW_COMMENT' | 'NEW_FOLLOWER' | 'NEW_TIP' | 'MILESTONE';
   read: boolean;
   createdAt: string;
   actor?: { username: string; displayName?: string } | null;
   content?: { id: string; title: string; type: string } | null;
+  milestone?: number | null;
+  milestoneKind?: 'FOLLOWERS' | 'VIEWS' | null;
 }
 
 const TYPE_ICON: Record<NotificationItem['type'], string> = {
-  NEW_CONTENT: '🎵', NEW_LIKE: '👍', NEW_COMMENT: '💬', NEW_FOLLOWER: '👤',
+  NEW_CONTENT:  'musical-note',
+  NEW_LIKE:     'thumbs-up',
+  NEW_COMMENT:  'chatbubble',
+  NEW_FOLLOWER: 'person-add',
+  NEW_TIP:      'heart-circle',
+  MILESTONE:    'trophy',
 };
 
-function notificationText(n: NotificationItem) {
+function formatMilestone(n: number) {
+  if (n >= 1_000_000) return `${n / 1_000_000}M`;
+  if (n >= 1_000)     return `${n / 1_000}K`;
+  return String(n);
+}
+
+function notificationText(n: NotificationItem): string {
   const name = n.actor?.displayName || n.actor?.username || 'Someone';
   switch (n.type) {
     case 'NEW_CONTENT':  return `${name} posted: "${n.content?.title}"`;
     case 'NEW_LIKE':     return `${name} liked "${n.content?.title}"`;
     case 'NEW_COMMENT':  return `${name} commented on "${n.content?.title}"`;
     case 'NEW_FOLLOWER': return `${name} started following you`;
+    case 'NEW_TIP':      return `${name} sent you a Strength 💛`;
+    case 'MILESTONE':
+      return n.milestoneKind === 'VIEWS'
+        ? `You hit ${formatMilestone(n.milestone ?? 0)} total views — the people love it! 🔥`
+        : `You reached ${formatMilestone(n.milestone ?? 0)} followers — the family keeps growing! 🎉`;
+    default: return 'New notification';
   }
 }
 
@@ -48,7 +68,7 @@ export default function NotificationsScreen() {
   function load(isRefresh = false) {
     if (isRefresh) setRefreshing(true);
     api.get('/notifications?limit=30')
-      .then((r) => setNotifications(r.data.notifications))
+      .then((r) => setNotifications(r.data.notifications ?? []))
       .catch(() => {})
       .finally(() => setRefreshing(false));
   }
@@ -60,11 +80,9 @@ export default function NotificationsScreen() {
       api.post(`/notifications/${n.id}/read`).catch(() => {});
       setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, read: true } : x));
     }
-    if (n.content) {
-      navigation.navigate('Watch', { id: n.content.id });
-    } else if (n.actor) {
-      navigation.navigate('Creator', { username: n.actor.username });
-    }
+    if (n.type === 'MILESTONE') return; // no destination — celebrate in place
+    if (n.content) navigation.navigate('Watch', { id: n.content.id });
+    else if (n.actor) navigation.navigate('Creator', { username: n.actor.username });
   }
 
   async function handleMarkAll() {
@@ -74,7 +92,7 @@ export default function NotificationsScreen() {
 
   if (!user) return (
     <View style={styles.center}>
-      <Text style={styles.emoji}>🔔</Text>
+      <Ionicons name="notifications-off-outline" size={48} color="#555" style={{ marginBottom: 12 }} />
       <Text style={styles.emptyText}>Sign in to see your notifications.</Text>
     </View>
   );
@@ -83,9 +101,9 @@ export default function NotificationsScreen() {
     <View style={styles.container}>
       <FlatList
         data={notifications}
-        keyExtractor={(n) => n.id}
+        keyExtractor={(n) => n.id.toString()}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor="#a78bfa" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor="#f8c202" />}
         ListHeaderComponent={
           notifications.some((n) => !n.read) ? (
             <TouchableOpacity style={styles.markAllBtn} onPress={handleMarkAll}>
@@ -95,7 +113,7 @@ export default function NotificationsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.center}>
-            <Text style={styles.emoji}>🔔</Text>
+            <Ionicons name="notifications-outline" size={48} color="#555" style={{ marginBottom: 12 }} />
             <Text style={styles.emptyText}>No notifications yet</Text>
           </View>
         }
@@ -105,7 +123,12 @@ export default function NotificationsScreen() {
             onPress={() => handleTap(n)}
             activeOpacity={0.7}
           >
-            <Text style={styles.icon}>{TYPE_ICON[n.type]}</Text>
+            <Ionicons
+              name={TYPE_ICON[n.type] as any}
+              size={20}
+              color={n.read ? '#555' : '#f8c202'}
+              style={styles.icon}
+            />
             <View style={styles.itemBody}>
               <Text style={styles.itemText}>{notificationText(n)}</Text>
               <Text style={styles.itemTime}>{timeAgo(n.createdAt)}</Text>
@@ -119,21 +142,20 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f17' },
-  center: { flex: 1, backgroundColor: '#0f0f17', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  emoji: { fontSize: 40, marginBottom: 12 },
-  emptyText: { color: '#666', fontSize: 14, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: '#0d0d0d' },
+  center: { flex: 1, backgroundColor: '#0d0d0d', alignItems: 'center', justifyContent: 'center', padding: 32 },
+  emptyText: { color: '#888', fontSize: 14, textAlign: 'center' },
   markAllBtn: { alignSelf: 'flex-end', margin: 16 },
-  markAllText: { color: '#a78bfa', fontSize: 13 },
+  markAllText: { color: '#f8c202', fontSize: 13 },
   item: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#1a1a28',
+    borderBottomWidth: 1, borderBottomColor: '#161616',
   },
   itemUnread: { backgroundColor: '#13131f' },
-  icon: { fontSize: 22, width: 32, textAlign: 'center' },
+  icon: { width: 28, textAlign: 'center' },
   itemBody: { flex: 1 },
   itemText: { color: '#ddd', fontSize: 13, lineHeight: 18 },
   itemTime: { color: '#555', fontSize: 11, marginTop: 3 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#a78bfa' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#f8c202' },
 });

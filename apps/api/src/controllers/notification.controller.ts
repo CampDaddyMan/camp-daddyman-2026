@@ -45,26 +45,23 @@ export async function getUnreadCount(req: AuthRequest, res: Response) {
   res.json({ count });
 }
 
+const PREF_FIELDS = [
+  'emailNewFollower', 'emailNewContent', 'emailNewComment', 'emailNewTip',
+  'pushNewFollower',  'pushNewContent',  'pushNewComment',  'pushNewTip',
+] as const;
+
 export async function getPreferences(req: AuthRequest, res: Response) {
-  const user = await prisma.user.findUnique({
-    where: { id: req.user!.id },
-    select: { emailNewFollower: true, emailNewContent: true, emailNewComment: true, emailNewTip: true },
-  });
-  res.json(user ?? { emailNewFollower: true, emailNewContent: true, emailNewComment: true, emailNewTip: true });
+  const select = Object.fromEntries(PREF_FIELDS.map((f) => [f, true]));
+  const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select });
+  res.json(user ?? Object.fromEntries(PREF_FIELDS.map((f) => [f, true])));
 }
 
 export async function updatePreferences(req: AuthRequest, res: Response) {
-  const { emailNewFollower, emailNewContent, emailNewComment, emailNewTip } = req.body;
   const data: Record<string, boolean> = {};
-  if (typeof emailNewFollower === 'boolean') data.emailNewFollower = emailNewFollower;
-  if (typeof emailNewContent  === 'boolean') data.emailNewContent  = emailNewContent;
-  if (typeof emailNewComment  === 'boolean') data.emailNewComment  = emailNewComment;
-  if (typeof emailNewTip      === 'boolean') data.emailNewTip      = emailNewTip;
-
-  const user = await prisma.user.update({
-    where: { id: req.user!.id },
-    data,
-    select: { emailNewFollower: true, emailNewContent: true, emailNewComment: true, emailNewTip: true },
-  });
+  for (const field of PREF_FIELDS) {
+    if (typeof req.body[field] === 'boolean') data[field] = req.body[field];
+  }
+  const select = Object.fromEntries(PREF_FIELDS.map((f) => [f, true]));
+  const user = await prisma.user.update({ where: { id: req.user!.id }, data, select });
   res.json(user);
 }

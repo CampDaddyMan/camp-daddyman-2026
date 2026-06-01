@@ -63,6 +63,7 @@ export default function PlaylistPage() {
   const [editing, setEditing]     = useState(false);
   const [editName, setEditName]   = useState('');
   const [saving, setSaving]       = useState(false);
+  const [copied, setCopied]       = useState(false);
 
   useEffect(() => {
     api.get(`/playlists/${id}`)
@@ -108,6 +109,19 @@ export default function PlaylistPage() {
       items: prev.items.filter((i) => i.contentId !== contentId),
       _count: { items: prev._count.items - 1 },
     } : prev);
+  }
+
+  async function handleTogglePublic() {
+    if (!playlist) return;
+    const { data } = await api.patch(`/playlists/${id}`, { isPublic: !playlist.isPublic });
+    setPlaylist((prev) => prev ? { ...prev, isPublic: data.playlist.isPublic } : prev);
+  }
+
+  async function handleCopyLink() {
+    const url = `${window.location.origin}/playlists/${id}`;
+    await navigator.clipboard.writeText(url).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   }
 
   async function handleSaveName(e: React.FormEvent) {
@@ -179,11 +193,30 @@ export default function PlaylistPage() {
           </p>
           {playlist.description && <p className="text-gray-500 text-sm mb-4 max-w-lg">{playlist.description}</p>}
 
-          <div className="flex items-center gap-3 mt-3">
+          <div className="flex items-center gap-3 mt-3 flex-wrap">
             <button onClick={playAll} disabled={playlist.items.length === 0}
               className="flex items-center gap-2 px-6 py-2.5 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black font-bold rounded-full transition-colors text-sm">
               ▶ Play All
             </button>
+
+            {playlist.isPublic && (
+              <button onClick={handleCopyLink}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium border border-surface-600 text-gray-300 hover:border-brand-500 hover:text-brand-400 transition-colors">
+                {copied ? '✓ Copied!' : '↗ Share'}
+              </button>
+            )}
+
+            {isOwner && (
+              <button onClick={handleTogglePublic}
+                className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-colors ${
+                  playlist.isPublic
+                    ? 'border-brand-500/50 text-brand-400 hover:bg-brand-500/10'
+                    : 'border-surface-600 text-gray-500 hover:text-gray-300 hover:border-surface-400'
+                }`}>
+                {playlist.isPublic ? '🌐 Public' : '🔒 Private'}
+              </button>
+            )}
+
             <Link href="/playlists" className="px-4 py-2.5 rounded-full text-sm font-medium border border-surface-600 text-gray-400 hover:border-surface-400 transition-colors">
               ← My Playlists
             </Link>

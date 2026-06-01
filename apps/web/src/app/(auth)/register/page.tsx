@@ -22,10 +22,16 @@ export default function RegisterPage() {
 
   const [deviceId, setDeviceId]       = useState('');
   const [deviceLabel, setDeviceLabel] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [referredBy, setReferredBy]     = useState('');
 
   useEffect(() => {
     setDeviceId(getDeviceId());
     setDeviceLabel(getDeviceLabel());
+    try {
+      const stored = localStorage.getItem('referralCode');
+      if (stored) { setReferralCode(stored); setReferredBy(stored); }
+    } catch {}
   }, []);
 
   async function handleRegister(e: FormEvent) {
@@ -33,7 +39,7 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/register', { ...form, deviceId, deviceLabel });
+      const { data } = await api.post('/auth/register', { ...form, deviceId, deviceLabel, referralCode: referralCode || undefined });
       setChallengeId(data.challengeId);
       setStep('verify_2fa');
     } catch (err: any) {
@@ -50,6 +56,7 @@ export default function RegisterPage() {
     try {
       const { data } = await api.post('/auth/verify-2fa', { challengeId, code });
       setAuth(data.token, data.user);
+      try { localStorage.removeItem('referralCode'); } catch {}
       router.push('/dashboard');
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Verification failed. Check your code.');
@@ -77,6 +84,11 @@ export default function RegisterPage() {
               <p className="text-gray-400 mt-1">Create your account and be part of the movement</p>
             </div>
             <form onSubmit={handleRegister} className="bg-surface-800 rounded-2xl p-8 space-y-5">
+              {referredBy && (
+                <p className="text-brand-400 text-sm bg-brand-500/10 border border-brand-500/20 px-4 py-3 rounded-lg text-center">
+                  🎉 Invited by <strong>@{referredBy}</strong>
+                </p>
+              )}
               {error && <p className="text-red-400 text-sm bg-red-400/10 px-4 py-3 rounded-lg">{error}</p>}
               <div>
                 <label className="block text-sm text-gray-300 mb-1.5">Display Name</label>

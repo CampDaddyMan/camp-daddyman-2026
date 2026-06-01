@@ -3,6 +3,10 @@ import {
   listProducts,
   listPerkItems,
   getProduct,
+  getRelatedProducts,
+  toggleWishlist,
+  getWishlist,
+  subscribeBackInStock,
   createCheckoutSession,
   validateCoupon,
   handleWebhook,
@@ -22,10 +26,12 @@ router.post('/webhook', raw({ type: 'application/json' }), handleWebhook);
 // Public
 router.get('/products',            readLimiter, listProducts);
 router.get('/perk-items',          readLimiter, listPerkItems);
-router.get('/products/:idOrSlug',  readLimiter, getProduct);
+router.get('/products/:idOrSlug',              readLimiter,  getProduct);
+router.get('/products/:idOrSlug/related',      readLimiter,  getRelatedProducts);
+router.post('/products/:id/notify',            writeLimiter, subscribeBackInStock);
 
 // Coupon validation (public — no auth needed to validate a code)
-router.post('/coupons/validate', writeLimiter, validateCoupon);
+router.post('/coupons/validate', optionalAuthMiddleware, writeLimiter, validateCoupon);
 
 // Checkout — optional auth (members get discount, guests can still checkout)
 router.post('/checkout', optionalAuthMiddleware, writeLimiter, createCheckoutSession);
@@ -34,6 +40,10 @@ router.post('/checkout', optionalAuthMiddleware, writeLimiter, createCheckoutSes
 router.get('/products/:id/reviews',              readLimiter,  listReviews);
 router.post('/products/:id/reviews',             authMiddleware, writeLimiter, createReview);
 router.delete('/products/:id/reviews/:reviewId', authMiddleware, writeLimiter, deleteReview);
+
+// Wishlist — auth required
+router.get('/wishlist',                authMiddleware, readLimiter,  getWishlist);
+router.post('/wishlist/:productId',    authMiddleware, writeLimiter, toggleWishlist);
 
 // Orders — auth required
 router.get('/orders',                  authMiddleware,         readLimiter, getMyOrders);

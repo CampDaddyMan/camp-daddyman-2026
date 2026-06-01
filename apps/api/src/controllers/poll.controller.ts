@@ -129,13 +129,12 @@ export async function createPoll(req: AuthRequest, res: Response) {
 export async function listPolls(req: AuthRequest, res: Response) {
   const { status } = req.query;
   const isAdmin = req.user?.isAdmin;
+  const userId  = req.user?.id;
 
   const where: any = {};
   if (isAdmin) {
-    // Admins can filter by any status and see polls not yet started
     if (status && status !== 'ALL') where.status = String(status).toUpperCase();
   } else {
-    // Public: only ACTIVE and CLOSED polls that have already started (or have no startsAt)
     where.status = status === 'CLOSED' ? 'CLOSED' : status === 'ACTIVE' ? 'ACTIVE' : { in: ['ACTIVE', 'CLOSED'] };
     where.OR = [{ startsAt: null }, { startsAt: { lte: new Date() } }];
   }
@@ -144,19 +143,40 @@ export async function listPolls(req: AuthRequest, res: Response) {
     where,
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     include: {
-      _count: { select: { votes: true, options: true } },
+      _count: { select: { votes: true } },
+      options: {
+        orderBy: { order: 'asc' },
+        include: { _count: { select: { votes: true } } },
+      },
     },
   });
 
-  const signed = await Promise.all(polls.map(async (p) => ({
+  // Resolve user's votes for all polls in one query
+  const myVoteMap: Record<string, string> = {};
+  if (userId && polls.length > 0) {
+    const myVotes = await prisma.pollVote.findMany({
+      where: { userId, pollId: { in: polls.map((p) => p.id) } },
+      select: { pollId: true, optionId: true },
+    });
+    myVotes.forEach((v) => { myVoteMap[v.pollId] = v.optionId; });
+  }
+
+  const enriched = await Promise.all(polls.map(async (p) => ({
     ...p,
-    imageUrl: await signR2Url(p.imageUrl),
+    imageUrl:   await signR2Url(p.imageUrl),
+    totalVotes: p._count.votes,
+    userVoteId: myVoteMap[p.id] ?? null,
+    options:    p.options.map((opt) => ({
+      id:    opt.id,
+      text:  opt.label,
+      votes: opt._count.votes,
+    })),
   })));
 
-  if (!req.user?.isAdmin) {
+  if (!userId) {
     res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
   }
-  res.json({ polls: signed });
+  res.json({ polls: enriched });
 }
 
 // ── Get single poll (public, auth optional) ───────────────────────────────────

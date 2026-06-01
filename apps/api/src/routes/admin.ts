@@ -6,13 +6,21 @@ import {
   toggleAdmin,
   toggleBan,
   deleteUser,
+  conferStation,
   notifyUser,
   listAllContent,
   setContentStatus,
   updateContent,
+  setContentCredits,
   listReports,
   resolveReport,
 } from '../controllers/admin.controller';
+import { adminListGoodDone, adminVerifyGoodDone } from '../controllers/goodDone.controller';
+import {
+  adminListSubscribers,
+  adminDeleteSubscriber,
+  adminExportCsv,
+} from '../controllers/newsletter.controller';
 import { adminGetSettings, adminUpdateSetting, adminUploadSettingsImage } from '../controllers/settings.controller';
 import { adminListBanners, createBanner, updateBanner, deleteBanner, uploadBannerImage } from '../controllers/banner.controller';
 import {
@@ -46,11 +54,13 @@ router.get('/stats',                     readLimiter,  getStats);
 router.get('/users',                     readLimiter,  listUsers);
 router.post('/users/:id/toggle-admin',   writeLimiter, toggleAdmin);
 router.post('/users/:id/toggle-ban',     writeLimiter, toggleBan);
+router.post('/users/:id/station',        writeLimiter, conferStation);
 router.post('/users/:id/notify',         writeLimiter, notifyUser);
 router.delete('/users/:id',              writeLimiter, deleteUser);
 router.get('/content',                   readLimiter,  listAllContent);
 router.post('/content/:id/status',       writeLimiter, setContentStatus);
 router.patch('/content/:id',             writeLimiter, updateContent);
+router.put('/content/:id/credits',       writeLimiter, setContentCredits);
 router.get('/reports',                   readLimiter,  listReports);
 router.post('/reports/:id/resolve',      writeLimiter, resolveReport);
 
@@ -74,11 +84,20 @@ router.get('/settings',                  readLimiter,  adminGetSettings);
 router.put('/settings',                  writeLimiter, adminUpdateSetting);
 router.post('/settings/upload',          writeLimiter, imageUpload.single('image'), adminUploadSettingsImage);
 
+// Newsletter subscribers admin
+router.get('/newsletter',              readLimiter,  adminListSubscribers);
+router.get('/newsletter/export',       readLimiter,  adminExportCsv);
+router.delete('/newsletter/:id',       writeLimiter, adminDeleteSubscriber);
+
 // Banner slides admin
 router.get('/banners',                   readLimiter,  adminListBanners);
 router.post('/banners/upload',           writeLimiter, imageUpload.single('image'), uploadBannerImage);
 router.post('/banners',                  writeLimiter, createBanner);
 router.patch('/banners/:id',             writeLimiter, updateBanner);
 router.delete('/banners/:id',            writeLimiter, deleteBanner);
+
+// Good Done verification (Elder workflow)
+router.get('/good-done',             readLimiter,  adminListGoodDone);
+router.post('/good-done/:id/verify', writeLimiter, adminVerifyGoodDone);
 
 export default router;

@@ -3,8 +3,11 @@ import multer from 'multer';
 import {
   listSeries, getSeries,
   createSeries, updateSeries, deleteSeries,
+  uploadSeriesCover, uploadSeriesTrailer,
+  uploadSeasonCover,
   addSeason, updateSeason, deleteSeason,
-  addEpisode, removeEpisode, reorderEpisodes,
+  addEpisode, updateEpisode, removeEpisode, reorderEpisodes,
+  uploadEpisodeThumbnail, uploadEpisodeVideo,
   getSeriesComments, addSeriesComment, deleteSeriesComment,
 } from '../controllers/series.controller';
 import { authMiddleware, adminMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -19,6 +22,12 @@ const imgUpload = multer({
   },
 });
 
+// Accept any file for video — MIME type is normalized from extension in the controller
+const videoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 500 * 1024 * 1024 },
+});
+
 // Public
 router.get('/',    optionalAuthMiddleware, readLimiter, listSeries);
 router.get('/:id', optionalAuthMiddleware, readLimiter, getSeries);
@@ -30,18 +39,24 @@ router.delete('/:id/comments/:commentId',  authMiddleware,         writeLimiter,
 
 // Admin only
 router.use(authMiddleware, adminMiddleware);
-router.post('/',         writeLimiter, createSeries);
-router.patch('/:id',     writeLimiter, updateSeries);
-router.delete('/:id',    writeLimiter, deleteSeries);
+router.post('/',                            writeLimiter, createSeries);
+router.patch('/:id',                        writeLimiter, updateSeries);
+router.delete('/:id',                       writeLimiter, deleteSeries);
+router.patch('/:id/cover',   imgUpload.single('cover'),    writeLimiter, uploadSeriesCover);
+router.patch('/:id/trailer', videoUpload.single('trailer'), writeLimiter, uploadSeriesTrailer);
 
 // Seasons
-router.post('/:id/seasons',                writeLimiter, addSeason);
-router.patch('/:id/seasons/:seasonId',     writeLimiter, updateSeason);
-router.delete('/:id/seasons/:seasonId',    writeLimiter, deleteSeason);
+router.post('/:id/seasons',                                          writeLimiter, addSeason);
+router.patch('/:id/seasons/:seasonId',                               writeLimiter, updateSeason);
+router.delete('/:id/seasons/:seasonId',                              writeLimiter, deleteSeason);
+router.patch('/:id/seasons/:seasonId/cover', imgUpload.single('cover'), writeLimiter, uploadSeasonCover);
 
 // Episodes
-router.post('/:id/seasons/:seasonId/episodes',                   writeLimiter, addEpisode);
-router.delete('/:id/seasons/:seasonId/episodes/:contentId',      writeLimiter, removeEpisode);
-router.patch('/:id/seasons/:seasonId/episodes/reorder',          writeLimiter, reorderEpisodes);
+router.post('/:id/seasons/:seasonId/episodes',                                        writeLimiter, addEpisode);
+router.patch('/:id/seasons/:seasonId/episodes/reorder',                               writeLimiter, reorderEpisodes);
+router.patch('/:id/seasons/:seasonId/episodes/:episodeId',                            writeLimiter, updateEpisode);
+router.delete('/:id/seasons/:seasonId/episodes/:episodeId',                           writeLimiter, removeEpisode);
+router.patch('/:id/seasons/:seasonId/episodes/:episodeId/thumbnail', imgUpload.single('thumbnail'),   writeLimiter, uploadEpisodeThumbnail);
+router.patch('/:id/seasons/:seasonId/episodes/:episodeId/video',     videoUpload.single('video'),     writeLimiter, uploadEpisodeVideo);
 
 export default router;

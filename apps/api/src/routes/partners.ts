@@ -2,9 +2,9 @@ import { Router } from 'express';
 import multer from 'multer';
 import {
   listPartners, getPartner, createPartner, updatePartner, uploadPartnerLogo, deletePartner,
-  listPublicPartners, submitInquiry,
+  listPublicPartners, listPublicPlacements, submitInquiry, selfServeApply, confirmAdBooking,
   listPlacements, createPlacement, updatePlacement, deletePlacement,
-  listAds, createAd, updateAd, uploadAdImage, deleteAd,
+  listAds, createAd, updateAd, uploadAdImage, deleteAd, approveAd, rejectAd,
   serveAd, trackAdClick,
 } from '../controllers/partners.controller';
 import { authMiddleware, adminMiddleware, optionalAuthMiddleware } from '../middleware/auth';
@@ -22,7 +22,10 @@ const imgUpload = multer({
 
 // ── Public ────────────────────────────────────────────────────────────────────
 router.get('/public',                optionalAuthMiddleware, readLimiter,  listPublicPartners);
-router.post('/inquiry',              writeLimiter,           submitInquiry);
+router.get('/placements/public',     readLimiter, listPublicPlacements);
+router.post('/inquiry',              writeLimiter, submitInquiry);
+router.post('/apply',                writeLimiter, selfServeApply);
+router.post('/apply/confirm',        writeLimiter, confirmAdBooking);
 router.get('/serve/:location',       optionalAuthMiddleware, readLimiter,  serveAd);
 router.post('/ads/:id/click',        optionalAuthMiddleware, writeLimiter, trackAdClick);
 
@@ -40,6 +43,8 @@ router.delete('/placements/:id',                          writeLimiter, deletePl
 router.get('/ads/list',                                   readLimiter,  listAds);
 router.post('/ads',                                       writeLimiter, createAd);
 router.patch('/ads/:id',                                  writeLimiter, updateAd);
+router.post('/ads/:id/approve',                           writeLimiter, approveAd);
+router.post('/ads/:id/reject',                            writeLimiter, rejectAd);
 router.post('/ads/:id/image', imgUpload.single('image'),  writeLimiter, uploadAdImage);
 router.delete('/ads/:id',                                 writeLimiter, deleteAd);
 

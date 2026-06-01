@@ -32,7 +32,7 @@
     "updates": {
       "url": "https://u.expo.dev/635cd17a-b97d-44cd-9432-eddfae9c2af8",
       "enabled": true,
-      "checkAutomatically": "ON_ERROR_RECOVERY",
+      "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 3000
     },
     "runtimeVersion": {

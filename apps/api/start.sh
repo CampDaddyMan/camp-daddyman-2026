@@ -25,6 +25,10 @@ npx prisma migrate resolve \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 
 npx prisma migrate resolve \
+  --rolled-back 20260601000002_add_journey \
+  --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
+
+npx prisma migrate resolve \
   --rolled-back 20260524000001_add_series_trailer_url \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 

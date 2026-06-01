@@ -87,6 +87,8 @@ model User {
   station                String?
   livityActs             Livity[]        @relation("LivitySubmitter")
   verifiedLivityActs     Livity[]        @relation("LivityVerifier")
+  journey                UserJourney?
+  journeyEntries         JourneyEntry[]
 }
 
 model Token {
@@ -1125,6 +1127,60 @@ model LoyaltyRedemption {
   reward    LoyaltyReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([userId, rewardId])
+  @@index([userId])
+}
+
+// ── Journey ───────────────────────────────────────────────────────────────────
+// The Butterfly Journey Engine — one day at a time.
+// JourneyDay is the curriculum. UserJourney tracks where a user is.
+// JourneyEntry stores what the user wrote each day.
+
+model JourneyDay {
+  id              String   @id @default(cuid())
+  dayNumber       Int      @unique
+  phase           String   @default("EGG") // EGG | CATERPILLAR | J_SHAPE | CHRYSALIS | BUTTERFLY
+  title           String
+  lie             String   // The lie being dismantled
+  truth           String   // The truth replacing it
+  body            String   // The witnessing text (full body)
+  daddyManism     String   // Drew's locked words
+  reflectionPrompt String
+  challengePrompt  String
+  livityPrompt     String
+  journalPrompt    String
+  closingText      String
+  published        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  entries          JourneyEntry[]
+
+  @@index([dayNumber, published])
+}
+
+model UserJourney {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt   DateTime @default(now())
+  currentDay  Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model JourneyEntry {
+  id               String      @id @default(cuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayNumber        Int
+  journeyDay       JourneyDay  @relation(fields: [dayNumber], references: [dayNumber])
+  reflectionText   String?
+  challengeText    String?
+  journalText      String?
+  completedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@unique([userId, dayNumber])
   @@index([userId])
 }
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { createContext, useContext, useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { getLevel } from '@/lib/xp';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface GrowthDay { date: string; users: number; content: number }
 
@@ -45,9 +45,9 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'loyalty' | 'livity' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'loyalty' | 'livity' | 'journey' | 'settings';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -68,7 +68,7 @@ function useDebounce(value: string, delay = 350) {
   return debounced;
 }
 
-// ── Growth chart ──────────────────────────────────────────────────────────────
+// â”€â”€ Growth chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GrowthChart({ data }: { data: GrowthDay[] }) {
   const W = 700, H = 80, PAD = 2;
@@ -106,7 +106,7 @@ function GrowthChart({ data }: { data: GrowthDay[] }) {
   );
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Pager({ page, pages, onChange }: { page: number; pages: number; onChange: (p: number) => void }) {
   if (pages <= 1) return null;
@@ -114,18 +114,18 @@ function Pager({ page, pages, onChange }: { page: number; pages: number; onChang
     <div className="flex items-center gap-2 mt-4 justify-end text-sm">
       <button onClick={() => onChange(page - 1)} disabled={page === 1}
         className="px-3 py-1.5 bg-surface-700 rounded-lg text-gray-300 disabled:opacity-40 hover:bg-surface-600 transition-colors">
-        ‹ Prev
+        â€¹ Prev
       </button>
       <span className="text-gray-400">Page {page} of {pages}</span>
       <button onClick={() => onChange(page + 1)} disabled={page === pages}
         className="px-3 py-1.5 bg-surface-700 rounded-lg text-gray-300 disabled:opacity-40 hover:bg-surface-600 transition-colors">
-        Next ›
+        Next â€º
       </button>
     </div>
   );
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
+// â”€â”€ Stat card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StatCard({ label, value, emoji, sub, onClick }: { label: string; value: string | number; emoji: string; sub?: string; onClick?: () => void }) {
   const base = "bg-surface-800 border border-surface-700 rounded-xl px-5 py-4 text-left w-full";
@@ -136,14 +136,14 @@ function StatCard({ label, value, emoji, sub, onClick }: { label: string; value:
       <div className="text-2xl font-bold text-white">{typeof value === 'number' ? fmt(value) : value}</div>
       <div className="text-xs text-gray-400 mt-0.5">{label}</div>
       {sub && <div className="text-xs text-gray-600 mt-1">{sub}</div>}
-      {onClick && <div className="text-xs text-brand-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">View →</div>}
+      {onClick && <div className="text-xs text-brand-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">View â†’</div>}
     </>
   );
   if (onClick) return <button className={base + interactive} onClick={onClick}>{inner}</button>;
   return <div className={base}>{inner}</div>;
 }
 
-// ── Plan badge ────────────────────────────────────────────────────────────────
+// â”€â”€ Plan badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PLAN_LABELS: Record<string, string> = {
   FREE: 'Free', PRO: 'Pro Monthly', PREMIUM: 'Pro Annual', CREATOR: 'Creator',
@@ -158,7 +158,7 @@ function PlanBadge({ plan }: { plan?: string }) {
   return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{PLAN_LABELS[p] ?? p}</span>;
 }
 
-// ── User action drawer ────────────────────────────────────────────────────────
+// â”€â”€ User action drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type RecentUser = OverviewData['recentUsers'][number];
 
@@ -179,11 +179,11 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
     setSending(type);
     try {
       await api.post(`/admin/users/${user.id}/notify`, { type, ...extra });
-      showToast(type === 'welcome' ? '👋 Welcome email sent!' : type === 'followup' ? '✉️ Follow-up sent!' : '🎁 Coupon sent!');
+      showToast(type === 'welcome' ? 'ðŸ‘‹ Welcome email sent!' : type === 'followup' ? 'âœ‰ï¸ Follow-up sent!' : 'ðŸŽ Coupon sent!');
       if (type === 'followup') setFollowup('');
       if (type === 'coupon')   { setCoupon(''); setCouponMsg(''); }
     } catch {
-      showToast('Send failed — check email config');
+      showToast('Send failed â€” check email config');
     } finally {
       setSending(null);
     }
@@ -194,7 +194,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
     try {
       const { data } = await api.post(`/admin/users/${user.id}/toggle-ban`);
       setBanned(data.user.isBanned);
-      showToast(data.user.isBanned ? '🚫 Member banned' : '✓ Member unbanned');
+      showToast(data.user.isBanned ? 'ðŸš« Member banned' : 'âœ“ Member unbanned');
     } catch {
       showToast('Action failed');
     } finally {
@@ -208,7 +208,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
       <div className="w-full max-w-sm bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">Member Actions</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
 
         {/* User info */}
@@ -222,7 +222,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
               <p className="text-gray-400 text-xs">@{user.username}</p>
             </div>
           </div>
-          <p className="text-gray-400 text-xs mb-2">✉️ {user.email}</p>
+          <p className="text-gray-400 text-xs mb-2">âœ‰ï¸ {user.email}</p>
           <div className="flex items-center gap-2">
             <PlanBadge plan={user.subscription?.plan} />
             <span className="text-gray-500 text-xs">Joined {fmtDate(user.createdAt)}</span>
@@ -239,8 +239,8 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
           {/* View profile */}
           <a href={`/creator/${user.username}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-between w-full px-4 py-2.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-white text-sm font-medium transition-colors">
-            <span>👤 View Public Profile</span>
-            <span className="text-brand-400 text-xs">→</span>
+            <span>ðŸ‘¤ View Public Profile</span>
+            <span className="text-brand-400 text-xs">â†’</span>
           </a>
 
           {/* Welcome email */}
@@ -250,7 +250,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
               onClick={() => sendNotify('welcome')}
               disabled={sending === 'welcome'}
               className="w-full px-4 py-2.5 rounded-lg bg-brand-500/10 border border-brand-500/30 text-brand-400 hover:bg-brand-500/20 text-sm font-medium transition-colors text-left disabled:opacity-50">
-              {sending === 'welcome' ? 'Sending…' : '👋 Send Welcome Email'}
+              {sending === 'welcome' ? 'Sendingâ€¦' : 'ðŸ‘‹ Send Welcome Email'}
             </button>
           </div>
 
@@ -268,7 +268,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
               onClick={() => sendNotify('followup', { message: followupMsg })}
               disabled={sending === 'followup' || !followupMsg.trim()}
               className="w-full px-4 py-2 rounded-lg bg-camp-500/10 border border-camp-500/30 text-camp-400 hover:bg-camp-500/20 text-sm font-medium transition-colors disabled:opacity-50">
-              {sending === 'followup' ? 'Sending…' : '✉️ Send Follow-up'}
+              {sending === 'followup' ? 'Sendingâ€¦' : 'âœ‰ï¸ Send Follow-up'}
             </button>
           </div>
 
@@ -292,7 +292,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
               onClick={() => sendNotify('coupon', { code: couponCode, message: couponMsg })}
               disabled={sending === 'coupon' || !couponCode.trim()}
               className="w-full px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 text-sm font-medium transition-colors disabled:opacity-50">
-              {sending === 'coupon' ? 'Sending…' : '🎁 Send Coupon Email'}
+              {sending === 'coupon' ? 'Sendingâ€¦' : 'ðŸŽ Send Coupon Email'}
             </button>
           </div>
 
@@ -307,7 +307,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
                   ? 'bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20'
                   : 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20'
               }`}>
-              {sending === 'ban' ? '…' : banned ? '✓ Unban Member' : '🚫 Ban Member'}
+              {sending === 'ban' ? 'â€¦' : banned ? 'âœ“ Unban Member' : 'ðŸš« Ban Member'}
             </button>
           </div>
         </div>
@@ -316,7 +316,7 @@ function UserActionDrawer({ user, onClose }: { user: RecentUser; onClose: () => 
   );
 }
 
-// ── Overview tab ──────────────────────────────────────────────────────────────
+// â”€â”€ Overview tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
   const [data, setData]               = useState<OverviewData | null>(null);
@@ -333,17 +333,17 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
 
   return (
     <div className="space-y-8">
-      {/* Stats row — clickable */}
+      {/* Stats row â€” clickable */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Users"    value={stats.totalUsers}          emoji="👥" onClick={() => onNav('users')} />
-        <StatCard label="Active Content" value={stats.totalContent}        emoji="🎵" onClick={() => onNav('content')} />
-        <StatCard label="Paid Members"   value={stats.activeSubscriptions} emoji="💳" onClick={() => onNav('users', 'PRO')} />
-        <StatCard label="Total Views"    value={stats.totalViews}          emoji="👁️" onClick={() => onNav('content')} />
+        <StatCard label="Total Users"    value={stats.totalUsers}          emoji="ðŸ‘¥" onClick={() => onNav('users')} />
+        <StatCard label="Active Content" value={stats.totalContent}        emoji="ðŸŽµ" onClick={() => onNav('content')} />
+        <StatCard label="Paid Members"   value={stats.activeSubscriptions} emoji="ðŸ’³" onClick={() => onNav('users', 'PRO')} />
+        <StatCard label="Total Views"    value={stats.totalViews}          emoji="ðŸ‘ï¸" onClick={() => onNav('content')} />
       </div>
 
       {/* Growth chart */}
       <div className="bg-surface-800 border border-surface-700 rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-white mb-4">Platform Growth — last 30 days</h3>
+        <h3 className="text-sm font-semibold text-white mb-4">Platform Growth â€” last 30 days</h3>
         {growth.every((d) => d.users + d.content === 0)
           ? <p className="text-gray-500 text-sm py-6 text-center">No activity yet.</p>
           : <GrowthChart data={growth} />
@@ -352,7 +352,7 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
 
       {/* Subscription breakdown + recent signups */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Plan breakdown — rows clickable */}
+        {/* Plan breakdown â€” rows clickable */}
         <div className="bg-surface-800 border border-surface-700 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-white mb-4">Subscription Breakdown</h3>
           <div className="space-y-3">
@@ -366,7 +366,7 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
                     <span className="text-gray-300 group-hover:text-white transition-colors font-medium">{PLAN_LABELS[plan] ?? plan}</span>
                     <span className="text-gray-400">
                       {count.toLocaleString()} ({pct}%)
-                      <span className="text-brand-400 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                      <span className="text-brand-400 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity">â†’</span>
                     </span>
                   </div>
                   <div className="h-1.5 bg-surface-700 rounded-full overflow-hidden">
@@ -381,11 +381,11 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
           </div>
           <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-surface-700">
             Est. MRR: <span className="text-white font-semibold">${paidRevenue.toLocaleString()}</span>
-            <span className="text-gray-600 ml-1">(Monthly×$19.99 + Annual×$8.33/mo)</span>
+            <span className="text-gray-600 ml-1">(MonthlyÃ—$19.99 + AnnualÃ—$8.33/mo)</span>
           </p>
         </div>
 
-        {/* Recent signups — clickable rows */}
+        {/* Recent signups â€” clickable rows */}
         <div className="bg-surface-800 border border-surface-700 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-white mb-4">Recent Signups</h3>
           <div className="space-y-1">
@@ -396,7 +396,7 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <PlanBadge plan={u.subscription?.plan} />
                   <span className="text-gray-500 text-xs hidden sm:inline">{fmtDate(u.createdAt)}</span>
-                  <span className="text-brand-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                  <span className="text-brand-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">â†’</span>
                 </div>
               </button>
             ))}
@@ -412,7 +412,7 @@ function OverviewTab({ onNav }: { onNav: (tab: Tab, plan?: string) => void }) {
   );
 }
 
-// ── Users tab ─────────────────────────────────────────────────────────────────
+// â”€â”€ Users tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
   const [users, setUsers]   = useState<AdminUser[]>([]);
@@ -512,12 +512,12 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
                   <div className="text-xs text-white font-medium">{getLevel(u.xp ?? 0).name}</div>
                   <div className="text-[10px] text-gray-500 font-mono">
                     {(u.xp ?? 0).toLocaleString()} XP
-                    {u.currentStreak > 0 && ` · 🔥${u.currentStreak}`}
-                    {u._count.badges > 0 && ` · ${u._count.badges}🏅`}
+                    {u.currentStreak > 0 && ` Â· ðŸ”¥${u.currentStreak}`}
+                    {u._count.badges > 0 && ` Â· ${u._count.badges}ðŸ…`}
                   </div>
                   {u.station && (
                     <div className="text-[10px] text-amber-400 mt-0.5">
-                      {{ ARK_BUILDER: '🌱 Ark Builder', GARDENER: '🌿 Gardener', FAADA: '🌍 Faada' }[u.station] ?? u.station}
+                      {{ ARK_BUILDER: 'ðŸŒ± Ark Builder', GARDENER: 'ðŸŒ¿ Gardener', FAADA: 'ðŸŒ Faada' }[u.station] ?? u.station}
                     </div>
                   )}
                 </td>
@@ -532,10 +532,10 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
                       title="Confer station (Elder action)"
                       className="text-xs px-2 py-1 rounded-lg bg-surface-700 border border-surface-600 text-amber-400 focus:outline-none focus:border-amber-500 cursor-pointer"
                     >
-                      <option value="">— Station —</option>
-                      <option value="ARK_BUILDER">🌱 Ark Builder</option>
-                      <option value="GARDENER">🌿 Gardener</option>
-                      <option value="FAADA">🌍 Faada</option>
+                      <option value="">â€” Station â€”</option>
+                      <option value="ARK_BUILDER">ðŸŒ± Ark Builder</option>
+                      <option value="GARDENER">ðŸŒ¿ Gardener</option>
+                      <option value="FAADA">ðŸŒ Faada</option>
                     </select>
                     <button
                       onClick={() => handleToggleBan(u.id)}
@@ -570,7 +570,7 @@ function UsersTab({ initialPlan = 'ALL' }: { initialPlan?: string }) {
   );
 }
 
-// ── Edit content modal ────────────────────────────────────────────────────────
+// â”€â”€ Edit content modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function EditContentModal({ item, onClose, onSaved }: {
   item: AdminContent;
@@ -630,7 +630,7 @@ function EditContentModal({ item, onClose, onSaved }: {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setThumb(data.thumbnailUrl);
-      thumbUploadedRef.current = true; // already persisted — skip re-saving in handleSave
+      thumbUploadedRef.current = true; // already persisted â€” skip re-saving in handleSave
     } catch {
       setError('Image upload failed');
     } finally {
@@ -727,7 +727,7 @@ function EditContentModal({ item, onClose, onSaved }: {
       if (tags !== (item.tags || []).join(', ')) payload.tags = tags;
       payload.chapters = chapters.filter(c => c.label.trim()).map(c => ({ time: Number(c.time) || 0, label: c.label.trim() })).sort((a, b) => a.time - b.time);
       const { data } = await api.patch(`/admin/content/${item.id}`, payload);
-      // Use locally tracked signed URLs — the PATCH response returns raw storage paths, not signed
+      // Use locally tracked signed URLs â€” the PATCH response returns raw storage paths, not signed
       onSaved({ ...item, ...data.content, mediaUrl: mediaUrl || item.mediaUrl, thumbnailUrl: thumbnailUrl || item.thumbnailUrl });
       onClose();
     } catch (e: any) {
@@ -768,7 +768,7 @@ function EditContentModal({ item, onClose, onSaved }: {
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">Edit Content</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
 
         <div className="flex-1 px-6 py-6 space-y-5">
@@ -778,7 +778,7 @@ function EditContentModal({ item, onClose, onSaved }: {
             <div className="relative aspect-video bg-surface-700 rounded-xl overflow-hidden mb-2">
               {thumbnailUrl
                 ? <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                : <div className="absolute inset-0 flex items-center justify-center text-4xl">🖼️</div>
+                : <div className="absolute inset-0 flex items-center justify-center text-4xl">ðŸ–¼ï¸</div>
               }
             </div>
             <div className="flex gap-2 mb-2">
@@ -819,8 +819,8 @@ function EditContentModal({ item, onClose, onSaved }: {
               <div className="mb-2">
                 <div className="flex justify-between text-xs text-gray-400 mb-1">
                   {mediaProgress < 100
-                    ? <><span>Uploading…</span><span>{mediaProgress}%</span></>
-                    : <span className="text-yellow-400 animate-pulse">Processing — please wait…</span>}
+                    ? <><span>Uploadingâ€¦</span><span>{mediaProgress}%</span></>
+                    : <span className="text-yellow-400 animate-pulse">Processing â€” please waitâ€¦</span>}
                 </div>
                 <div className="h-1.5 bg-surface-600 rounded-full overflow-hidden">
                   {mediaProgress < 100
@@ -831,7 +831,7 @@ function EditContentModal({ item, onClose, onSaved }: {
             )}
             {mediaUploadDone && !mediaUploading && (
               <div className="mb-2 flex items-center gap-2 text-xs text-green-400 font-semibold">
-                <span>✓</span><span>Audio uploaded successfully</span>
+                <span>âœ“</span><span>Audio uploaded successfully</span>
               </div>
             )}
             <button
@@ -841,7 +841,7 @@ function EditContentModal({ item, onClose, onSaved }: {
               className="px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
             >
               {mediaUploading
-                ? mediaProgress < 100 ? `Uploading ${mediaProgress}%…` : 'Processing…'
+                ? mediaProgress < 100 ? `Uploading ${mediaProgress}%â€¦` : 'Processingâ€¦'
                 : mediaUrl ? 'Replace File' : 'Upload File'}
             </button>
             <input
@@ -852,8 +852,8 @@ function EditContentModal({ item, onClose, onSaved }: {
               onChange={handleMediaUpload}
             />
             <p className="text-xs text-gray-500 mt-2">
-              <span className="text-gray-400">Video:</span> MP4, WebM, MOV &nbsp;·&nbsp;
-              <span className="text-gray-400">Audio:</span> MP3, WAV, AAC, FLAC, OGG &nbsp;·&nbsp;Max 2GB
+              <span className="text-gray-400">Video:</span> MP4, WebM, MOV &nbsp;Â·&nbsp;
+              <span className="text-gray-400">Audio:</span> MP3, WAV, AAC, FLAC, OGG &nbsp;Â·&nbsp;Max 2GB
             </p>
           </div>
 
@@ -895,7 +895,7 @@ function EditContentModal({ item, onClose, onSaved }: {
             />
           </div>
 
-          {/* Lyrics — audio types only */}
+          {/* Lyrics â€” audio types only */}
           {['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(type) && (
             <div>
               <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Lyrics / Transcript</label>
@@ -928,7 +928,7 @@ function EditContentModal({ item, onClose, onSaved }: {
             </div>
           </div>
 
-          {/* Skip Intro timestamps — video types only */}
+          {/* Skip Intro timestamps â€” video types only */}
           {['FILM'].includes(type) && (
             <div>
               <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Skip Intro</label>
@@ -960,7 +960,7 @@ function EditContentModal({ item, onClose, onSaved }: {
             </div>
           )}
 
-          {/* Chapters — all video/audio types */}
+          {/* Chapters â€” all video/audio types */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs text-gray-400 uppercase tracking-wide">Chapters</label>
@@ -999,18 +999,18 @@ function EditContentModal({ item, onClose, onSaved }: {
                       type="button"
                       onClick={() => setChapters(prev => prev.filter((_, j) => j !== i))}
                       className="text-gray-600 hover:text-red-400 transition-colors px-1 flex-shrink-0"
-                    >✕</button>
+                    >âœ•</button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Canvas video — audio types only */}
+          {/* Canvas video â€” audio types only */}
           {['MUSIC', 'PODCAST', 'SPOKEN_WORD', 'DADDYMAN_ISMS'].includes(type) && (
             <div>
               <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Canvas Video</label>
-              <p className="text-xs text-gray-500 mb-3">Short looping video (3–8s) shown as background on the audio player. MP4 or WebM, max 50MB.</p>
+              <p className="text-xs text-gray-500 mb-3">Short looping video (3â€“8s) shown as background on the audio player. MP4 or WebM, max 50MB.</p>
               <div className="flex items-start gap-4">
                 {canvasUrl ? (
                   <div className="relative w-24 flex-shrink-0 rounded-xl overflow-hidden bg-surface-900 border border-surface-600" style={{ aspectRatio: '9/16' }}>
@@ -1023,11 +1023,11 @@ function EditContentModal({ item, onClose, onSaved }: {
                       type="button"
                       onClick={() => setCanvasUrl('')}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-red-500 transition-colors"
-                    >✕</button>
+                    >âœ•</button>
                   </div>
                 ) : (
                   <div className="w-24 flex-shrink-0 rounded-xl bg-surface-700 border border-surface-600 border-dashed flex items-center justify-center text-gray-600 text-2xl" style={{ aspectRatio: '9/16' }}>
-                    ▶
+                    â–¶
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
@@ -1048,7 +1048,7 @@ function EditContentModal({ item, onClose, onSaved }: {
           {/* Hover Preview Clip */}
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Hover Preview Clip</label>
-            <p className="text-xs text-gray-500 mb-3">Short muted clip (5–30s) that auto-plays when users hover a card. MP4 or WebM, max 100MB.</p>
+            <p className="text-xs text-gray-500 mb-3">Short muted clip (5â€“30s) that auto-plays when users hover a card. MP4 or WebM, max 100MB.</p>
             <div className="flex items-start gap-4">
               {previewUrl ? (
                 <div className="relative w-32 flex-shrink-0 rounded-xl overflow-hidden bg-surface-900 border border-surface-600" style={{ aspectRatio: '16/9' }}>
@@ -1061,7 +1061,7 @@ function EditContentModal({ item, onClose, onSaved }: {
                     type="button"
                     onClick={() => setPreviewUrl('')}
                     className="absolute top-1 right-1 bg-black/70 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
-                  >×</button>
+                  >Ã—</button>
                 </div>
               ) : null}
               <button
@@ -1106,7 +1106,7 @@ function EditContentModal({ item, onClose, onSaved }: {
           <div className="flex items-center justify-between bg-surface-700 border border-surface-600 rounded-lg px-4 py-3">
             <div>
               <p className="text-white text-sm font-medium">Featured on Homepage</p>
-              <p className="text-gray-500 text-xs mt-0.5">Shows in the ⭐ Featured row on the homepage</p>
+              <p className="text-gray-500 text-xs mt-0.5">Shows in the â­ Featured row on the homepage</p>
             </div>
             <button
               type="button"
@@ -1128,7 +1128,7 @@ function EditContentModal({ item, onClose, onSaved }: {
                   <div key={i} className="flex items-center gap-2 bg-surface-700 rounded-lg px-3 py-2">
                     <span className="text-xs text-gray-400 w-28 flex-shrink-0">{c.role}</span>
                     <span className="text-sm text-white flex-1">@{c.username}</span>
-                    <button type="button" onClick={() => setCredits((prev) => prev.filter((_, j) => j !== i))} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
+                    <button type="button" onClick={() => setCredits((prev) => prev.filter((_, j) => j !== i))} className="text-gray-600 hover:text-red-400 text-xs">âœ•</button>
                   </div>
                 ))}
               </div>
@@ -1150,7 +1150,7 @@ function EditContentModal({ item, onClose, onSaved }: {
                       onMouseDown={() => { setCreditUser(u.username); setSuggOpen(false); }}
                       className="w-full text-left px-3 py-2 text-sm text-white hover:bg-surface-600"
                     >
-                      @{u.username}{u.displayName ? ` — ${u.displayName}` : ''}
+                      @{u.username}{u.displayName ? ` â€” ${u.displayName}` : ''}
                     </button>
                   ))}
                 </div>
@@ -1172,7 +1172,7 @@ function EditContentModal({ item, onClose, onSaved }: {
               disabled={creditSaving}
               className="mt-3 w-full py-2 text-sm border border-surface-600 text-gray-400 hover:text-white hover:border-surface-500 rounded-lg transition-colors disabled:opacity-50"
             >
-              {creditSaving ? 'Saving credits…' : 'Save credits'}
+              {creditSaving ? 'Saving creditsâ€¦' : 'Save credits'}
             </button>
           </div>
 
@@ -1185,7 +1185,7 @@ function EditContentModal({ item, onClose, onSaved }: {
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? 'Savingâ€¦' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -1193,7 +1193,7 @@ function EditContentModal({ item, onClose, onSaved }: {
   );
 }
 
-// ── Content tab ───────────────────────────────────────────────────────────────
+// â”€â”€ Content tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ContentTab() {
   const [content, setContent] = useState<AdminContent[]>([]);
@@ -1274,7 +1274,7 @@ function ContentTab() {
               <tr key={c.id} className="hover:bg-surface-750 transition-colors group">
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-1.5">
-                    {c.featured && <span className="text-brand-400 text-xs flex-shrink-0" title="Featured">⭐</span>}
+                    {c.featured && <span className="text-brand-400 text-xs flex-shrink-0" title="Featured">â­</span>}
                     <Link href={`/watch/${c.id}`} className="text-white hover:text-brand-400 font-medium transition-colors line-clamp-1">
                       {c.title}
                     </Link>
@@ -1344,7 +1344,7 @@ function ContentTab() {
   );
 }
 
-// ── Reports tab ───────────────────────────────────────────────────────────────
+// â”€â”€ Reports tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ReportsTab() {
   const [reports, setReports]   = useState<AdminReport[]>([]);
@@ -1393,7 +1393,7 @@ function ReportsTab() {
 
       {reports.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-3">✅</p>
+          <p className="text-4xl mb-3">âœ…</p>
           <p>No {status.toLowerCase()} reports</p>
         </div>
       ) : (
@@ -1454,7 +1454,7 @@ function ReportsTab() {
   );
 }
 
-// ── Polls tab ─────────────────────────────────────────────────────────────────
+// â”€â”€ Polls tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type PollType = 'CONTENT_VOTE' | 'ARTIST_VOTE' | 'CUSTOM';
 interface FlexOption { label: string; contentId: string; artistId: string; imageUrl: string; body: string }
@@ -1468,9 +1468,9 @@ interface ContentPick { id: string; title: string; type: string }
 interface ArtistPick  { id: string; username: string; displayName?: string | null }
 
 const POLL_TYPE_LABELS: Record<PollType, { label: string; emoji: string; hint: string }> = {
-  CONTENT_VOTE: { label: 'Content Vote', emoji: '🎵', hint: 'Members vote on music, film, books, podcasts — any content type' },
-  ARTIST_VOTE:  { label: 'Artist of the Week',  emoji: '🌟', hint: 'Showcase artists — bio, top tracks, stats' },
-  CUSTOM:       { label: 'Custom Poll',          emoji: '🗳️', hint: 'Free-form options with image and description' },
+  CONTENT_VOTE: { label: 'Content Vote', emoji: 'ðŸŽµ', hint: 'Members vote on music, film, books, podcasts â€” any content type' },
+  ARTIST_VOTE:  { label: 'Artist of the Week',  emoji: 'ðŸŒŸ', hint: 'Showcase artists â€” bio, top tracks, stats' },
+  CUSTOM:       { label: 'Custom Poll',          emoji: 'ðŸ—³ï¸', hint: 'Free-form options with image and description' },
 };
 
 function blankOption(): FlexOption {
@@ -1575,7 +1575,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
       <div className="relative w-full max-w-lg bg-surface-800 border border-surface-700 rounded-2xl overflow-y-auto max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">Create Poll</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
 
         <div className="flex-1 px-6 py-6 space-y-5">
@@ -1609,7 +1609,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
               className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
           </div>
 
-          {/* Cover image — optional */}
+          {/* Cover image â€” optional */}
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Cover Image (optional)</label>
             <div
@@ -1618,13 +1618,13 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
             >
               {imagePreview
                 ? <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                : <div className="text-center text-gray-500 text-sm"><div className="text-3xl mb-1">🖼️</div>Click to upload</div>
+                : <div className="text-center text-gray-500 text-sm"><div className="text-3xl mb-1">ðŸ–¼ï¸</div>Click to upload</div>
               }
             </div>
             <input ref={imgRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImagePick} />
             {imagePreview && (
               <button type="button" onClick={() => { setImageFile(null); setPreview(''); }} className="text-xs text-red-400 hover:text-red-300 transition-colors">
-                ✕ Remove image
+                âœ• Remove image
               </button>
             )}
           </div>
@@ -1656,11 +1656,11 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
               className={`w-full rounded-lg border px-4 py-2.5 text-sm font-medium text-left transition-colors ${
                 allowMultiple ? 'border-brand-500 bg-brand-500/10 text-brand-400' : 'border-surface-600 bg-surface-700 text-gray-400'
               }`}>
-              {allowMultiple ? '✓ Voters can select multiple options' : 'Single choice only (tap to enable multi-select)'}
+              {allowMultiple ? 'âœ“ Voters can select multiple options' : 'Single choice only (tap to enable multi-select)'}
             </button>
           </div>
 
-          {/* Options — different UI per type */}
+          {/* Options â€” different UI per type */}
           <div>
             <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wide">
               {pollType === 'CONTENT_VOTE' ? 'Song Versions' : pollType === 'ARTIST_VOTE' ? 'Artists' : 'Options'}
@@ -1673,7 +1673,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
                     {pollType === 'CONTENT_VOTE' && (
                       <select value={opt.contentId} onChange={(e) => setField(idx, 'contentId', e.target.value)}
                         className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
-                        <option value="">— pick a song / content —</option>
+                        <option value="">â€” pick a song / content â€”</option>
                         {content.map((c) => (
                           <option key={c.id} value={c.id}>{c.title} ({c.type.toLowerCase().replace('_', ' ')})</option>
                         ))}
@@ -1682,7 +1682,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
                     {pollType === 'ARTIST_VOTE' && (
                       <select value={opt.artistId} onChange={(e) => setField(idx, 'artistId', e.target.value)}
                         className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
-                        <option value="">— pick an artist —</option>
+                        <option value="">â€” pick an artist â€”</option>
                         {artists.map((a) => (
                           <option key={a.id} value={a.id}>{a.displayName || a.username} (@{a.username})</option>
                         ))}
@@ -1703,7 +1703,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
                       className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
                   </div>
                   <button onClick={() => removeOption(idx)} disabled={options.length <= 2}
-                    className="mt-1 text-gray-500 hover:text-red-400 disabled:opacity-30 text-lg leading-none px-1">×</button>
+                    className="mt-1 text-gray-500 hover:text-red-400 disabled:opacity-30 text-lg leading-none px-1">Ã—</button>
                 </div>
               ))}
             </div>
@@ -1727,7 +1727,7 @@ function CreatePollModal({ onClose, onCreated }: { onClose: () => void; onCreate
           </button>
           <button onClick={handleCreate} disabled={saving}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Creating…' : 'Create Poll'}
+            {saving ? 'Creatingâ€¦' : 'Create Poll'}
           </button>
         </div>
       </div>
@@ -1843,9 +1843,9 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <div>
             <h2 className="text-white font-semibold">Edit Poll</h2>
-            <p className="text-gray-500 text-xs mt-0.5">{poll._count.votes} vote{poll._count.votes !== 1 ? 's' : ''} · changing options resets votes</p>
+            <p className="text-gray-500 text-xs mt-0.5">{poll._count.votes} vote{poll._count.votes !== 1 ? 's' : ''} Â· changing options resets votes</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
 
         <div className="flex-1 px-6 py-6 space-y-5">
@@ -1856,13 +1856,13 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
               className="relative w-full aspect-video bg-surface-700 rounded-xl overflow-hidden cursor-pointer border border-dashed border-surface-500 hover:border-brand-400 transition-colors flex items-center justify-center mb-2">
               {imagePreview
                 ? <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                : <div className="text-center text-gray-500 text-sm"><div className="text-3xl mb-1">🖼️</div>Click to upload</div>
+                : <div className="text-center text-gray-500 text-sm"><div className="text-3xl mb-1">ðŸ–¼ï¸</div>Click to upload</div>
               }
             </div>
             <input ref={imgRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImagePick} />
             {imagePreview && (
               <button type="button" onClick={() => { setImageFile(null); setPreview(''); }} className="text-xs text-red-400 hover:text-red-300 transition-colors">
-                ✕ Remove image
+                âœ• Remove image
               </button>
             )}
           </div>
@@ -1905,14 +1905,14 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
               <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Start Date / Time</label>
               <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)}
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
-              {startsAt && <button type="button" onClick={() => setStartsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">✕ Clear</button>}
+              {startsAt && <button type="button" onClick={() => setStartsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">âœ• Clear</button>}
               <p className="text-[10px] text-gray-600 mt-0.5">When poll goes live</p>
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">End Date / Time</label>
               <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
-              {endsAt && <button type="button" onClick={() => setEndsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">✕ Clear</button>}
+              {endsAt && <button type="button" onClick={() => setEndsAt('')} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">âœ• Clear</button>}
               <p className="text-[10px] text-gray-600 mt-0.5">When voting closes</p>
             </div>
           </div>
@@ -1924,7 +1924,7 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
               className={`w-full rounded-lg border px-4 py-2.5 text-sm font-medium text-left transition-colors ${
                 allowMultiple ? 'border-brand-500 bg-brand-500/10 text-brand-400' : 'border-surface-600 bg-surface-700 text-gray-400'
               }`}>
-              {allowMultiple ? '✓ Voters can select multiple options' : 'Single choice only (tap to enable multi-select)'}
+              {allowMultiple ? 'âœ“ Voters can select multiple options' : 'Single choice only (tap to enable multi-select)'}
             </button>
           </div>
 
@@ -1934,7 +1934,7 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
               Options <span className="text-gray-600 font-normal normal-case">({options.length}/7)</span>
             </label>
             {!optionsLoaded ? (
-              <div className="text-xs text-gray-500 py-4 text-center">Loading options…</div>
+              <div className="text-xs text-gray-500 py-4 text-center">Loading optionsâ€¦</div>
             ) : (
               <div className="space-y-3">
                 {options.map((opt, idx) => (
@@ -1946,19 +1946,19 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
                         className="flex-1 bg-surface-600 border border-surface-500 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
                       <button type="button" onClick={() => removeOption(idx)}
                         disabled={options.length <= 2}
-                        className="text-gray-500 hover:text-red-400 disabled:opacity-30 transition-colors text-lg leading-none">×</button>
+                        className="text-gray-500 hover:text-red-400 disabled:opacity-30 transition-colors text-lg leading-none">Ã—</button>
                     </div>
                     {pollType === 'CONTENT_VOTE' && (
                       <select value={opt.contentId} onChange={(e) => setField(idx, 'contentId', e.target.value)}
                         className="w-full bg-surface-600 border border-surface-500 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400">
-                        <option value="">— Select content —</option>
+                        <option value="">â€” Select content â€”</option>
                         {content.map((c) => <option key={c.id} value={c.id}>{c.title} ({c.type})</option>)}
                       </select>
                     )}
                     {pollType === 'ARTIST_VOTE' && (
                       <select value={opt.artistId} onChange={(e) => setField(idx, 'artistId', e.target.value)}
                         className="w-full bg-surface-600 border border-surface-500 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400">
-                        <option value="">— Select artist —</option>
+                        <option value="">â€” Select artist â€”</option>
                         {artists.map((a) => <option key={a.id} value={a.id}>{a.displayName || a.username} (@{a.username})</option>)}
                       </select>
                     )}
@@ -1993,7 +1993,7 @@ function EditPollModal({ poll, onClose, onSaved }: { poll: AdminPoll; onClose: (
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleSave} disabled={saving || !optionsLoaded}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? 'Savingâ€¦' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -2054,7 +2054,7 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
         <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-700 rounded-xl animate-pulse" />)}</div>
       ) : polls.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-3">🗳️</p>
+          <p className="text-4xl mb-3">ðŸ—³ï¸</p>
           <p>No polls yet. Create one to let your members vote on a song.</p>
         </div>
       ) : (
@@ -2078,12 +2078,12 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
                     </span>
                     <span className="text-xs text-gray-500">{fmtDate(p.createdAt)}</span>
                     {p.endsAt && p.status === 'ACTIVE' && (
-                      <span className="text-xs text-gray-500">· ends {fmtDate(p.endsAt)}</span>
+                      <span className="text-xs text-gray-500">Â· ends {fmtDate(p.endsAt)}</span>
                     )}
                   </div>
                   <p className="text-white font-medium">{p.title}</p>
                   <p className="text-gray-500 text-xs mt-0.5">
-                    {p._count.options} options · {p._count.votes} vote{p._count.votes !== 1 ? 's' : ''}
+                    {p._count.options} options Â· {p._count.votes} vote{p._count.votes !== 1 ? 's' : ''}
                   </p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0 flex-wrap">
@@ -2098,12 +2098,12 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
                   {p.status === 'ACTIVE' && (
                     <button onClick={() => handleClose(p.id)} disabled={acting === p.id}
                       className="text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors disabled:opacity-40">
-                      {acting === p.id ? '…' : 'Close'}
+                      {acting === p.id ? 'â€¦' : 'Close'}
                     </button>
                   )}
                   <button onClick={() => handleDelete(p.id)} disabled={acting === p.id}
                     className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40">
-                    {acting === p.id ? '…' : 'Delete'}
+                    {acting === p.id ? 'â€¦' : 'Delete'}
                   </button>
                 </div>
               </div>
@@ -2131,7 +2131,7 @@ function PollsTab({ autoCreate = false }: { autoCreate?: boolean }) {
   );
 }
 
-// ── Partners tab ──────────────────────────────────────────────────────────────
+// â”€â”€ Partners tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface AdminPartner {
   id: string; name: string; email: string; website?: string | null;
@@ -2326,7 +2326,7 @@ function PartnersTab() {
         <div className="space-y-3">
           {partners.length === 0 && (
             <div className="text-center py-16 text-gray-500">
-              <p className="text-4xl mb-3">🤝</p>
+              <p className="text-4xl mb-3">ðŸ¤</p>
               <p>No partners yet. Add your first partner to get started.</p>
             </div>
           )}
@@ -2341,15 +2341,15 @@ function PartnersTab() {
                     <span className="text-xs px-2 py-0.5 rounded-full bg-surface-700 text-gray-400">
                       {PARTNER_TYPE_LABELS[p.type] ?? p.type}
                     </span>
-                    {p.featured && <span className="text-xs text-brand-400 font-semibold">★ Featured</span>}
+                    {p.featured && <span className="text-xs text-brand-400 font-semibold">â˜… Featured</span>}
                     <span className="text-xs text-gray-500">{fmtDate(p.createdAt)}</span>
                   </div>
                   <p className="text-white font-medium">{p.name}</p>
                   <p className="text-gray-500 text-xs mt-0.5">
                     {p.email}
-                    {p.contactName && ` · ${p.contactName}`}
-                    {p.phone && ` · ${p.phone}`}
-                    {p._count !== undefined && ` · ${p._count.ads} ad${p._count.ads !== 1 ? 's' : ''}`}
+                    {p.contactName && ` Â· ${p.contactName}`}
+                    {p.phone && ` Â· ${p.phone}`}
+                    {p._count !== undefined && ` Â· ${p._count.ads} ad${p._count.ads !== 1 ? 's' : ''}`}
                   </p>
                   {p.website && (
                     <a href={p.website} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-400 hover:underline mt-0.5 block">
@@ -2378,7 +2378,7 @@ function PartnersTab() {
                   )}
                   <button onClick={() => handleToggleFeatured(p.id, p.featured)} disabled={acting === p.id}
                     className={`text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${p.featured ? 'bg-brand-500/20 text-brand-400 hover:bg-brand-500/30' : 'bg-surface-600 text-gray-400 hover:bg-surface-500'}`}>
-                    {p.featured ? '★ Unfeature' : '☆ Feature'}
+                    {p.featured ? 'â˜… Unfeature' : 'â˜† Feature'}
                   </button>
                   <button onClick={() => setEditPartner(p)}
                     className="text-xs px-3 py-1.5 rounded-lg bg-surface-600 text-gray-300 hover:bg-surface-500 transition-colors">
@@ -2400,7 +2400,7 @@ function PartnersTab() {
         <div className="space-y-3">
           {placements.length === 0 && (
             <div className="text-center py-16 text-gray-500">
-              <p className="text-4xl mb-3">📍</p>
+              <p className="text-4xl mb-3">ðŸ“</p>
               <p>No ad placements defined yet. Add placement slots to start selling ads.</p>
             </div>
           )}
@@ -2416,8 +2416,8 @@ function PartnersTab() {
                 <p className="text-white font-medium">{pl.name}</p>
                 <p className="text-gray-500 text-xs mt-0.5">
                   ${pl.pricePerDay}/day
-                  {pl.width && pl.height && ` · ${pl.width}×${pl.height}px`}
-                  {pl._count !== undefined && ` · ${pl._count.ads} ad${pl._count.ads !== 1 ? 's' : ''}`}
+                  {pl.width && pl.height && ` Â· ${pl.width}Ã—${pl.height}px`}
+                  {pl._count !== undefined && ` Â· ${pl._count.ads} ad${pl._count.ads !== 1 ? 's' : ''}`}
                 </p>
                 {pl.description && <p className="text-gray-600 text-xs mt-1">{pl.description}</p>}
               </div>
@@ -2441,7 +2441,7 @@ function PartnersTab() {
         <div className="space-y-3">
           {ads.filter((a) => a.status === 'PENDING_REVIEW').length > 0 && (
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
-              <span className="text-orange-400 text-lg">🔔</span>
+              <span className="text-orange-400 text-lg">ðŸ””</span>
               <p className="text-orange-300 text-sm font-medium">
                 {ads.filter((a) => a.status === 'PENDING_REVIEW').length} ad{ads.filter((a) => a.status === 'PENDING_REVIEW').length !== 1 ? 's' : ''} pending your review
               </p>
@@ -2449,7 +2449,7 @@ function PartnersTab() {
           )}
           {ads.length === 0 && (
             <div className="text-center py-16 text-gray-500">
-              <p className="text-4xl mb-3">📢</p>
+              <p className="text-4xl mb-3">ðŸ“¢</p>
               <p>No ad campaigns yet. Create one to start monetizing placements.</p>
             </div>
           )}
@@ -2463,11 +2463,11 @@ function PartnersTab() {
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${AD_STATUS_COLORS[a.status] ?? 'bg-surface-600 text-gray-400'}`}>
                         {a.status === 'PENDING_REVIEW' ? 'Pending Review' : a.status}
                       </span>
-                      <span className="text-xs text-gray-500">{fmtDate(a.startsAt)} – {fmtDate(a.endsAt)}</span>
+                      <span className="text-xs text-gray-500">{fmtDate(a.startsAt)} â€“ {fmtDate(a.endsAt)}</span>
                     </div>
                     <p className="text-white font-medium">{a.title}</p>
                     <p className="text-gray-500 text-xs mt-0.5">
-                      {a.partner.name} · {a.placement.name} <span className="font-mono text-gray-600">({a.placement.location})</span>
+                      {a.partner.name} Â· {a.placement.name} <span className="font-mono text-gray-600">({a.placement.location})</span>
                     </p>
                     <div className="flex gap-4 mt-1.5 text-xs text-gray-400">
                       <span>{a.impressions.toLocaleString()} impressions</span>
@@ -2489,11 +2489,11 @@ function PartnersTab() {
                       <>
                         <button onClick={() => handleApproveAd(a.id)} disabled={acting === a.id}
                           className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40 font-semibold">
-                          ✓ Approve
+                          âœ“ Approve
                         </button>
                         <button onClick={() => handleRejectAd(a.id, a.title)} disabled={acting === a.id}
                           className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40 font-semibold">
-                          ✕ Reject
+                          âœ• Reject
                         </button>
                       </>
                     )}
@@ -2578,7 +2578,7 @@ function PartnersTab() {
         />
       )}
 
-      {/* Duplicate ad modal — pre-filled but creates a new record */}
+      {/* Duplicate ad modal â€” pre-filled but creates a new record */}
       {duplicateAd && (
         <AddAdModal
           ad={duplicateAd}
@@ -2637,7 +2637,7 @@ function AddPartnerModal({ onClose, onCreated }: { onClose: () => void; onCreate
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">Add Partner</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
           {/* Logo upload */}
@@ -2647,7 +2647,7 @@ function AddPartnerModal({ onClose, onCreated }: { onClose: () => void; onCreate
               <div className="w-16 h-16 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {logoPreview
                   ? <img src={logoPreview} alt="preview" className="w-full h-full object-contain" />
-                  : <span className="text-2xl">🤝</span>}
+                  : <span className="text-2xl">ðŸ¤</span>}
               </div>
               <label className="cursor-pointer px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-gray-300 text-xs font-medium transition-colors">
                 {logoFile ? 'Change image' : 'Upload image'}
@@ -2694,7 +2694,7 @@ function AddPartnerModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleCreate} disabled={saving}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Adding…' : 'Add Partner'}
+            {saving ? 'Addingâ€¦' : 'Add Partner'}
           </button>
         </div>
       </div>
@@ -2749,7 +2749,7 @@ function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">Edit Partner</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
           {/* Logo upload */}
@@ -2759,7 +2759,7 @@ function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner
               <div className="w-16 h-16 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {currentLogo
                   ? <img src={currentLogo} alt="logo" className="w-full h-full object-contain" />
-                  : <span className="text-2xl">🤝</span>}
+                  : <span className="text-2xl">ðŸ¤</span>}
               </div>
               <label className="cursor-pointer px-3 py-2 rounded-lg bg-surface-600 hover:bg-surface-500 text-gray-300 text-xs font-medium transition-colors">
                 {currentLogo ? 'Replace image' : 'Upload image'}
@@ -2796,7 +2796,7 @@ function EditPartnerModal({ partner, onClose, onSaved }: { partner: AdminPartner
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? 'Savingâ€¦' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -2841,7 +2841,7 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">{isEdit ? 'Edit Placement' : 'Add Ad Placement'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
           <div>
@@ -2878,7 +2878,7 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
                       ? 'border-brand-400 bg-brand-500/20 text-brand-400'
                       : 'border-surface-600 bg-surface-700 text-gray-400 hover:text-white hover:border-surface-500'
                   }`}>
-                  {label} <span className="opacity-60">{w}×{h}</span>
+                  {label} <span className="opacity-60">{w}Ã—{h}</span>
                 </button>
               ))}
             </div>
@@ -2887,7 +2887,7 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
                 <input type="number" value={width} onChange={(e) => setWidth(e.target.value)} placeholder="Width"
                   className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
               </div>
-              <div className="flex items-center text-gray-500 text-sm">×</div>
+              <div className="flex items-center text-gray-500 text-sm">Ã—</div>
               <div className="flex-1">
                 <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="Height"
                   className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
@@ -2906,7 +2906,7 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Placement'}
+            {saving ? 'Savingâ€¦' : isEdit ? 'Save Changes' : 'Create Placement'}
           </button>
         </div>
       </div>
@@ -2917,7 +2917,7 @@ function AddPlacementModal({ placement, onClose, onCreated }: {
 function AdField({ label, error, touched, children }: {
   label: string; error: string; touched: boolean; children: React.ReactNode;
 }) {
-  const icon  = !touched ? '*' : error ? '✗' : '✓';
+  const icon  = !touched ? '*' : error ? 'âœ—' : 'âœ“';
   const color = !touched ? 'text-gray-400' : error ? 'text-red-400' : 'text-green-400';
   return (
     <div>
@@ -2936,7 +2936,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
   onClose: () => void; onCreated: (a: AdminAd) => void;
 }) {
   const isEdit = !!ad && !isDuplicate;
-  // datetime-local needs "YYYY-MM-DDTHH:mm" — strip seconds/timezone from ISO string
+  // datetime-local needs "YYYY-MM-DDTHH:mm" â€” strip seconds/timezone from ISO string
   function toLocal(iso: string) { return iso ? iso.slice(0, 16) : ''; }
 
   const [partners, setPartners]         = useState<AdminPartner[]>([]);
@@ -2966,7 +2966,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
     ]).finally(() => setLoadingData(false));
   }, []);
 
-  // per-field validators — return error string or ''
+  // per-field validators â€” return error string or ''
   function validatePartnerId(v: string)   { return v ? '' : 'Select a partner'; }
   function validatePlacementId(v: string) { return v ? '' : 'Select a placement'; }
   function validateTitle(v: string) {
@@ -3021,7 +3021,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
     return {
       border: !t ? 'border-surface-600' : err ? 'border-red-500' : 'border-green-500',
       label:  !t ? 'text-gray-400'      : err ? 'text-red-400'   : 'text-green-400',
-      icon:   !t ? '*' : err ? '✗' : '✓',
+      icon:   !t ? '*' : err ? 'âœ—' : 'âœ“',
     };
   }
 
@@ -3067,7 +3067,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
       <div className="w-full max-w-md bg-surface-800 border-l border-surface-700 h-full overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-surface-700">
           <h2 className="text-white font-semibold">{isEdit ? 'Edit Ad Campaign' : isDuplicate ? 'Duplicate Ad Campaign' : 'New Ad Campaign'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">Ã—</button>
         </div>
         <div className="flex-1 px-6 py-6 space-y-4">
           <AdField label="Partner" error={errors.partnerId} touched={!!touched.partnerId}>
@@ -3076,7 +3076,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
               onBlur={() => touch('partnerId')}
               disabled={loadingData}
               className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${fieldState('partnerId').border}`}>
-              <option value="">{loadingData ? 'Loading…' : partners.length === 0 ? 'No partners found' : '— select partner —'}</option>
+              <option value="">{loadingData ? 'Loadingâ€¦' : partners.length === 0 ? 'No partners found' : 'â€” select partner â€”'}</option>
               {partners.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.status})</option>)}
             </select>
           </AdField>
@@ -3086,7 +3086,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
               onBlur={() => touch('placementId')}
               disabled={loadingData}
               className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 ${fieldState('placementId').border}`}>
-              <option value="">{loadingData ? 'Loading…' : placements.length === 0 ? 'No placements found — create one first' : '— select placement —'}</option>
+              <option value="">{loadingData ? 'Loadingâ€¦' : placements.length === 0 ? 'No placements found â€” create one first' : 'â€” select placement â€”'}</option>
               {placements.map((pl) => <option key={pl.id} value={pl.id}>{pl.name} (${pl.pricePerDay}/day)</option>)}
             </select>
           </AdField>
@@ -3094,7 +3094,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
             <input value={title}
               onChange={(e) => { setTitle(e.target.value); touch('title'); }}
               onBlur={() => touch('title')}
-              placeholder="Summer Drop — Camp DaddyMan Gear"
+              placeholder="Summer Drop â€” Camp DaddyMan Gear"
               className={`w-full bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('title').border}`} />
           </AdField>
           <div>
@@ -3105,7 +3105,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ad Image</label>
 
-            {/* Saved image row — always show when there's a stored URL */}
+            {/* Saved image row â€” always show when there's a stored URL */}
             {ad?.imageUrl && !imageFile && (
               <div className="mb-2 rounded-lg overflow-hidden border border-surface-600 bg-surface-700">
                 <img
@@ -3119,7 +3119,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
                   }}
                 />
                 <div className="hidden px-3 py-2 text-xs text-gray-400">
-                  Image saved but can&apos;t render inline —{' '}
+                  Image saved but can&apos;t render inline â€”{' '}
                   <a href={ad.imageUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">open in new tab</a>
                 </div>
                 <p className="px-3 py-1.5 text-[10px] text-gray-500 border-t border-surface-600 truncate">
@@ -3140,7 +3140,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
             )}
 
             <label className="flex items-center justify-center gap-2 w-full border border-dashed border-surface-500 rounded-lg py-3 cursor-pointer hover:border-brand-400 transition-colors text-sm text-gray-400 hover:text-white">
-              <span>{imageFile ? 'Change selection…' : ad?.imageUrl ? 'Replace image…' : 'Choose image…'}</span>
+              <span>{imageFile ? 'Change selectionâ€¦' : ad?.imageUrl ? 'Replace imageâ€¦' : 'Choose imageâ€¦'}</span>
               <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
             </label>
           </div>
@@ -3161,7 +3161,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
                     className={`flex-1 min-w-0 bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('startsAt').border}`} />
                   {startsAt && (
                     <button type="button" onClick={() => { setStart(''); touch('startsAt'); }}
-                      className="text-gray-500 hover:text-white px-2 text-sm" title="Clear date">×</button>
+                      className="text-gray-500 hover:text-white px-2 text-sm" title="Clear date">Ã—</button>
                   )}
                 </div>
               </AdField>
@@ -3175,7 +3175,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
                     className={`flex-1 min-w-0 bg-surface-700 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldState('endsAt').border}`} />
                   {endsAt && (
                     <button type="button" onClick={() => { setEnd(''); touch('endsAt'); }}
-                      className="text-gray-500 hover:text-white px-2 text-sm" title="Clear date">×</button>
+                      className="text-gray-500 hover:text-white px-2 text-sm" title="Clear date">Ã—</button>
                   )}
                 </div>
               </AdField>
@@ -3199,7 +3199,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleCreate} disabled={saving || loadingData}
             className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors text-sm disabled:opacity-50 ${allValid ? 'bg-brand-500 text-black hover:bg-brand-400' : 'bg-surface-600 text-gray-400 cursor-not-allowed'}`}>
-            {saving ? 'Saving…' : isEdit ? 'Save Changes' : isDuplicate ? 'Create Copy' : 'Create Campaign'}
+            {saving ? 'Savingâ€¦' : isEdit ? 'Save Changes' : isDuplicate ? 'Create Copy' : 'Create Campaign'}
           </button>
         </div>
       </div>
@@ -3207,7 +3207,7 @@ function AddAdModal({ ad, isDuplicate, onClose, onCreated }: {
   );
 }
 
-// ── Shop Tab ──────────────────────────────────────────────────────────────────
+// â”€â”€ Shop Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface OptionGroup { name: string; values: string[]; priceModifiers?: Record<string, number>; images?: Record<string, string> }
 
@@ -3306,7 +3306,7 @@ function ProductFormModal({
   const [previewUrl, setPreviewUrl] = useState<string>(initial?.imagePreviewUrl || '');
   const imgInputRef = useRef<HTMLInputElement>(null);
 
-  // Keyed by "${groupName}:${value}" — blob or signed URLs for display only
+  // Keyed by "${groupName}:${value}" â€” blob or signed URLs for display only
   const [groupImagePreviews, setGroupImagePreviews] = useState<Record<string, string>>(() => {
     const previews: Record<string, string> = {};
     for (const g of (initial?.optionGroupsPreview || [])) {
@@ -3450,7 +3450,7 @@ function ProductFormModal({
       <div className="bg-surface-800 border border-surface-600 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-5 border-b border-surface-700 flex items-center justify-between">
           <h3 className="text-white font-bold text-lg">{editing ? 'Edit Product' : 'New Product'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">âœ•</button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
@@ -3475,9 +3475,9 @@ function ProductFormModal({
               <label className="block text-xs text-gray-400 mb-1">Status</label>
               <select value={form.status} onChange={(e) => setField('status', e.target.value)}
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400">
-                <option value="DRAFT">Draft — shows as "Coming Soon" in perk carousel</option>
-                <option value="ACTIVE">Active — live & for sale</option>
-                <option value="ARCHIVED">Archived — hidden everywhere</option>
+                <option value="DRAFT">Draft â€” shows as "Coming Soon" in perk carousel</option>
+                <option value="ACTIVE">Active â€” live & for sale</option>
+                <option value="ARCHIVED">Archived â€” hidden everywhere</option>
               </select>
             </div>
           </div>
@@ -3513,7 +3513,7 @@ function ProductFormModal({
                 {previewUrl ? (
                   <img src={previewUrl} alt="preview" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl opacity-30">{form.type === 'DIGITAL' ? '📦' : '👕'}</span>
+                  <span className="text-3xl opacity-30">{form.type === 'DIGITAL' ? 'ðŸ“¦' : 'ðŸ‘•'}</span>
                 )}
               </div>
               <div className="flex-1 space-y-2">
@@ -3530,7 +3530,7 @@ function ProductFormModal({
                   disabled={uploading}
                   className="w-full px-4 py-2.5 rounded-xl border border-dashed border-surface-500 hover:border-brand-400 text-gray-400 hover:text-brand-400 text-sm transition-colors disabled:opacity-50"
                 >
-                  {uploading ? 'Uploading…' : '↑ Upload image'}
+                  {uploading ? 'Uploadingâ€¦' : 'â†‘ Upload image'}
                 </button>
                 <input
                   value={form.imageUrl}
@@ -3559,7 +3559,7 @@ function ProductFormModal({
 
           {/* Release Date */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Drop / Release Date <span className="text-gray-600 font-normal normal-case">(optional — shows live countdown)</span></label>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Drop / Release Date <span className="text-gray-600 font-normal normal-case">(optional â€” shows live countdown)</span></label>
             <input
               type="datetime-local"
               value={form.releaseDate}
@@ -3578,28 +3578,28 @@ function ProductFormModal({
           {/* Option Groups */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-400 font-medium">Option Groups <span className="text-gray-600 font-normal">(Size, Color, Edition…)</span></label>
+              <label className="text-xs text-gray-400 font-medium">Option Groups <span className="text-gray-600 font-normal">(Size, Color, Editionâ€¦)</span></label>
               <select
                 defaultValue=""
                 onChange={(e) => { if (e.target.value) { quickAdd(e.target.value); e.target.value = ''; } }}
                 className="text-xs bg-surface-700 border border-surface-600 text-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-400"
               >
-                <option value="" disabled>+ Add group…</option>
+                <option value="" disabled>+ Add groupâ€¦</option>
                 <optgroup label="Sizes">
-                  <option value="sizes-standard">Sizes — XS to 5XL</option>
+                  <option value="sizes-standard">Sizes â€” XS to 5XL</option>
                 </optgroup>
                 <optgroup label="Colors">
-                  <option value="colors-basic">Colors — Black, White, Gray, Navy, Red</option>
-                  <option value="colors-extended">Colors — 10 colors</option>
+                  <option value="colors-basic">Colors â€” Black, White, Gray, Navy, Red</option>
+                  <option value="colors-extended">Colors â€” 10 colors</option>
                 </optgroup>
                 <optgroup label="Other">
-                  <option value="editions">Editions — Standard, Deluxe, Limited</option>
-                  <option value="format">Format — Digital, Physical</option>
+                  <option value="editions">Editions â€” Standard, Deluxe, Limited</option>
+                  <option value="format">Format â€” Digital, Physical</option>
                 </optgroup>
               </select>
             </div>
             {form.optionGroups.length === 0 && (
-              <p className="text-xs text-gray-600">No option groups. Add Size, Color, Edition etc. above — customers pick one from each on the product page.</p>
+              <p className="text-xs text-gray-600">No option groups. Add Size, Color, Edition etc. above â€” customers pick one from each on the product page.</p>
             )}
             <div className="space-y-3 mt-2">
               {form.optionGroups.map((g: OptionGroup) => (
@@ -3630,7 +3630,7 @@ function ProductFormModal({
                           {groupImagePreviews[`${g.name}:${val}`] ? (
                             <>
                               <img src={groupImagePreviews[`${g.name}:${val}`]} alt={val} className="w-10 h-10 rounded-lg object-cover border border-surface-600 flex-shrink-0" />
-                              <button onClick={() => removeGroupImage(g.name, val)} className="text-gray-500 hover:text-red-400 text-xs transition-colors">✕</button>
+                              <button onClick={() => removeGroupImage(g.name, val)} className="text-gray-500 hover:text-red-400 text-xs transition-colors">âœ•</button>
                             </>
                           ) : (
                             <label className="cursor-pointer text-xs text-gray-500 hover:text-brand-400 border border-dashed border-surface-600 hover:border-brand-400 px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap">
@@ -3654,7 +3654,7 @@ function ProductFormModal({
           {/* Inventory variants (optional, for per-SKU stock tracking) */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-gray-400 font-medium">Inventory Variants <span className="text-gray-600 font-normal">(optional — leave empty if using option groups above)</span></label>
+              <label className="text-xs text-gray-400 font-medium">Inventory Variants <span className="text-gray-600 font-normal">(optional â€” leave empty if using option groups above)</span></label>
               <button onClick={addVariant} className="text-xs text-brand-400 hover:text-brand-300">+ Add</button>
             </div>
             {form.variants.length > 0 && (
@@ -3670,7 +3670,7 @@ function ProductFormModal({
                     <input type="number" step="0.01" value={v.price} onChange={(e) => setVariant(i, 'price', e.target.value)}
                       placeholder="$"
                       className="col-span-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-400" />
-                    <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">✕</button>
+                    <button onClick={() => removeVariant(i)} className="text-gray-600 hover:text-red-400 text-sm leading-none col-span-1 text-center">âœ•</button>
                   </div>
                 ))}
               </div>
@@ -3684,7 +3684,7 @@ function ProductFormModal({
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 px-4 py-2.5 rounded-xl bg-brand-500 text-black font-bold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Product'}
+            {saving ? 'Savingâ€¦' : editing ? 'Save Changes' : 'Create Product'}
           </button>
         </div>
       </div>
@@ -3745,7 +3745,7 @@ function CouponFormModal({
       <div className="bg-surface-800 border border-surface-600 rounded-2xl w-full max-w-md">
         <div className="px-6 py-5 border-b border-surface-700 flex items-center justify-between">
           <h3 className="text-white font-bold text-lg">{editing ? 'Edit Coupon' : 'New Coupon'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">âœ•</button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
@@ -3773,7 +3773,7 @@ function CouponFormModal({
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">
-                {form.type === 'PERCENTAGE' ? 'Percent off (1–100) *' : 'Amount off ($) *'}
+                {form.type === 'PERCENTAGE' ? 'Percent off (1â€“100) *' : 'Amount off ($) *'}
               </label>
               <input type="number" step={form.type === 'FIXED' ? '0.01' : '1'} min="0"
                 value={form.value} onChange={(e) => setF('value', e.target.value)}
@@ -3807,7 +3807,7 @@ function CouponFormModal({
                 onChange={(e) => setF('maxUsesPerUser', e.target.value)}
                 placeholder="1"
                 className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400" />
-              <p className="text-xs text-gray-600 mt-1">Default 1 — each customer can use this code once</p>
+              <p className="text-xs text-gray-600 mt-1">Default 1 â€” each customer can use this code once</p>
             </div>
           </div>
 
@@ -3832,7 +3832,7 @@ function CouponFormModal({
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-700 text-gray-300 hover:bg-surface-600 transition-colors text-sm">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 px-4 py-2.5 rounded-xl bg-brand-500 text-black font-bold hover:bg-brand-400 transition-colors text-sm disabled:opacity-50">
-            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Coupon'}
+            {saving ? 'Savingâ€¦' : editing ? 'Save Changes' : 'Create Coupon'}
           </button>
         </div>
       </div>
@@ -3903,7 +3903,7 @@ function OrderDetailPanel({
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-0.5">Order</p>
             <p className="text-white font-black text-lg leading-none">
-              #{order?.id.slice(-8).toUpperCase() ?? '…'}
+              #{order?.id.slice(-8).toUpperCase() ?? 'â€¦'}
             </p>
           </div>
           {order && (
@@ -3946,7 +3946,7 @@ function OrderDetailPanel({
                     {item.product?.imageUrl ? (
                       <img src={item.product.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-2xl opacity-30">{item.product?.type === 'DIGITAL' ? '📦' : '👕'}</span>
+                      <span className="text-2xl opacity-30">{item.product?.type === 'DIGITAL' ? 'ðŸ“¦' : 'ðŸ‘•'}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -3970,13 +3970,13 @@ function OrderDetailPanel({
               {order.discount > 0 && (
                 <div className="flex justify-between text-sm text-brand-400">
                   <span>Member discount</span>
-                  <span>−${order.discount.toFixed(2)}</span>
+                  <span>âˆ’${order.discount.toFixed(2)}</span>
                 </div>
               )}
               {order.couponDiscount > 0 && (
                 <div className="flex justify-between text-sm text-camp-400">
                   <span>Coupon {order.couponCode && <span className="font-mono text-xs bg-surface-700 px-1.5 py-0.5 rounded ml-1">{order.couponCode}</span>}</span>
-                  <span>−${order.couponDiscount.toFixed(2)}</span>
+                  <span>âˆ’${order.couponDiscount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-base font-black text-white pt-1 border-t border-surface-700 mt-1">
@@ -4027,7 +4027,7 @@ function OrderDetailPanel({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
-                  placeholder="Add notes for this order…"
+                  placeholder="Add notes for this orderâ€¦"
                   className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none"
                 />
                 <button
@@ -4070,19 +4070,19 @@ function OrderDetailPanel({
 function ShopTab() {
   const [subTab, setSubTab] = useState<'products' | 'orders' | 'coupons'>('products');
 
-  // ── Products state ───────────────────────────────────────────────────────────
+  // â”€â”€ Products state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [products, setProducts]   = useState<AdminProduct[]>([]);
   const [prodLoading, setProdLoad] = useState(true);
   const [showForm, setShowForm]   = useState(false);
   const [editProduct, setEditProduct] = useState<AdminProduct | null>(null);
 
-  // ── Orders state ─────────────────────────────────────────────────────────────
+  // â”€â”€ Orders state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [orders, setOrders]         = useState<AdminOrder[]>([]);
   const [ordersLoading, setOrdLoad] = useState(false);
   const [orderStatus, setOrderStatus] = useState('ALL');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
-  // ── Coupons state ─────────────────────────────────────────────────────────────
+  // â”€â”€ Coupons state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [coupons, setCoupons]           = useState<AdminCoupon[]>([]);
   const [couponsLoading, setCoupLoad]   = useState(false);
   const [showCouponForm, setShowCouponForm] = useState(false);
@@ -4141,12 +4141,12 @@ function ShopTab() {
             className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors border ${
               subTab === t ? 'bg-brand-500 text-black border-brand-500' : 'border-surface-600 text-gray-400 hover:text-white bg-surface-800'
             }`}>
-            {t === 'products' ? '📦 Products' : t === 'orders' ? '🧾 Orders' : '🏷️ Coupons'}
+            {t === 'products' ? 'ðŸ“¦ Products' : t === 'orders' ? 'ðŸ§¾ Orders' : 'ðŸ·ï¸ Coupons'}
           </button>
         ))}
       </div>
 
-      {/* ── Products ── */}
+      {/* â”€â”€ Products â”€â”€ */}
       {subTab === 'products' && (
         <div>
           <div className="flex items-center justify-between mb-5">
@@ -4165,7 +4165,7 @@ function ShopTab() {
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-4xl mb-3">📦</p>
+              <p className="text-4xl mb-3">ðŸ“¦</p>
               <p className="text-gray-400 mb-4">No products yet. Add your first one.</p>
             </div>
           ) : (
@@ -4190,7 +4190,7 @@ function ShopTab() {
                             <img src={p.imageUrl} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
                           ) : (
                             <div className="w-9 h-9 rounded-lg bg-surface-700 flex items-center justify-center text-lg flex-shrink-0">
-                              {p.type === 'DIGITAL' ? '📦' : '👕'}
+                              {p.type === 'DIGITAL' ? 'ðŸ“¦' : 'ðŸ‘•'}
                             </div>
                           )}
                           <div>
@@ -4233,7 +4233,7 @@ function ShopTab() {
         </div>
       )}
 
-      {/* ── Orders ── */}
+      {/* â”€â”€ Orders â”€â”€ */}
       {subTab === 'orders' && (
         <div>
           {selectedOrderId && (
@@ -4262,7 +4262,7 @@ function ShopTab() {
             </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-4xl mb-3">🧾</p>
+              <p className="text-4xl mb-3">ðŸ§¾</p>
               <p className="text-gray-400">No orders found.</p>
             </div>
           ) : (
@@ -4310,7 +4310,7 @@ function ShopTab() {
         </div>
       )}
 
-      {/* ── Coupons ── */}
+      {/* â”€â”€ Coupons â”€â”€ */}
       {subTab === 'coupons' && (
         <div>
           <div className="flex items-center justify-between mb-5">
@@ -4325,7 +4325,7 @@ function ShopTab() {
             <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="bg-surface-800 rounded-xl h-12 animate-pulse" />)}</div>
           ) : coupons.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-4xl mb-3">🏷️</p>
+              <p className="text-4xl mb-3">ðŸ·ï¸</p>
               <p className="text-gray-400">No coupons yet. Create one above.</p>
             </div>
           ) : (
@@ -4354,12 +4354,12 @@ function ShopTab() {
                         <td className="px-4 py-3 text-brand-400 font-semibold">
                           {c.type === 'PERCENTAGE' ? `${c.value}%` : `$${c.value.toFixed(2)}`}
                         </td>
-                        <td className="px-4 py-3 text-gray-400">{c.minOrderAmount ? `$${c.minOrderAmount.toFixed(2)}` : '—'}</td>
+                        <td className="px-4 py-3 text-gray-400">{c.minOrderAmount ? `$${c.minOrderAmount.toFixed(2)}` : 'â€”'}</td>
                         <td className="px-4 py-3 text-gray-400">
                           {c.usedCount}{c.maxUses != null ? ` / ${c.maxUses}` : ''}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-xs">
-                          {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                          {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'â€”'}
                         </td>
                         <td className="px-4 py-3">
                           <span className={`text-xs font-semibold ${statusColor}`}>{statusLabel}</span>
@@ -4434,7 +4434,7 @@ function ShopTab() {
   );
 }
 
-// ── Homepage Content Editor ───────────────────────────────────────────────────
+// â”€â”€ Homepage Content Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function HpSection({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -4443,7 +4443,7 @@ function HpSection({ title, children }: { title: string; children: React.ReactNo
       <button onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-800/60 transition-colors">
         <span className="text-white font-semibold text-sm">{title}</span>
-        <span className={`text-gray-400 text-lg transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>⌄</span>
+        <span className={`text-gray-400 text-lg transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>âŒ„</span>
       </button>
       {open && (
         <div className="px-5 pb-5 pt-2 space-y-6 border-t border-surface-700/50">{children}</div>
@@ -4477,7 +4477,7 @@ const HP_SNIP = [
   { tag: 'italic-off',css: 'font-style: normal;' },
 ];
 
-// ── Banner Slides Admin ───────────────────────────────────────────────────────
+// â”€â”€ Banner Slides Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface AdminBannerSlide {
   id: string;
@@ -4621,13 +4621,13 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
               onChange={(e) => set(aspectKey, e.target.value)}
               className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400"
             >
-              <option value="25">25% — 4:1 ultra-wide</option>
-              <option value="33.33">33% — 3:1 panoramic</option>
-              <option value="42.85">43% — 21:9 cinematic</option>
-              <option value="56.25">56% — 16:9 standard</option>
-              <option value="66.67">67% — 3:2</option>
-              <option value="75">75% — 4:3</option>
-              <option value="100">100% — square</option>
+              <option value="25">25% â€” 4:1 ultra-wide</option>
+              <option value="33.33">33% â€” 3:1 panoramic</option>
+              <option value="42.85">43% â€” 21:9 cinematic</option>
+              <option value="56.25">56% â€” 16:9 standard</option>
+              <option value="66.67">67% â€” 3:2</option>
+              <option value="75">75% â€” 4:3</option>
+              <option value="100">100% â€” square</option>
             </select>
             <SaveBtn k={aspectKey} />
           </div>
@@ -4678,7 +4678,7 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
         {loadingSlides ? (
           <div className="h-16 bg-surface-800 rounded-xl animate-pulse" />
         ) : slides.length === 0 ? (
-          <p className="text-gray-600 text-sm py-4 text-center">No slides yet — add one below.</p>
+          <p className="text-gray-600 text-sm py-4 text-center">No slides yet â€” add one below.</p>
         ) : (
           <div className="space-y-2">
             {slides.map((slide, i) => (
@@ -4740,13 +4740,13 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
                     disabled={i === 0}
                     className="w-7 h-7 rounded-lg bg-surface-700 hover:bg-surface-600 text-gray-400 hover:text-white text-xs flex items-center justify-center disabled:opacity-30 transition-colors"
                     title="Move up"
-                  >↑</button>
+                  >â†‘</button>
                   <button
                     onClick={() => handleMove(slide.id, 1)}
                     disabled={i === slides.length - 1}
                     className="w-7 h-7 rounded-lg bg-surface-700 hover:bg-surface-600 text-gray-400 hover:text-white text-xs flex items-center justify-center disabled:opacity-30 transition-colors"
                     title="Move down"
-                  >↓</button>
+                  >â†“</button>
                 </div>
                 <button
                   onClick={() => handleToggleActive(slide.id, slide.active)}
@@ -4760,8 +4760,8 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
                   onClick={() => handleDelete(slide.id)}
                   className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm flex items-center justify-center flex-shrink-0 transition-colors"
                   title="Delete slide"
-                >×</button>
-                {saving === slide.id && <span className="text-xs text-brand-400 flex-shrink-0">Saving…</span>}
+                >Ã—</button>
+                {saving === slide.id && <span className="text-xs text-brand-400 flex-shrink-0">Savingâ€¦</span>}
               </div>
             ))}
           </div>
@@ -4782,7 +4782,7 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
           <label className={`px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-colors flex items-center gap-1.5 ${
             uploading ? 'bg-surface-700 text-gray-500' : 'bg-surface-700 hover:bg-surface-600 text-gray-300'
           }`}>
-            {uploading ? 'Uploading…' : '↑ Upload'}
+            {uploading ? 'Uploadingâ€¦' : 'â†‘ Upload'}
             <input
               ref={fileRef}
               type="file"
@@ -4839,7 +4839,7 @@ function BannerSlidesAdmin({ page }: { page: 'HOME' | 'ARK' }) {
           disabled={adding || !addUrl.trim()}
           className="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-black font-bold text-sm transition-colors disabled:opacity-50"
         >
-          {adding ? 'Adding…' : '+ Add Slide'}
+          {adding ? 'Addingâ€¦' : '+ Add Slide'}
         </button>
       </div>
     </div>
@@ -4886,7 +4886,7 @@ function CinematicBannerAdmin() {
                   : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
               }`}
             >
-              {val === 'image' ? '🖼 Image' : '🎬 Video'}
+              {val === 'image' ? 'ðŸ–¼ Image' : 'ðŸŽ¬ Video'}
             </button>
           ))}
           <SaveBtn k="home_cinematic_type" />
@@ -4914,7 +4914,7 @@ function CinematicBannerAdmin() {
 
       <div>
         <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-          Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = fully visible · 1 = solid black · default 0.2)</span>
+          Overlay Darkness <span className="text-gray-600 font-normal normal-case">(0 = fully visible Â· 1 = solid black Â· default 0.2)</span>
         </label>
         <div className="flex gap-3 items-center">
           <input
@@ -4933,7 +4933,7 @@ function CinematicBannerAdmin() {
 
       <div>
         <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">
-          Bottom Gradient Height <span className="text-gray-600 font-normal normal-case">(0 = none · 400 = 400px fade into page · default 0)</span>
+          Bottom Gradient Height <span className="text-gray-600 font-normal normal-case">(0 = none Â· 400 = 400px fade into page Â· default 0)</span>
         </label>
         <div className="flex gap-3 items-center">
           <input
@@ -4963,14 +4963,14 @@ function HomepageContentSection() {
       </div>
       <div className="space-y-3">
 
-        <HpSection title="🎞 Rotating Banner Slides">
+        <HpSection title="ðŸŽž Rotating Banner Slides">
           <BannerSlidesAdmin page="HOME" />
         </HpSection>
 
-        <HpSection title="🎯 Hero">
+        <HpSection title="ðŸŽ¯ Hero">
           <FieldBlock label="Est. line" textKey="hero_est" placeholder="Est. 2023"
             cssKey="hero_est_css" cssClass="hero-est" fontSizeKey="hero_est_font_size" snippets={HP_SNIP} />
-          <FieldBlock label="Tagline" textKey="hero_tagline" placeholder="Discipline · Identity · Legacy"
+          <FieldBlock label="Tagline" textKey="hero_tagline" placeholder="Discipline Â· Identity Â· Legacy"
             cssKey="hero_tagline_css" cssClass="hero-tagline" fontSizeKey="hero_tagline_font_size" lineHeightKey="hero_tagline_line_height" snippets={HP_SNIP} />
           <FieldBlock label="Headline" textKey="hero_headline" placeholder="Music. Film. Teachings."
             cssKey="hero_headline_css" cssClass="hero-headline" fontSizeKey="hero_headline_font_size" lineHeightKey="hero_headline_line_height" snippets={HP_SNIP} />
@@ -4978,30 +4978,30 @@ function HomepageContentSection() {
             cssKey="hero_sub_css" cssClass="hero-sub" fontSizeKey="hero_sub_font_size" lineHeightKey="hero_sub_line_height" snippets={HP_SNIP} />
           <FieldBlock label="Browse CTA button" textKey="hero_cta_browse" placeholder="Browse all"
             cssKey="hero_cta_browse_css" cssClass="hero-cta-browse" fontSizeKey="hero_cta_browse_font_size" snippets={HP_SNIP} />
-          <FieldBlock label="Join CTA button" textKey="hero_cta_join" placeholder="Join for free →"
+          <FieldBlock label="Join CTA button" textKey="hero_cta_join" placeholder="Join for free â†’"
             cssKey="hero_cta_join_css" cssClass="hero-cta-join" fontSizeKey="hero_cta_join_font_size" snippets={HP_SNIP} />
         </HpSection>
 
-        <HpSection title="🎵 Browse by Category">
+        <HpSection title="ðŸŽµ Browse by Category">
           <FieldBlock label="Eyebrow" textKey="browse_eyebrow" placeholder="Explore the Camp"
             cssKey="browse_eyebrow_css" cssClass="browse-eyebrow" fontSizeKey="browse_eyebrow_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Title" textKey="browse_title" placeholder="What are you feeling?"
             cssKey="browse_title_css" cssClass="browse-title" fontSizeKey="browse_title_font_size" lineHeightKey="browse_title_line_height" snippets={HP_SNIP} />
-          <FieldBlock label="Direction — bold text" textKey="browse_banner_bold" placeholder="Pick your format"
+          <FieldBlock label="Direction â€” bold text" textKey="browse_banner_bold" placeholder="Pick your format"
             cssKey="browse_banner_bold_css" cssClass="browse-banner-bold" fontSizeKey="browse_banner_bold_font_size" snippets={HP_SNIP} />
-          <FieldBlock label="Direction — body text" textKey="browse_banner_body" placeholder="tap any category below to dive straight into..."
+          <FieldBlock label="Direction â€” body text" textKey="browse_banner_body" placeholder="tap any category below to dive straight into..."
             cssKey="browse_banner_body_css" cssClass="browse-banner-body" fontSizeKey="browse_banner_body_font_size" lineHeightKey="browse_banner_body_line_height" snippets={HP_SNIP} />
         </HpSection>
 
-        <HpSection title="⚔️ Built on Three Pillars">
+        <HpSection title="âš”ï¸ Built on Three Pillars">
           <FieldBlock label="Eyebrow" textKey="pillars_eyebrow" placeholder="The Foundation"
             cssKey="pillars_eyebrow_css" cssClass="pillars-eyebrow" fontSizeKey="pillars_eyebrow_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Title" textKey="pillars_title" placeholder="Built on three pillars"
             cssKey="pillars_title_css" cssClass="pillars-title" fontSizeKey="pillars_title_font_size" lineHeightKey="pillars_title_line_height" snippets={HP_SNIP} />
           {[
-            { n: 1, iDef: '⚔️', wDef: 'Discipline', bDef: 'Consistent creative output rooted in craft, not trends.' },
-            { n: 2, iDef: '👑', wDef: 'Identity',   bDef: 'Know who you are and let it shape your art.' },
-            { n: 3, iDef: '🔥', wDef: 'Legacy',     bDef: 'Create work that lasts.' },
+            { n: 1, iDef: 'âš”ï¸', wDef: 'Discipline', bDef: 'Consistent creative output rooted in craft, not trends.' },
+            { n: 2, iDef: 'ðŸ‘‘', wDef: 'Identity',   bDef: 'Know who you are and let it shape your art.' },
+            { n: 3, iDef: 'ðŸ”¥', wDef: 'Legacy',     bDef: 'Create work that lasts.' },
           ].map(({ n, iDef, wDef, bDef }) => (
             <div key={n} className="border border-surface-700/50 rounded-xl p-4 space-y-4">
               <p className="text-xs text-brand-400/70 font-bold uppercase tracking-widest">Pillar {n}</p>
@@ -5015,18 +5015,18 @@ function HomepageContentSection() {
           ))}
         </HpSection>
 
-        <HpSection title="✨ Everything in One Place">
+        <HpSection title="âœ¨ Everything in One Place">
           <FieldBlock label="Eyebrow" textKey="features_eyebrow" placeholder="Why Join"
             cssKey="features_eyebrow_css" cssClass="features-eyebrow" fontSizeKey="features_eyebrow_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Title" textKey="features_title" placeholder="Everything in one place"
             cssKey="features_title_css" cssClass="features-title" fontSizeKey="features_title_font_size" lineHeightKey="features_title_line_height" snippets={HP_SNIP} />
           {[
-            { n: 1, iDef: '🎵', tDef: 'Music & Film',         bDef: 'Stream original tracks, albums, short films...' },
-            { n: 2, iDef: '🎙️', tDef: 'Podcasts & Teachings', bDef: 'Weekly conversations, long-form interviews...' },
-            { n: 3, iDef: '🔒', tDef: 'Members-only content', bDef: 'Subscriber access unlocks exclusive drops...' },
-            { n: 4, iDef: '👥', tDef: 'Follow creators',      bDef: 'Build your feed...' },
-            { n: 5, iDef: '📱', tDef: 'Watch anywhere',       bDef: 'Web and mobile — your watch history syncs...' },
-            { n: 6, iDef: '🏕️', tDef: 'Join the Camp',        bDef: "This isn't just content..." },
+            { n: 1, iDef: 'ðŸŽµ', tDef: 'Music & Film',         bDef: 'Stream original tracks, albums, short films...' },
+            { n: 2, iDef: 'ðŸŽ™ï¸', tDef: 'Podcasts & Teachings', bDef: 'Weekly conversations, long-form interviews...' },
+            { n: 3, iDef: 'ðŸ”’', tDef: 'Members-only content', bDef: 'Subscriber access unlocks exclusive drops...' },
+            { n: 4, iDef: 'ðŸ‘¥', tDef: 'Follow creators',      bDef: 'Build your feed...' },
+            { n: 5, iDef: 'ðŸ“±', tDef: 'Watch anywhere',       bDef: 'Web and mobile â€” your watch history syncs...' },
+            { n: 6, iDef: 'ðŸ•ï¸', tDef: 'Join the Camp',        bDef: "This isn't just content..." },
           ].map(({ n, iDef, tDef, bDef }) => (
             <div key={n} className="border border-surface-700/50 rounded-xl p-4 space-y-4">
               <p className="text-xs text-brand-400/70 font-bold uppercase tracking-widest">Feature {n}</p>
@@ -5040,7 +5040,7 @@ function HomepageContentSection() {
           ))}
         </HpSection>
 
-        <HpSection title="💳 Pricing Section">
+        <HpSection title="ðŸ’³ Pricing Section">
           <FieldBlock label="Eyebrow" textKey="pricing_eyebrow" placeholder="Membership"
             cssKey="pricing_eyebrow_css" cssClass="pricing-eyebrow" fontSizeKey="pricing_eyebrow_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Title" textKey="pricing_title" placeholder="Simple, transparent pricing"
@@ -5049,14 +5049,14 @@ function HomepageContentSection() {
             cssKey="pricing_sub_css" cssClass="pricing-sub" fontSizeKey="pricing_sub_font_size" lineHeightKey="pricing_sub_line_height" snippets={HP_SNIP} />
         </HpSection>
 
-        <HpSection title="🎤 Creator CTA">
+        <HpSection title="ðŸŽ¤ Creator CTA">
           <FieldBlock label="Eyebrow" textKey="creator_eyebrow" placeholder="For Creators"
             cssKey="creator_eyebrow_css" cssClass="creator-eyebrow" fontSizeKey="creator_eyebrow_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Headline" textKey="creator_headline" placeholder="Your voice deserves its own platform."
             cssKey="creator_headline_css" cssClass="creator-headline" fontSizeKey="creator_headline_font_size" lineHeightKey="creator_headline_line_height" snippets={HP_SNIP} />
           <FieldBlock label="Body text" textKey="creator_sub" placeholder="Upload your music, films, podcasts..."
             cssKey="creator_sub_css" cssClass="creator-sub" fontSizeKey="creator_sub_font_size" lineHeightKey="creator_sub_line_height" snippets={HP_SNIP} />
-          <FieldBlock label="Primary CTA button" textKey="creator_cta_start" placeholder="Start creating →"
+          <FieldBlock label="Primary CTA button" textKey="creator_cta_start" placeholder="Start creating â†’"
             cssKey="creator_cta_start_css" cssClass="creator-cta-start" fontSizeKey="creator_cta_start_font_size" snippets={HP_SNIP} />
           <FieldBlock label="Secondary CTA button" textKey="creator_cta_explore" placeholder="Explore first"
             cssKey="creator_cta_explore_css" cssClass="creator-cta-explore" fontSizeKey="creator_cta_explore_font_size" snippets={HP_SNIP} />
@@ -5067,7 +5067,7 @@ function HomepageContentSection() {
   );
 }
 
-// ── Settings Tab ──────────────────────────────────────────────────────────────
+// â”€â”€ Settings Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SettingsCtxType {
   settings: Record<string, string>;
@@ -5092,7 +5092,7 @@ function SaveBtn({ k }: { k: string }) {
         saved === k ? 'bg-camp-500 text-white' : 'bg-brand-500 hover:bg-brand-600 text-black disabled:opacity-50'
       }`}
     >
-      {saving === k ? 'Saving…' : saved === k ? '✓ Saved' : 'Save'}
+      {saving === k ? 'Savingâ€¦' : saved === k ? 'âœ“ Saved' : 'Save'}
     </button>
   );
 }
@@ -5135,7 +5135,7 @@ function UploadBannerBtn({ settingKey }: { settingKey: string }) {
           done ? 'bg-camp-500 text-white' : 'bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-white'
         }`}
       >
-        {uploading ? 'Uploading…' : done ? '✓ Saved' : '⬆ Upload'}
+        {uploading ? 'Uploadingâ€¦' : done ? 'âœ“ Saved' : 'â¬† Upload'}
       </button>
       <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFile} />
     </>
@@ -5305,7 +5305,7 @@ function FieldBlock({
   );
 }
 
-// ── Series Tab ────────────────────────────────────────────────────────────────
+// â”€â”€ Series Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SeriesRow {
   id: string; title: string; description: string | null; coverUrl: string | null;
@@ -5640,13 +5640,13 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
         {/* Cover image */}
         <div className="sm:col-span-2">
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">
-            Cover Image <span className="font-normal normal-case text-gray-600">— optional</span>
+            Cover Image <span className="font-normal normal-case text-gray-600">â€” optional</span>
           </label>
           <div className="flex items-start gap-4">
             <div className="w-20 h-20 rounded-xl bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
               {coverPreview || editSeries?.coverUrl
                 ? <img src={coverPreview || editSeries?.coverUrl || ''} alt="" className="w-full h-full object-cover" />
-                : <span className="text-2xl opacity-30">🖼</span>
+                : <span className="text-2xl opacity-30">ðŸ–¼</span>
               }
             </div>
             <div className="space-y-1.5">
@@ -5665,7 +5665,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                   <div className="h-full bg-brand-500 transition-all" style={{ width: `${uploadProg.cover}%` }} />
                 </div>
               )}
-              <p className="text-xs text-gray-600">JPEG, PNG or WebP · max 8 MB</p>
+              <p className="text-xs text-gray-600">JPEG, PNG or WebP Â· max 8 MB</p>
             </div>
           </div>
         </div>
@@ -5673,7 +5673,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
         {/* Trailer video */}
         <div className="sm:col-span-2">
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">
-            Trailer / Promo Video <span className="font-normal normal-case text-gray-600">— optional</span>
+            Trailer / Promo Video <span className="font-normal normal-case text-gray-600">â€” optional</span>
           </label>
           <div className="flex items-center gap-4 flex-wrap">
             <label className="cursor-pointer inline-block px-4 py-2 bg-surface-700 border border-surface-600 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
@@ -5687,7 +5687,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
               const name = raw.replace(/^\d+-/, '');
               return (
                 <span className="text-xs text-green-500 flex items-center gap-1">
-                  <span>✓</span>
+                  <span>âœ“</span>
                   <span className="truncate max-w-[200px]" title={name}>{name}</span>
                 </span>
               );
@@ -5701,7 +5701,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-600 mt-1">MP4, WebM, MOV, AVI, MKV · max 500 MB</p>
+          <p className="text-xs text-gray-600 mt-1">MP4, WebM, MOV, AVI, MKV Â· max 500 MB</p>
         </div>
 
       </div>
@@ -5711,7 +5711,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
       <div className="flex gap-3 pt-2">
         <button onClick={editSeries ? handleUpdate : handleCreate} disabled={saving || !form.title.trim()}
           className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
-          {saving ? 'Saving…' : editSeries ? 'Save Changes' : 'Create Series'}
+          {saving ? 'Savingâ€¦' : editSeries ? 'Save Changes' : 'Create Series'}
         </button>
         <button onClick={() => { setShowCreate(false); setEditSeries(null); resetForm(); }}
           className="px-5 py-2 bg-surface-700 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
@@ -5726,7 +5726,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-white">Series</h2>
-          <p className="text-gray-500 text-sm">{seriesList.length} series · manage seasons &amp; episodes</p>
+          <p className="text-gray-500 text-sm">{seriesList.length} series Â· manage seasons &amp; episodes</p>
         </div>
         <button onClick={() => { setShowCreate(true); setEditSeries(null); resetForm(); }}
           className="px-4 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 transition-colors">
@@ -5743,7 +5743,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
           {/* Season management */}
           <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold text-sm">Seasons — {editSeries.title}</h3>
+              <h3 className="text-white font-semibold text-sm">Seasons â€” {editSeries.title}</h3>
               <button
                 onClick={() => setAddingSeasonTo(addingSeasonTo === editSeries.id ? null : editSeries.id)}
                 className="text-xs px-3 py-1.5 bg-brand-500/20 text-brand-400 rounded-lg hover:bg-brand-500/30 transition-colors"
@@ -5773,7 +5773,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                     <div className="w-14 h-20 rounded-lg bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
                       {newSeasonCoverPreview
                         ? <img src={newSeasonCoverPreview} alt="" className="w-full h-full object-cover" />
-                        : <span className="text-xl opacity-30">🎬</span>
+                        : <span className="text-xl opacity-30">ðŸŽ¬</span>
                       }
                     </div>
                     <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
@@ -5802,7 +5802,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
             )}
 
             {!editSeries.seasons ? (
-              <p className="text-gray-600 text-sm text-center py-4 animate-pulse">Loading seasons…</p>
+              <p className="text-gray-600 text-sm text-center py-4 animate-pulse">Loading seasonsâ€¦</p>
             ) : editSeries.seasons.length === 0 ? (
               <p className="text-gray-600 text-sm text-center py-4">No seasons yet. Add one above.</p>
             ) : (
@@ -5814,7 +5814,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                       <div className="w-8 h-11 rounded bg-surface-700 border border-surface-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
                         {season.coverUrl
                           ? <img src={season.coverUrl} alt="" className="w-full h-full object-cover" />
-                          : <span className="text-xs opacity-30">🎬</span>
+                          : <span className="text-xs opacity-30">ðŸŽ¬</span>
                         }
                       </div>
                       <div className="flex-1 min-w-0">
@@ -5848,7 +5848,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                         <div>
                           <label className="text-xs text-gray-500 block mb-1">Description <span className="text-gray-600 font-normal">(optional)</span></label>
                           <textarea value={epForm.description} onChange={(e) => setEpForm((f) => ({ ...f, description: e.target.value }))}
-                            placeholder="Short description…" rows={2}
+                            placeholder="Short descriptionâ€¦" rows={2}
                             className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
                         </div>
                         <div className="flex gap-4 flex-wrap">
@@ -5859,7 +5859,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                               <div className="w-16 h-10 rounded bg-surface-700 border border-surface-600 overflow-hidden flex items-center justify-center flex-shrink-0">
                                 {epThumbnailPreview
                                   ? <img src={epThumbnailPreview} alt="" className="w-full h-full object-cover" />
-                                  : <span className="text-sm opacity-30">🖼</span>
+                                  : <span className="text-sm opacity-30">ðŸ–¼</span>
                                 }
                               </div>
                               <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
@@ -5883,7 +5883,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                                 <input type="file" accept="video/*" className="hidden"
                                   onChange={(e) => { const f = e.target.files?.[0]; if (f) setEpVideoFile(f); }} />
                               </label>
-                              {epVideoFile && <span className="text-xs text-green-500">✓ {(epVideoFile.size / 1024 / 1024).toFixed(0)} MB</span>}
+                              {epVideoFile && <span className="text-xs text-green-500">âœ“ {(epVideoFile.size / 1024 / 1024).toFixed(0)} MB</span>}
                             </div>
                           </div>
                         </div>
@@ -5913,7 +5913,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                         <div className="flex gap-2">
                           <button type="button" onClick={() => handleAddEpisode(editSeries.id, season.id)} disabled={epSaving || !epForm.title.trim()}
                             className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
-                            {epSaving ? 'Saving…' : 'Save Episode'}
+                            {epSaving ? 'Savingâ€¦' : 'Save Episode'}
                           </button>
                           <button type="button" onClick={() => { setAddingEpTo(null); resetEpForm(); }}
                             className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
@@ -5923,7 +5923,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                       </div>
                     )}
 
-                    {/* Episode list — always visible */}
+                    {/* Episode list â€” always visible */}
                     <div className="border-t border-surface-700">
                         {!season.episodes || season.episodes.length === 0 ? (
                           <p className="text-gray-600 text-xs text-center py-4">No episodes yet.</p>
@@ -5937,14 +5937,14 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                                   <div className="w-14 h-8 rounded bg-surface-700 border border-surface-600 overflow-hidden flex-shrink-0 flex items-center justify-center">
                                     {(editingEpId === ep.id ? editEpThumbPreview : null) || ep.thumbnailUrl
                                       ? <img src={editEpThumbPreview && editingEpId === ep.id ? editEpThumbPreview : ep.thumbnailUrl!} alt="" className="w-full h-full object-cover" />
-                                      : <span className="text-xs opacity-30">🎬</span>
+                                      : <span className="text-xs opacity-30">ðŸŽ¬</span>
                                     }
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-white truncate">{ep.title}</p>
                                     <p className="text-xs text-gray-500">
-                                      {ep.mediaUrl ? '✓ video' : 'no video'}
-                                      {fmtDur(ep.duration) ? ` · ${fmtDur(ep.duration)}` : ''}
+                                      {ep.mediaUrl ? 'âœ“ video' : 'no video'}
+                                      {fmtDur(ep.duration) ? ` Â· ${fmtDur(ep.duration)}` : ''}
                                     </p>
                                   </div>
                                   <button type="button" onClick={() => editingEpId === ep.id ? setEditingEpId(null) : openEditEp(ep)}
@@ -5968,7 +5968,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                                     <div>
                                       <label className="text-xs text-gray-500 block mb-1">Description</label>
                                       <textarea value={editEpForm.description} onChange={(e) => setEditEpForm((f) => ({ ...f, description: e.target.value }))}
-                                        rows={2} placeholder="Optional description…"
+                                        rows={2} placeholder="Optional descriptionâ€¦"
                                         className="w-full bg-surface-800 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-none" />
                                     </div>
                                     <div className="flex gap-4 flex-wrap">
@@ -5980,7 +5980,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                                               ? <img src={editEpThumbPreview} alt="" className="w-full h-full object-cover" />
                                               : ep.thumbnailUrl
                                               ? <img src={ep.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                                              : <span className="text-sm opacity-30">🖼</span>
+                                              : <span className="text-sm opacity-30">ðŸ–¼</span>
                                             }
                                           </div>
                                           <label className="cursor-pointer px-3 py-1.5 bg-surface-700 border border-surface-600 text-gray-300 rounded-lg text-xs hover:bg-surface-600 transition-colors">
@@ -5998,15 +5998,15 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                                             <input type="file" accept="video/*" className="hidden"
                                               onChange={(e) => { const f = e.target.files?.[0]; if (f) setEditEpVideoFile(f); }} />
                                           </label>
-                                          {editEpVideoFile && <span className="text-xs text-green-500">✓ {(editEpVideoFile.size / 1024 / 1024).toFixed(0)} MB</span>}
-                                          {ep.mediaUrl && !editEpVideoFile && <span className="text-xs text-green-500">✓ uploaded</span>}
+                                          {editEpVideoFile && <span className="text-xs text-green-500">âœ“ {(editEpVideoFile.size / 1024 / 1024).toFixed(0)} MB</span>}
+                                          {ep.mediaUrl && !editEpVideoFile && <span className="text-xs text-green-500">âœ“ uploaded</span>}
                                         </div>
                                       </div>
                                     </div>
                                     <div className="flex gap-2">
                                       <button type="button" onClick={() => handleUpdateEpisode(editSeries.id, season.id, ep.id)} disabled={editEpSaving || !editEpForm.title.trim()}
                                         className="px-4 py-2 bg-brand-500 text-black rounded-lg text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
-                                        {editEpSaving ? 'Saving…' : 'Save Changes'}
+                                        {editEpSaving ? 'Savingâ€¦' : 'Save Changes'}
                                       </button>
                                       <button type="button" onClick={() => setEditingEpId(null)}
                                         className="px-3 py-2 bg-surface-700 text-gray-400 rounded-lg text-sm hover:bg-surface-600 transition-colors">
@@ -6033,18 +6033,18 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
         <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-800 rounded-2xl animate-pulse" />)}</div>
       ) : seriesList.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-3">📺</p>
+          <p className="text-4xl mb-3">ðŸ“º</p>
           <p>No series yet. Create your first one.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {seriesList.map((s) => (
             <div key={s.id} className="bg-surface-800 border border-surface-700 rounded-2xl overflow-hidden">
-              {/* Thumbnail — full width */}
+              {/* Thumbnail â€” full width */}
               <div className="w-full aspect-video bg-surface-700 overflow-hidden">
                 {s.coverUrl
                   ? <img src={s.coverUrl} alt={s.title} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">📺</div>
+                  : <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">ðŸ“º</div>
                 }
               </div>
               {/* Info + actions below image */}
@@ -6062,7 +6062,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
                 <p className="text-white font-bold text-base leading-snug mb-1">{s.title}</p>
                 <p className="text-gray-500 text-sm mb-4">
                   {s._count.seasons} season{s._count.seasons !== 1 ? 's' : ''}
-                  {s.genre && ` · ${s.genre}`}
+                  {s.genre && ` Â· ${s.genre}`}
                 </p>
                 <div className="flex gap-2">
                   <a href={`/series/${s.id}`} target="_blank" rel="noreferrer"
@@ -6087,7 +6087,7 @@ async function uploadFiles(seriesId: string): Promise<SeriesRow | null> {
   );
 }
 
-// ── Albums Tab ────────────────────────────────────────────────────────────────
+// â”€â”€ Albums Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface AlbumRow {
   id: string; title: string; description: string | null; coverUrl: string | null;
@@ -6282,7 +6282,7 @@ function AlbumsTab() {
           <label className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Genre</label>
           <select value={form.genre} onChange={(e) => setForm((f) => ({ ...f, genre: e.target.value }))}
             className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400">
-            <option value="">Select genre…</option>
+            <option value="">Select genreâ€¦</option>
             <option>Acoustic</option>
             <option>Afrobeats</option>
             <option>Afro-Pop</option>
@@ -6425,11 +6425,11 @@ function AlbumsTab() {
                 ? <img src={URL.createObjectURL(coverFile)} alt="" className="w-full h-full object-cover" />
                 : editAlbum?.coverUrl
                   ? <img src={editAlbum.coverUrl} alt="" className="w-full h-full object-cover" />
-                  : '🎵'}
+                  : 'ðŸŽµ'}
             </button>
             <button onClick={() => coverInputRef.current?.click()}
               className="px-4 py-2 bg-surface-800 border border-surface-600 text-gray-400 rounded-xl text-sm hover:border-surface-400 transition-colors">
-              {coverFile ? coverFile.name : editAlbum?.coverUrl ? 'Replace cover' : 'Choose image…'}
+              {coverFile ? coverFile.name : editAlbum?.coverUrl ? 'Replace cover' : 'Choose imageâ€¦'}
             </button>
             {coverFile && (
               <button onClick={() => setCoverFile(null)} className="text-red-500 text-xs hover:text-red-400 transition-colors">Remove</button>
@@ -6440,7 +6440,7 @@ function AlbumsTab() {
       <div className="flex gap-3 pt-2">
         <button onClick={editAlbum ? handleUpdate : handleCreate} disabled={saving || !form.title.trim()}
           className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors">
-          {saving ? 'Saving…' : editAlbum ? 'Save Changes' : 'Create Album'}
+          {saving ? 'Savingâ€¦' : editAlbum ? 'Save Changes' : 'Create Album'}
         </button>
         <button onClick={() => { setShowCreate(false); setEditAlbum(null); resetForm(); }}
           className="px-5 py-2 bg-surface-700 text-gray-300 rounded-xl text-sm hover:bg-surface-600 transition-colors">
@@ -6455,7 +6455,7 @@ function AlbumsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-white">Albums</h2>
-          <p className="text-gray-500 text-sm">{albums.length} album{albums.length !== 1 ? 's' : ''} · manage tracklists and artwork</p>
+          <p className="text-gray-500 text-sm">{albums.length} album{albums.length !== 1 ? 's' : ''} Â· manage tracklists and artwork</p>
         </div>
         <button onClick={() => { setShowCreate(true); setEditAlbum(null); resetForm(); }}
           className="px-4 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 transition-colors">
@@ -6473,8 +6473,8 @@ function AlbumsTab() {
           <div className="bg-surface-900 border border-surface-700 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-white font-semibold text-sm">Tracklist — {editAlbum.title}</h3>
-                <p className="text-gray-600 text-xs mt-0.5">{tracks.length} track{tracks.length !== 1 ? 's' : ''} · no limit</p>
+                <h3 className="text-white font-semibold text-sm">Tracklist â€” {editAlbum.title}</h3>
+                <p className="text-gray-600 text-xs mt-0.5">{tracks.length} track{tracks.length !== 1 ? 's' : ''} Â· no limit</p>
               </div>
               {!newTrackForm && (
                 <button
@@ -6536,7 +6536,7 @@ function AlbumsTab() {
                     <textarea
                       value={newTrackForm.description}
                       onChange={(e) => setNewTrackForm((t) => t && { ...t, description: e.target.value })}
-                      placeholder="Optional — lyrics, production credits, notes…"
+                      placeholder="Optional â€” lyrics, production credits, notesâ€¦"
                       rows={3}
                       className="w-full bg-surface-700 border border-surface-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none"
                     />
@@ -6567,7 +6567,7 @@ function AlbumsTab() {
                     disabled={addingTrack || !newTrackForm.title.trim()}
                     className="px-5 py-2 bg-brand-500 text-black rounded-xl text-sm font-bold hover:bg-brand-400 disabled:opacity-50 transition-colors"
                   >
-                    {addingTrack ? 'Adding…' : 'Add to Tracklist'}
+                    {addingTrack ? 'Addingâ€¦' : 'Add to Tracklist'}
                   </button>
                   <button
                     onClick={() => { setNewTrackForm(null); setNewTrackArt(null); }}
@@ -6582,7 +6582,7 @@ function AlbumsTab() {
             {/* Link existing uploaded content */}
             <div className="relative">
               <p className="text-xs text-gray-600 mb-1.5">Or link already-uploaded music:</p>
-              <input value={musicSearch} onChange={(e) => setMusicSearch(e.target.value)} placeholder="Search your uploaded tracks…"
+              <input value={musicSearch} onChange={(e) => setMusicSearch(e.target.value)} placeholder="Search your uploaded tracksâ€¦"
                 className="w-full bg-surface-800 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 placeholder:text-gray-700" />
               {musicResults.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-surface-800 border border-surface-600 rounded-xl overflow-hidden shadow-xl">
@@ -6591,7 +6591,7 @@ function AlbumsTab() {
                       className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-700 transition-colors text-left">
                       <span className="text-sm text-white truncate">{c.title}</span>
                       <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                        {fmtDur(c.duration)} · {c.creator.displayName || c.creator.username}
+                        {fmtDur(c.duration)} Â· {c.creator.displayName || c.creator.username}
                       </span>
                     </button>
                   ))}
@@ -6612,15 +6612,15 @@ function AlbumsTab() {
                     <button onClick={() => openTrackEdit(t.contentId)} className="w-10 h-10 rounded-lg overflow-hidden bg-surface-700 flex-shrink-0 flex items-center justify-center text-base hover:ring-2 hover:ring-brand-400 transition-all">
                       {t.content.thumbnailUrl
                         ? <img src={t.content.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                        : '🎵'}
+                        : 'ðŸŽµ'}
                     </button>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">{t.content.title}</p>
                       <p className="text-xs text-gray-500">
                         {fmtDur(t.content.duration) || 'no duration'}
                         {t.content.mediaUrl
-                          ? <span className="ml-2 text-green-500">● audio</span>
-                          : <span className="ml-2 text-yellow-600">○ no audio</span>}
+                          ? <span className="ml-2 text-green-500">â— audio</span>
+                          : <span className="ml-2 text-yellow-600">â—‹ no audio</span>}
                       </p>
                     </div>
                     <button onClick={() => openTrackEdit(t.contentId)}
@@ -6644,7 +6644,7 @@ function AlbumsTab() {
         <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="h-20 bg-surface-800 rounded-2xl animate-pulse" />)}</div>
       ) : albums.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-3">🎵</p>
+          <p className="text-4xl mb-3">ðŸŽµ</p>
           <p>No albums yet. Create your first one.</p>
         </div>
       ) : (
@@ -6654,16 +6654,16 @@ function AlbumsTab() {
               <button onClick={() => openEdit(album)} className="w-14 h-14 bg-surface-700 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl hover:ring-2 hover:ring-brand-400 transition-all">
                 {album.coverUrl ? (
                   <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover" />
-                ) : '🎵'}
+                ) : 'ðŸŽµ'}
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-semibold text-sm truncate">{album.title}</p>
                 <p className="text-gray-500 text-xs">
                   <span className="text-gray-400 font-medium">{album.releaseType?.charAt(0) + album.releaseType?.slice(1).toLowerCase()}</span>
-                  {` · ${album._count.tracks} track${album._count.tracks !== 1 ? 's' : ''}`}
-                  {album.genre && ` · ${album.genre}`}
-                  {album.releaseDate && ` · ${new Date(album.releaseDate).getFullYear()}`}
-                  {album.privacy !== 'PUBLIC' && <span className="ml-1 text-yellow-600">· {album.privacy.replace('_', ' ').toLowerCase()}</span>}
+                  {` Â· ${album._count.tracks} track${album._count.tracks !== 1 ? 's' : ''}`}
+                  {album.genre && ` Â· ${album.genre}`}
+                  {album.releaseDate && ` Â· ${new Date(album.releaseDate).getFullYear()}`}
+                  {album.privacy !== 'PUBLIC' && <span className="ml-1 text-yellow-600">Â· {album.privacy.replace('_', ' ').toLowerCase()}</span>}
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -6703,7 +6703,7 @@ function AlbumsTab() {
   );
 }
 
-// ── Newsletter Tab ────────────────────────────────────────────────────────────
+// â”€â”€ Newsletter Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function NewsletterTab() {
   const [subscribers, setSubscribers] = useState<{ id: string; email: string; name: string | null; source: string; subscribedAt: string }[]>([]);
@@ -6766,7 +6766,7 @@ function NewsletterTab() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by email…"
+            placeholder="Search by emailâ€¦"
             className="flex-1 bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400"
           />
           <button type="submit" className="bg-brand-500 hover:bg-brand-400 text-black font-semibold text-sm px-4 py-2 rounded-lg">Search</button>
@@ -6819,9 +6819,9 @@ function NewsletterTab() {
           </div>
           {pages > 1 && (
             <div className="flex items-center justify-center gap-3 mt-4">
-              <button onClick={() => load(page - 1)} disabled={page <= 1} className="text-sm text-gray-400 hover:text-white disabled:opacity-40">← Prev</button>
+              <button onClick={() => load(page - 1)} disabled={page <= 1} className="text-sm text-gray-400 hover:text-white disabled:opacity-40">â† Prev</button>
               <span className="text-sm text-gray-500">Page {page} of {pages}</span>
-              <button onClick={() => load(page + 1)} disabled={page >= pages} className="text-sm text-gray-400 hover:text-white disabled:opacity-40">Next →</button>
+              <button onClick={() => load(page + 1)} disabled={page >= pages} className="text-sm text-gray-400 hover:text-white disabled:opacity-40">Next â†’</button>
             </div>
           )}
         </>
@@ -6895,19 +6895,19 @@ function SettingsTab() {
         <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
       )}
 
-      {/* ── Homepage Content ── */}
+      {/* â”€â”€ Homepage Content â”€â”€ */}
       <HomepageContentSection />
 
-      {/* ── Ark Rotating Banner ── */}
+      {/* â”€â”€ Ark Rotating Banner â”€â”€ */}
       <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40 space-y-5">
         <div>
-          <h2 className="text-lg font-bold text-white mb-1">The Ark — Rotating Banner Slides</h2>
+          <h2 className="text-lg font-bold text-white mb-1">The Ark â€” Rotating Banner Slides</h2>
           <p className="text-gray-500 text-sm">Upload and manage the rotating banner carousel at the top of The Ark shop page.</p>
         </div>
         <BannerSlidesAdmin page="ARK" />
       </div>
 
-      {/* ── Shop Page Content ── */}
+      {/* â”€â”€ Shop Page Content â”€â”€ */}
       <div>
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white mb-1">Shop Page Content</h2>
@@ -6965,7 +6965,7 @@ function SettingsTab() {
           />
 
           <FieldBlock
-            label='Subheading — "Straight from the Camp."'
+            label='Subheading â€” "Straight from the Camp."'
             textKey="shop_subheading"
             placeholder="Straight from the Camp."
             cssKey="shop_subheading_css"
@@ -7076,7 +7076,7 @@ function SettingsTab() {
                       : 'border-surface-600 text-gray-400 hover:text-white bg-surface-900'
                   }`}
                 >
-                  {val === 'left' ? '⬅ Left' : '↔ Center'}
+                  {val === 'left' ? 'â¬… Left' : 'â†” Center'}
                 </button>
               ))}
               <SaveBtn k="shop_intro_align" />
@@ -7085,7 +7085,7 @@ function SettingsTab() {
         </div>
       </div>
 
-      {/* ── Membership Perks Section Copy ── */}
+      {/* â”€â”€ Membership Perks Section Copy â”€â”€ */}
       <div className="border border-surface-700/50 rounded-2xl p-6 bg-surface-900/40">
         <h2 className="text-lg font-bold text-white mb-1">Membership Perks Section</h2>
         <p className="text-gray-500 text-sm mb-5">The heading block above the carousel on the shop page.</p>
@@ -7103,7 +7103,7 @@ function SettingsTab() {
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading — Line 1 <span className="text-gray-600 font-normal normal-case">(white)</span></label>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading â€” Line 1 <span className="text-gray-600 font-normal normal-case">(white)</span></label>
             <div className="flex gap-2">
               <input
                 value={settings['shop_perks_line1'] ?? ''}
@@ -7115,7 +7115,7 @@ function SettingsTab() {
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading — Line 2 <span className="text-gray-600 font-normal normal-case">(gold highlight)</span></label>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading â€” Line 2 <span className="text-gray-600 font-normal normal-case">(gold highlight)</span></label>
             <div className="flex gap-2">
               <input
                 value={settings['shop_perks_line2'] ?? ''}
@@ -7127,7 +7127,7 @@ function SettingsTab() {
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading — Line 3 <span className="text-gray-600 font-normal normal-case">(white)</span></label>
+            <label className="block text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Heading â€” Line 3 <span className="text-gray-600 font-normal normal-case">(white)</span></label>
             <div className="flex gap-2">
               <input
                 value={settings['shop_perks_line3'] ?? ''}
@@ -7147,7 +7147,7 @@ function SettingsTab() {
                 <input
                   value={settings['shop_perks_cta'] ?? ''}
                   onChange={(e) => set('shop_perks_cta', e.target.value)}
-                  placeholder="Join the Camp →"
+                  placeholder="Join the Camp â†’"
                   className="flex-1 bg-surface-900 border border-surface-600 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 transition-colors placeholder:text-gray-700 disabled:opacity-50"
                 />
                 <SaveBtn k="shop_perks_cta" />
@@ -7160,7 +7160,7 @@ function SettingsTab() {
             {([
               { key: 'shop_perks_pro_desc',     label: 'PRO description',     placeholder: 'Unlock discounts + exclusive content' },
               { key: 'shop_perks_premium_desc', label: 'PREMIUM description', placeholder: 'Maximum savings, all access' },
-              { key: 'shop_perks_creator_desc', label: 'CREATOR description', placeholder: 'Creator tier — full benefits' },
+              { key: 'shop_perks_creator_desc', label: 'CREATOR description', placeholder: 'Creator tier â€” full benefits' },
             ]).map(({ key, label, placeholder }) => (
               <div key={key} className="mb-3">
                 <label className="block text-xs text-gray-400 mb-1">{label}</label>
@@ -7179,13 +7179,13 @@ function SettingsTab() {
         </div>
       </div>
 
-      {/* ── Membership Perk Products ── */}
+      {/* â”€â”€ Membership Perk Products â”€â”€ */}
       <div>
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-white mb-1">Membership Perk Products</h2>
             <p className="text-gray-500 text-sm">
-              Products shown in the &ldquo;With your membership&rdquo; carousel on the shop page. Full product management — images, size &amp; color options, per-variant inventory, and price modifiers.
+              Products shown in the &ldquo;With your membership&rdquo; carousel on the shop page. Full product management â€” images, size &amp; color options, per-variant inventory, and price modifiers.
             </p>
           </div>
           <button
@@ -7204,7 +7204,7 @@ function SettingsTab() {
           </div>
         ) : perkProds.length === 0 ? (
           <div className="border border-dashed border-surface-700 rounded-2xl py-12 text-center">
-            <p className="text-4xl mb-3">✦</p>
+            <p className="text-4xl mb-3">âœ¦</p>
             <p className="text-gray-400 font-bold mb-1">No perk products yet</p>
             <p className="text-gray-600 text-sm mb-5">
               Add products with member discounts enabled to showcase them in the carousel.
@@ -7224,24 +7224,24 @@ function SettingsTab() {
                   {p.imagePreviewUrl ? (
                     <img src={p.imagePreviewUrl} alt={p.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xl opacity-20">👕</div>
+                    <div className="w-full h-full flex items-center justify-center text-xl opacity-20">ðŸ‘•</div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-bold text-sm truncate">{p.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={`text-xs font-bold ${STATUS_COLORS[p.status] || 'text-gray-400'}`}>{p.status}</span>
-                    <span className="text-gray-700 text-xs">·</span>
+                    <span className="text-gray-700 text-xs">Â·</span>
                     <span className="text-gray-500 text-xs">${p.price.toFixed(2)}</span>
                     {p.variants.length > 0 && (
                       <>
-                        <span className="text-gray-700 text-xs">·</span>
+                        <span className="text-gray-700 text-xs">Â·</span>
                         <span className="text-gray-500 text-xs">{p.variants.length} variant{p.variants.length !== 1 ? 's' : ''}</span>
                       </>
                     )}
                     {p.optionGroups && p.optionGroups.length > 0 && (
                       <>
-                        <span className="text-gray-700 text-xs">·</span>
+                        <span className="text-gray-700 text-xs">Â·</span>
                         <span className="text-gray-500 text-xs">{p.optionGroups.map((g) => g.name).join(', ')}</span>
                       </>
                     )}
@@ -7276,7 +7276,7 @@ function SettingsTab() {
         )}
       </div>
 
-      {/* ── Custom CSS ── */}
+      {/* â”€â”€ Custom CSS â”€â”€ */}
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-bold text-white mb-1">Custom CSS</h2>
@@ -7289,7 +7289,7 @@ function SettingsTab() {
           <textarea
             value={loading ? '' : (settings['custom_css'] ?? '')}
             onChange={(e) => set('custom_css', e.target.value)}
-            placeholder={loading ? 'Loading…' : '/* Add custom CSS here */'}
+            placeholder={loading ? 'Loadingâ€¦' : '/* Add custom CSS here */'}
             disabled={loading}
             spellCheck={false}
             rows={24}
@@ -7317,7 +7317,7 @@ function SettingsTab() {
   );
 }
 
-// ── Live Tab ──────────────────────────────────────────────────────────────────
+// â”€â”€ Live Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface AdminLiveStream {
   id: string; title: string; description: string | null; status: string;
@@ -7409,7 +7409,7 @@ function LiveTab() {
 
       {rtmpUrl && (
         <div className="mb-6 p-4 bg-green-900/30 border border-green-600/40 rounded-xl space-y-2">
-          <p className="text-green-400 font-semibold text-sm">Stream created! Configure OBS → Settings → Stream → Custom:</p>
+          <p className="text-green-400 font-semibold text-sm">Stream created! Configure OBS â†’ Settings â†’ Stream â†’ Custom:</p>
           <div>
             <p className="text-xs text-gray-400 mb-0.5">Server (paste into OBS Server field):</p>
             <code className="text-xs text-green-300 break-all">rtmps://live.cloudflare.com:443/live/</code>
@@ -7445,7 +7445,7 @@ function LiveTab() {
           </div>
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="px-4 py-2 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black text-sm font-semibold rounded-lg transition-colors">
-              {submitting ? 'Creating…' : 'Create Stream'}
+              {submitting ? 'Creatingâ€¦' : 'Create Stream'}
             </button>
             <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
           </div>
@@ -7485,8 +7485,8 @@ function LiveTab() {
                     >
                       {keyVisible === s.id ? 'Hide stream key' : 'Show stream key'}
                     </button>
-                    <a href={`/live/${s.id}`} target="_blank" rel="noopener" className="text-xs text-brand-400 hover:underline">View page ↗</a>
-                    <a href={`/admin/studio/${s.id}`} className="text-xs text-brand-500 font-semibold hover:text-brand-400 transition-colors">🎙 Browser Studio</a>
+                    <a href={`/live/${s.id}`} target="_blank" rel="noopener" className="text-xs text-brand-400 hover:underline">View page â†—</a>
+                    <a href={`/admin/studio/${s.id}`} className="text-xs text-brand-500 font-semibold hover:text-brand-400 transition-colors">ðŸŽ™ Browser Studio</a>
                   </div>
                   {keyVisible === s.id && (
                     <div className="mt-2 space-y-2">
@@ -7500,7 +7500,7 @@ function LiveTab() {
                       </div>
                       {s.cfWebRtcUrl && (
                         <div>
-                          <p className="text-xs text-gray-500 mb-0.5">WHIP URL (OBS WebRTC — recommended):</p>
+                          <p className="text-xs text-gray-500 mb-0.5">WHIP URL (OBS WebRTC â€” recommended):</p>
                           <code className="text-xs text-green-300 break-all">{s.cfWebRtcUrl}</code>
                         </div>
                       )}
@@ -7515,7 +7515,7 @@ function LiveTab() {
                 <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                   {s.status === 'idle'  && <button onClick={() => setStatus(s.id, 'live')}  className="text-xs px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg transition-colors">Go Live</button>}
                   {s.status === 'live'  && <button onClick={() => setStatus(s.id, 'ended')} className="text-xs px-3 py-1.5 bg-surface-600 hover:bg-surface-500 text-white rounded-lg transition-colors">End Stream</button>}
-                  <button onClick={() => deleteStream(s.id)} className="text-xs px-3 py-1.5 text-gray-600 hover:text-red-400 border border-surface-700 hover:border-red-900/50 rounded-lg transition-colors ml-4">🗑 Delete</button>
+                  <button onClick={() => deleteStream(s.id)} className="text-xs px-3 py-1.5 text-gray-600 hover:text-red-400 border border-surface-700 hover:border-red-900/50 rounded-lg transition-colors ml-4">ðŸ—‘ Delete</button>
                 </div>
               </div>
             </div>
@@ -7526,7 +7526,7 @@ function LiveTab() {
   );
 }
 
-// ── Push Tab ──────────────────────────────────────────────────────────────────
+// â”€â”€ Push Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function PushTab() {
   const [form, setForm]       = useState({ title: '', body: '', url: '' });
@@ -7580,7 +7580,7 @@ function PushTab() {
           <label className="text-xs text-gray-500 mb-1.5 block">Message body *</label>
           <textarea
             value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })}
-            placeholder="A new episode just dropped — tap to watch." required rows={3}
+            placeholder="A new episode just dropped â€” tap to watch." required rows={3}
             className="w-full bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
           />
         </div>
@@ -7596,7 +7596,7 @@ function PushTab() {
           type="submit" disabled={sending}
           className="w-full py-3 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-black font-bold rounded-xl text-sm transition-colors"
         >
-          {sending ? 'Sending…' : 'Send Push Notification'}
+          {sending ? 'Sendingâ€¦' : 'Send Push Notification'}
         </button>
       </form>
 
@@ -7610,7 +7610,7 @@ function PushTab() {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// â”€â”€ Main page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function AdminInner() {
   const { user, loading } = useAuth();
@@ -7637,21 +7637,22 @@ function AdminInner() {
   if (loading || !user?.isAdmin) return null;
 
   const TABS: { key: Tab; label: string; emoji: string }[] = [
-    { key: 'overview',  label: 'Overview',  emoji: '📊' },
-    { key: 'users',     label: 'Users',     emoji: '👥' },
-    { key: 'content',   label: 'Content',   emoji: '🎵' },
-    { key: 'reports',   label: 'Reports',   emoji: '⚑' },
-    { key: 'polls',     label: 'Polls',     emoji: '🗳️' },
-    { key: 'partners',  label: 'Partners',  emoji: '🤝' },
-    { key: 'shop',      label: 'The Ark',   emoji: '🛒' },
-    { key: 'albums',    label: 'Albums',    emoji: '💿' },
-    { key: 'series',    label: 'Series',    emoji: '📺' },
-    { key: 'live',      label: 'Live',      emoji: '📡' },
-    { key: 'push',       label: 'Push',       emoji: '🔔' },
-    { key: 'newsletter', label: 'Newsletter', emoji: '📧' },
-    { key: 'loyalty',    label: 'Loyalty',    emoji: '⭐' },
-    { key: 'livity',     label: 'Livity',     emoji: '🌱' },
-    { key: 'settings',   label: 'Settings',   emoji: '🎨' },
+    { key: 'overview',  label: 'Overview',  emoji: 'ðŸ“Š' },
+    { key: 'users',     label: 'Users',     emoji: 'ðŸ‘¥' },
+    { key: 'content',   label: 'Content',   emoji: 'ðŸŽµ' },
+    { key: 'reports',   label: 'Reports',   emoji: 'âš‘' },
+    { key: 'polls',     label: 'Polls',     emoji: 'ðŸ—³ï¸' },
+    { key: 'partners',  label: 'Partners',  emoji: 'ðŸ¤' },
+    { key: 'shop',      label: 'The Ark',   emoji: 'ðŸ›’' },
+    { key: 'albums',    label: 'Albums',    emoji: 'ðŸ’¿' },
+    { key: 'series',    label: 'Series',    emoji: 'ðŸ“º' },
+    { key: 'live',      label: 'Live',      emoji: 'ðŸ“¡' },
+    { key: 'push',       label: 'Push',       emoji: 'ðŸ””' },
+    { key: 'newsletter', label: 'Newsletter', emoji: 'ðŸ“§' },
+    { key: 'loyalty',    label: 'Loyalty',    emoji: 'â­' },
+    { key: 'livity',     label: 'Livity',     emoji: 'ðŸŒ±' },
+    { key: 'journey',    label: 'Journey',    emoji: 'ðŸ¦‹' },
+    { key: 'settings',   label: 'Settings',   emoji: 'ðŸŽ¨' },
   ];
 
   return (
@@ -7664,7 +7665,7 @@ function AdminInner() {
         <span className="text-xs bg-brand-500 text-black px-3 py-1.5 rounded-full font-bold">Admin</span>
       </div>
 
-      {/* Tab bar — desktop */}
+      {/* Tab bar â€” desktop */}
       <div className="hidden md:flex gap-2 mb-8 border-b border-surface-700 pb-1 overflow-x-auto">
         {TABS.map((t) => (
           <button
@@ -7681,7 +7682,7 @@ function AdminInner() {
         ))}
       </div>
 
-      {/* Tab bar — mobile navigation */}
+      {/* Tab bar â€” mobile navigation */}
       <div className="md:hidden mb-5">
         <button
           onClick={() => setMobileMenuOpen((v) => !v)}
@@ -7692,7 +7693,7 @@ function AdminInner() {
             <span className="text-white font-bold text-sm">{TABS.find((t) => t.key === tab)?.label}</span>
           </span>
           <span className="flex items-center gap-1.5 text-brand-400 text-sm font-semibold">
-            {mobileMenuOpen ? 'Close ▲' : 'Switch ▼'}
+            {mobileMenuOpen ? 'Close â–²' : 'Switch â–¼'}
           </span>
         </button>
 
@@ -7710,7 +7711,7 @@ function AdminInner() {
               >
                 <span className="w-6 text-center flex-shrink-0">{t.emoji}</span>
                 <span className="flex-1">{t.label}</span>
-                {tab === t.key && <span className="text-xs font-black opacity-50">✓</span>}
+                {tab === t.key && <span className="text-xs font-black opacity-50">âœ“</span>}
               </button>
             ))}
           </div>
@@ -7731,12 +7732,13 @@ function AdminInner() {
       {tab === 'newsletter' && <NewsletterTab />}
       {tab === 'loyalty'    && <LoyaltyTab />}
       {tab === 'livity'     && <LivityAdminTab />}
+      {tab === 'journey'    && <JourneyAdminTab />}
       {tab === 'settings'   && <SettingsTab />}
     </div>
   );
 }
 
-// ── Loyalty Tab ───────────────────────────────────────────────────────────────
+// â”€â”€ Loyalty Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function LoyaltyTab() {
   const TYPES = ['DISCOUNT', 'EARLY_ACCESS', 'EXCLUSIVE_CONTENT', 'CUSTOM'];
@@ -7822,7 +7824,7 @@ function LoyaltyTab() {
         </div>
         <div className="flex gap-3 items-center">
           <button onClick={handleSave} disabled={saving} className="bg-brand-500 hover:bg-brand-400 text-black font-semibold text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
-            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Reward'}
+            {saving ? 'Savingâ€¦' : editing ? 'Save Changes' : 'Create Reward'}
           </button>
           {editing && <button onClick={blank} className="text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>}
           {msg && <span className="text-xs text-brand-400">{msg}</span>}
@@ -7875,7 +7877,7 @@ export default function AdminPage() {
   );
 }
 
-// ── Livity Admin Tab ─────────────────────────────────────────────────────────
+// â”€â”€ Livity Admin Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface LivityAdminAct {
   id: string;
@@ -7933,7 +7935,7 @@ function LivityAdminTab() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h2 className="text-white font-semibold">Livity — Elder Witnessing</h2>
+        <h2 className="text-white font-semibold">Livity â€” Elder Witnessing</h2>
         <span className="text-xs text-gray-500 ml-auto">{total} act{total !== 1 ? 's' : ''}</span>
       </div>
 
@@ -7971,13 +7973,13 @@ function LivityAdminTab() {
                     <span className="text-xs text-gray-600 font-mono">{a.user.xp.toLocaleString()} XP</span>
                     {a.user.station && (
                       <span className="text-[10px] text-amber-400 border border-amber-500/30 px-1.5 rounded">
-                        {{ ARK_BUILDER: '🌱', GARDENER: '🌿', FAADA: '🌍' }[a.user.station] ?? ''} {a.user.station.replace('_', ' ')}
+                        {{ ARK_BUILDER: 'ðŸŒ±', GARDENER: 'ðŸŒ¿', FAADA: 'ðŸŒ' }[a.user.station] ?? ''} {a.user.station.replace('_', ' ')}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs text-brand-400 font-semibold">{a.typeLabel}</span>
-                    <span className="text-gray-600 text-xs">·</span>
+                    <span className="text-gray-600 text-xs">Â·</span>
                     <span className="text-xs text-gray-500">
                       {new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
@@ -8008,14 +8010,14 @@ function LivityAdminTab() {
                         disabled={acting === a.id}
                         className="flex-1 text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30 font-semibold transition-colors disabled:opacity-40"
                       >
-                        {acting === a.id ? '…' : 'Witness'}
+                        {acting === a.id ? 'â€¦' : 'Witness'}
                       </button>
                       <button
                         onClick={() => witness(a.id, 'REJECTED')}
                         disabled={acting === a.id}
                         className="flex-1 text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 font-semibold transition-colors disabled:opacity-40"
                       >
-                        {acting === a.id ? '…' : 'Return'}
+                        {acting === a.id ? 'â€¦' : 'Return'}
                       </button>
                     </div>
                   </div>
@@ -8025,6 +8027,180 @@ function LivityAdminTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// â”€â”€ Journey Admin Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+interface AdminJourneyDay {
+  id: string;
+  dayNumber: number;
+  phase: string;
+  title: string;
+  lie: string;
+  truth: string;
+  published: boolean;
+  updatedAt: string;
+  _count: { entries: number };
+}
+
+const PHASE_OPTS = ['EGG', 'CATERPILLAR', 'J_SHAPE', 'CHRYSALIS', 'BUTTERFLY'];
+const PHASE_EMOJI_MAP: Record<string, string> = {
+  EGG: 'ðŸ¥š', CATERPILLAR: 'ðŸ›', J_SHAPE: 'ðŸ”„', CHRYSALIS: 'ðŸ«˜', BUTTERFLY: 'ðŸ¦‹',
+};
+const EMPTY_FORM = {
+  dayNumber: '', phase: 'EGG', title: '', lie: '', truth: '',
+  body: '', daddyManism: '', reflectionPrompt: '', challengePrompt: '',
+  livityPrompt: '', journalPrompt: '', closingText: '', published: false,
+};
+
+function JourneyAdminTab() {
+  const [days, setDays]       = useState<AdminJourneyDay[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [form, setForm]       = useState<any>(EMPTY_FORM);
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState('');
+
+  useEffect(() => { loadDays(); }, []);
+
+  function loadDays() {
+    api.get('/journey/admin/days').then((r) => setDays(r.data.days)).catch(() => {});
+  }
+
+  function startNew() { setForm(EMPTY_FORM); setEditing('new'); }
+
+  async function startEdit(day: AdminJourneyDay) {
+    const { data } = await api.get(`/journey/admin/days/${day.dayNumber}`);
+    setForm({ ...data.day, dayNumber: String(data.day.dayNumber) });
+    setEditing(day.dayNumber);
+  }
+
+  async function handleSave() {
+    setSaving(true); setMsg('');
+    try {
+      await api.put('/journey/admin/days', { ...form, dayNumber: Number(form.dayNumber) });
+      setMsg('Saved.'); setEditing(null); loadDays();
+    } catch (e: any) { setMsg(e?.response?.data?.error ?? 'Save failed.'); }
+    finally { setSaving(false); }
+  }
+
+  async function handleDelete(dayNumber: number) {
+    if (!confirm(`Delete Day ${dayNumber}?`)) return;
+    await api.delete(`/journey/admin/days/${dayNumber}`);
+    loadDays();
+  }
+
+  if (editing !== null) {
+    return (
+      <div className="max-w-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-white font-semibold">{editing === 'new' ? 'New Day' : `Edit Day ${editing}`}</h2>
+          <button onClick={() => setEditing(null)} className="text-gray-500 hover:text-white text-sm">Back</button>
+        </div>
+        {msg && <p className="text-xs text-brand-400 mb-4">{msg}</p>}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <JField label="Day Number" value={form.dayNumber} onChange={(v: string) => setForm((p: any) => ({ ...p, dayNumber: v }))} type="number" />
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Phase</label>
+              <select value={form.phase} onChange={(e) => setForm((p: any) => ({ ...p, phase: e.target.value }))}
+                className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+                {PHASE_OPTS.map((p) => <option key={p} value={p}>{PHASE_EMOJI_MAP[p]} {p.replace('_', ' ')}</option>)}
+              </select>
+            </div>
+          </div>
+          <JField label="Title" value={form.title} onChange={(v: string) => setForm((p: any) => ({ ...p, title: v }))} />
+          <JField label="The Lie" value={form.lie} onChange={(v: string) => setForm((p: any) => ({ ...p, lie: v }))} />
+          <JField label="The Truth" value={form.truth} onChange={(v: string) => setForm((p: any) => ({ ...p, truth: v }))} />
+          <JTextarea label="Body" value={form.body} onChange={(v: string) => setForm((p: any) => ({ ...p, body: v }))} rows={12} />
+          <JField label="DaddyManism" value={form.daddyManism} onChange={(v: string) => setForm((p: any) => ({ ...p, daddyManism: v }))} />
+          <JTextarea label="Reflection Prompt" value={form.reflectionPrompt} onChange={(v: string) => setForm((p: any) => ({ ...p, reflectionPrompt: v }))} />
+          <JTextarea label="Challenge Prompt" value={form.challengePrompt} onChange={(v: string) => setForm((p: any) => ({ ...p, challengePrompt: v }))} />
+          <JTextarea label="Livity Prompt" value={form.livityPrompt} onChange={(v: string) => setForm((p: any) => ({ ...p, livityPrompt: v }))} />
+          <JField label="Journal Prompt" value={form.journalPrompt} onChange={(v: string) => setForm((p: any) => ({ ...p, journalPrompt: v }))} />
+          <JTextarea label="Closing Text" value={form.closingText} onChange={(v: string) => setForm((p: any) => ({ ...p, closingText: v }))} />
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={form.published} onChange={(e) => setForm((p: any) => ({ ...p, published: e.target.checked }))} className="w-4 h-4 rounded accent-brand-500" />
+            <span className="text-sm text-gray-300">Published (visible to users)</span>
+          </label>
+          <div className="flex gap-3 pt-2">
+            <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-lg bg-brand-500 text-black font-bold text-sm hover:bg-brand-400 transition-colors disabled:opacity-50">
+              {saving ? 'Savingâ€¦' : 'Save Day'}
+            </button>
+            <button onClick={() => setEditing(null)} className="px-5 py-2 rounded-lg bg-surface-700 text-gray-300 text-sm hover:bg-surface-600 transition-colors">Cancel</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-white font-semibold">Journey Days</h2>
+        <button onClick={startNew} className="text-xs bg-brand-500 text-black font-bold px-3 py-1.5 rounded-lg hover:bg-brand-400 transition-colors">+ Add Day</button>
+      </div>
+      {msg && <p className="text-xs text-brand-400 mb-4">{msg}</p>}
+      <div className="bg-surface-800 border border-surface-700 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-surface-700 text-left text-xs text-gray-400 uppercase tracking-wide">
+              <th className="px-4 py-3">Day</th><th className="px-4 py-3">Phase</th><th className="px-4 py-3">Title</th>
+              <th className="px-4 py-3 hidden md:table-cell">Lie / Truth</th>
+              <th className="px-4 py-3 text-right">Users</th><th className="px-4 py-3 text-right">Status</th><th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-surface-700">
+            {days.map((d) => (
+              <tr key={d.id} className="hover:bg-surface-750 transition-colors">
+                <td className="px-4 py-3 font-mono text-white font-bold">{d.dayNumber}</td>
+                <td className="px-4 py-3">{PHASE_EMOJI_MAP[d.phase] ?? d.phase}</td>
+                <td className="px-4 py-3 text-white font-medium">{d.title}</td>
+                <td className="px-4 py-3 hidden md:table-cell">
+                  <p className="text-[10px] text-red-400/70 italic truncate max-w-[160px]">{d.lie}</p>
+                  <p className="text-[10px] text-green-400/70 italic truncate max-w-[160px]">{d.truth}</p>
+                </td>
+                <td className="px-4 py-3 text-right text-gray-400 text-xs">{d._count.entries}</td>
+                <td className="px-4 py-3 text-right">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${d.published ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-surface-700 text-gray-500 border-surface-600'}`}>
+                    {d.published ? 'Live' : 'Draft'}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex gap-2 justify-end">
+                    <button onClick={() => startEdit(d)} className="text-xs text-brand-400 hover:text-brand-300">Edit</button>
+                    <button onClick={() => handleDelete(d.dayNumber)} className="text-xs text-gray-600 hover:text-red-400">Del</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {days.length === 0 && (
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-600">Days 1-3 seed automatically on next API startup.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function JField({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <label className="text-xs text-gray-400 block mb-1">{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400" />
+    </div>
+  );
+}
+
+function JTextarea({ label, value, onChange, rows = 4 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
+  return (
+    <div>
+      <label className="text-xs text-gray-400 block mb-1">{label}</label>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows}
+        className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-400 resize-y" />
     </div>
   );
 }

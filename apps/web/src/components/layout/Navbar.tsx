@@ -186,6 +186,12 @@ export default function Navbar() {
           </div>
 
           <Link
+            href="/journey"
+            className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${pathname?.startsWith('/journey') ? 'text-brand-400 bg-brand-500/10' : 'text-brand-400 hover:bg-brand-500/10'}`}
+          >
+            Journey
+          </Link>
+          <Link
             href="/live"
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname?.startsWith('/live') ? 'text-white bg-surface-700' : 'text-gray-300 hover:text-white hover:bg-surface-800'}`}
           >

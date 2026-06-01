@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { router } from './routes';
 import { startTranscodeWorker } from './workers/transcoder';
 import { startScheduler } from './workers/scheduler';
+import { seedJourneyDays } from './controllers/journey.controller';
 
 // Prevent unhandled async rejections from crashing the process (Express 4 doesn't catch these)
 process.on('unhandledRejection', (reason) => {
@@ -64,6 +65,9 @@ app.listen(PORT, () => {
     console.error('[Transcoder] Failed to start worker:', err.message);
   });
   startScheduler();
+  seedJourneyDays().catch((err) => {
+    console.error('[Journey] Seed failed:', err.message);
+  });
 });
 
 export default app;

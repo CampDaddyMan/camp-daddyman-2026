@@ -125,6 +125,10 @@ export default function MenuDrawer() {
               </TouchableOpacity>
             )}
 
+            {/* Journey — top of drawer */}
+            <Section title="The Journey" />
+            <Item icon="egg-outline" label="🦋 My Journey" onPress={() => go('Journey')} accent />
+
             {/* Discover */}
             <Section title="Discover" />
             <Item icon="home-outline" label="Home" onPress={() => go('Tabs')} />

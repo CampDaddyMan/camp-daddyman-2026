@@ -22,6 +22,7 @@ import GiftScreen from '../screens/GiftScreen';
 import EpisodePlayerScreen from '../screens/EpisodePlayerScreen';
 import PlaylistDetailScreen from '../screens/PlaylistDetailScreen';
 import WrappedScreen from '../screens/WrappedScreen';
+import JourneyScreen from '../screens/JourneyScreen';
 import HeaderActions from '../components/HeaderActions';
 
 export type RootStackParamList = {
@@ -45,6 +46,7 @@ export type RootStackParamList = {
   Gift: undefined;
   PlaylistDetail: { id: string; name: string };
   Wrapped: undefined;
+  Journey: undefined;
   EpisodePlayer: {
     id?: string;
     title: string;
@@ -116,6 +118,7 @@ export default function RootNavigator({ isLoggedIn }: { isLoggedIn: boolean }) {
           <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} options={({ route }) => ({ title: route.params.name })} />
           <Stack.Screen name="EpisodePlayer" component={EpisodePlayerScreen} />
           <Stack.Screen name="Wrapped" component={WrappedScreen} options={{ title: 'Wrapped' }} />
+          <Stack.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey' }} />
         </>
       ) : (
         <>

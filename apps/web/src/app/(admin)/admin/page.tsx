@@ -45,7 +45,7 @@ interface AdminReport {
   reporter: { username: string; email: string };
 }
 
-type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'loyalty' | 'goodDone' | 'settings';
+type Tab = 'overview' | 'users' | 'content' | 'reports' | 'polls' | 'partners' | 'shop' | 'albums' | 'series' | 'live' | 'push' | 'newsletter' | 'loyalty' | 'livity' | 'settings';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -7650,7 +7650,7 @@ function AdminInner() {
     { key: 'push',       label: 'Push',       emoji: '🔔' },
     { key: 'newsletter', label: 'Newsletter', emoji: '📧' },
     { key: 'loyalty',    label: 'Loyalty',    emoji: '⭐' },
-    { key: 'goodDone',   label: 'Good Done',  emoji: '🌱' },
+    { key: 'livity',     label: 'Livity',     emoji: '🌱' },
     { key: 'settings',   label: 'Settings',   emoji: '🎨' },
   ];
 
@@ -7730,7 +7730,7 @@ function AdminInner() {
       {tab === 'push'       && <PushTab />}
       {tab === 'newsletter' && <NewsletterTab />}
       {tab === 'loyalty'    && <LoyaltyTab />}
-      {tab === 'goodDone'   && <GoodDoneAdminTab />}
+      {tab === 'livity'     && <LivityAdminTab />}
       {tab === 'settings'   && <SettingsTab />}
     </div>
   );
@@ -7875,9 +7875,9 @@ export default function AdminPage() {
   );
 }
 
-// ── Good Done Admin Tab ───────────────────────────────────────────────────────
+// ── Livity Admin Tab ─────────────────────────────────────────────────────────
 
-interface GoodDoneAdminAct {
+interface LivityAdminAct {
   id: string;
   type: string;
   typeLabel: string;
@@ -7890,8 +7890,8 @@ interface GoodDoneAdminAct {
   verifiedBy?: { username: string } | null;
 }
 
-function GoodDoneAdminTab() {
-  const [acts, setActs]       = useState<GoodDoneAdminAct[]>([]);
+function LivityAdminTab() {
+  const [acts, setActs]       = useState<LivityAdminAct[]>([]);
   const [total, setTotal]     = useState(0);
   const [status, setStatus]   = useState('PENDING');
   const [acting, setActing]   = useState<string | null>(null);
@@ -7900,12 +7900,12 @@ function GoodDoneAdminTab() {
   useEffect(() => { load(); }, [status]); // eslint-disable-line
 
   function load() {
-    api.get('/admin/good-done', { params: { status, limit: '50' } })
+    api.get('/admin/livity', { params: { status, limit: '50' } })
       .then((r) => { setActs(r.data.acts); setTotal(r.data.total); })
       .catch(() => {});
   }
 
-  async function verify(id: string, action: 'APPROVED' | 'REJECTED') {
+  async function witness(id: string, action: 'APPROVED' | 'REJECTED') {
     const witnessNote = noteMap[id] ?? '';
     if (action === 'REJECTED' && !witnessNote.trim()) {
       alert('A witness note is required when rejecting.');
@@ -7913,11 +7913,11 @@ function GoodDoneAdminTab() {
     }
     setActing(id);
     try {
-      await api.post(`/admin/good-done/${id}/verify`, { action, witnessNote });
+      await api.post(`/admin/livity/${id}/witness`, { action, witnessNote });
       setActs((prev) => prev.filter((a) => a.id !== id));
       setTotal((n) => n - 1);
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Verification failed.');
+      alert(e?.response?.data?.error || 'Witnessing failed.');
     } finally {
       setActing(null);
     }
@@ -7933,7 +7933,7 @@ function GoodDoneAdminTab() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h2 className="text-white font-semibold">Good Done — Elder Verification</h2>
+        <h2 className="text-white font-semibold">Livity — Elder Witnessing</h2>
         <span className="text-xs text-gray-500 ml-auto">{total} act{total !== 1 ? 's' : ''}</span>
       </div>
 
@@ -7955,14 +7955,13 @@ function GoodDoneAdminTab() {
 
       {acts.length === 0 ? (
         <div className="text-center py-16 text-gray-600">
-          No {status === 'ALL' ? '' : status.toLowerCase() + ' '}acts to show.
+          No {status === 'ALL' ? '' : status.toLowerCase() + ' '}acts to witness.
         </div>
       ) : (
         <div className="space-y-3">
           {acts.map((a) => (
             <div key={a.id} className="bg-surface-800 border border-surface-700 rounded-xl p-5">
               <div className="flex items-start gap-4 flex-wrap">
-                {/* User + meta */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-white font-semibold text-sm">
@@ -7994,7 +7993,6 @@ function GoodDoneAdminTab() {
                   )}
                 </div>
 
-                {/* Verification controls (PENDING only) */}
                 {a.status === 'PENDING' && (
                   <div className="flex flex-col gap-2 flex-shrink-0 min-w-[200px]">
                     <textarea
@@ -8006,18 +8004,18 @@ function GoodDoneAdminTab() {
                     />
                     <div className="flex gap-2">
                       <button
-                        onClick={() => verify(a.id, 'APPROVED')}
+                        onClick={() => witness(a.id, 'APPROVED')}
                         disabled={acting === a.id}
                         className="flex-1 text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30 font-semibold transition-colors disabled:opacity-40"
                       >
-                        {acting === a.id ? '…' : 'Approve'}
+                        {acting === a.id ? '…' : 'Witness'}
                       </button>
                       <button
-                        onClick={() => verify(a.id, 'REJECTED')}
+                        onClick={() => witness(a.id, 'REJECTED')}
                         disabled={acting === a.id}
                         className="flex-1 text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 font-semibold transition-colors disabled:opacity-40"
                       >
-                        {acting === a.id ? '…' : 'Reject'}
+                        {acting === a.id ? '…' : 'Return'}
                       </button>
                     </div>
                   </div>

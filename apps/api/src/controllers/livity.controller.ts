@@ -5,15 +5,15 @@ import { AuthRequest } from '../middleware/auth';
 const VALID_TYPES = ['GOOD', 'CREATION', 'PRESERVATION', 'RECONCILIATION'] as const;
 
 const TYPE_LABEL: Record<string, string> = {
-  GOOD:           'Act of Good',
-  CREATION:       'Act of Creation',
-  PRESERVATION:   'Act of Preservation',
-  RECONCILIATION: 'Act of Reconciliation',
+  GOOD:           'Conscious Living',
+  CREATION:       'Creation',
+  PRESERVATION:   'Preservation',
+  RECONCILIATION: 'Healing',
 };
 
-// ── User: submit a Good Done act ──────────────────────────────────────────────
+// ── User: log an act of Livity ────────────────────────────────────────────────
 
-export async function submitGoodDone(req: AuthRequest, res: Response) {
+export async function submitLivity(req: AuthRequest, res: Response) {
   const { type, description } = req.body;
 
   if (!VALID_TYPES.includes(type)) {
@@ -26,7 +26,7 @@ export async function submitGoodDone(req: AuthRequest, res: Response) {
     return res.status(400).json({ error: 'description must be under 1000 characters' });
   }
 
-  const act = await prisma.goodDone.create({
+  const act = await prisma.livity.create({
     data: { userId: req.user!.id, type, description: description.trim() },
     select: { id: true, type: true, description: true, status: true, createdAt: true },
   });
@@ -34,10 +34,10 @@ export async function submitGoodDone(req: AuthRequest, res: Response) {
   res.status(201).json({ act });
 }
 
-// ── User: list own acts ───────────────────────────────────────────────────────
+// ── User: list own Livity ─────────────────────────────────────────────────────
 
-export async function listMyGoodDone(req: AuthRequest, res: Response) {
-  const acts = await prisma.goodDone.findMany({
+export async function listMyLivity(req: AuthRequest, res: Response) {
+  const acts = await prisma.livity.findMany({
     where: { userId: req.user!.id },
     orderBy: { createdAt: 'desc' },
     select: {
@@ -48,16 +48,16 @@ export async function listMyGoodDone(req: AuthRequest, res: Response) {
   res.json({ acts });
 }
 
-// ── Admin: list all Good Done acts (filterable by status) ─────────────────────
+// ── Admin: list all Livity acts ───────────────────────────────────────────────
 
-export async function adminListGoodDone(req: AuthRequest, res: Response) {
+export async function adminListLivity(req: AuthRequest, res: Response) {
   const { status = 'PENDING', page = '1', limit = '30' } = req.query;
 
   const where: any = {};
   if (status && status !== 'ALL') where.status = String(status).toUpperCase();
 
   const [acts, total] = await Promise.all([
-    prisma.goodDone.findMany({
+    prisma.livity.findMany({
       where,
       skip: (Number(page) - 1) * Number(limit),
       take: Number(limit),
@@ -69,20 +69,18 @@ export async function adminListGoodDone(req: AuthRequest, res: Response) {
         verifiedBy: { select: { username: true } },
       },
     }),
-    prisma.goodDone.count({ where }),
+    prisma.livity.count({ where }),
   ]);
 
-  // Attach human-readable type labels
   const labelled = acts.map((a) => ({ ...a, typeLabel: TYPE_LABEL[a.type] ?? a.type }));
-
   res.json({ acts: labelled, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 }
 
-// ── Admin: verify (approve or reject) a Good Done act ────────────────────────
+// ── Admin: witness (approve or reject) an act ─────────────────────────────────
 
-export async function adminVerifyGoodDone(req: AuthRequest, res: Response) {
+export async function adminWitnessLivity(req: AuthRequest, res: Response) {
   const { id } = req.params;
-  const { action, witnessNote } = req.body; // action: 'APPROVED' | 'REJECTED'
+  const { action, witnessNote } = req.body;
 
   if (!['APPROVED', 'REJECTED'].includes(action)) {
     return res.status(400).json({ error: 'action must be APPROVED or REJECTED' });
@@ -91,13 +89,13 @@ export async function adminVerifyGoodDone(req: AuthRequest, res: Response) {
     return res.status(400).json({ error: 'A witness note is required when rejecting' });
   }
 
-  const existing = await prisma.goodDone.findUnique({ where: { id }, select: { status: true } });
+  const existing = await prisma.livity.findUnique({ where: { id }, select: { status: true } });
   if (!existing) return res.status(404).json({ error: 'Act not found' });
   if (existing.status !== 'PENDING') {
-    return res.status(400).json({ error: 'Only PENDING acts can be verified' });
+    return res.status(400).json({ error: 'Only PENDING acts can be witnessed' });
   }
 
-  const act = await prisma.goodDone.update({
+  const act = await prisma.livity.update({
     where: { id },
     data: {
       status:       action,

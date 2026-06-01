@@ -7,7 +7,7 @@
 ## What this project is
 The Camp DaddyMan gamification / transformation platform — part of the DaddyMan
 ecosystem. A "transformation platform," not a streaming library: the goal is to help
-people become capable and serve others, measured by good done, not engagement.
+people become capable and serve others, measured by Livity, not engagement.
 
 ## Corporate structure (locked)
 - **DaddyMan, Inc.** — parent holding company
@@ -28,28 +28,28 @@ The lifecycle is a CIRCLE, not a ladder. 5 stations are climbable; 3 are conferr
 
 **The Climbable Circle (5):**
 1. 🥚 **Egg** — Discover — potential, fragile, not yet proven. Currency: XP (honey/bait/onramp)
-2. 🐛 **Caterpillar** — Learn — consuming, growing, beginning to give. Currency: XP transitioning to Good Done
+2. 🐛 **Caterpillar** — Learn — consuming, growing, beginning to give. Currency: XP transitioning to Livity
 3. 🔄 **J-Shape** — Surrender — hanging; the hardest part; where people quit. Currency: NONE — human Elder contact only, cannot be automated. This is the hook-setting moment, the gap between honey and vinegar.
-4. 🫘 **Chrysalis** — Transform — old identity dissolves, unseen. Currency: Good Done (vinegar), witnessed acts
-5. 🦋 **Butterfly** — Serve — contribution, pollination. Currency: Good Done, deep, conferred by an Elder
+4. 🫘 **Chrysalis** — Transform — old identity dissolves, unseen. Currency: Livity (vinegar), witnessed acts
+5. 🦋 **Butterfly** — Serve — contribution, pollination. Currency: Livity, deep, conferred by an Elder
 
 **Beyond the ladder (3) — conferred, never pursued, no badge:**
 6. 🌱 **Ark Builder** — Multiply — sponsors AND walks the next one through the full circle. The butterfly lays eggs; the economy made literal.
 7. 🌿 **Gardener** (= Protector) — Tends and PROTECTS all five stages (Eggs, Caterpillars, J-Shapes, Chrysalises, Butterflies) without recognition, status, or applause. No leaderboard. You cannot perform being soil.
 8. 🌍 **Faada** — Becomes the soil the next Egg hatches into. Not a rank — a stewardship. Succeeds when no longer needed.
 
-The circle closes: Butterfly → Ark Builder → Gardener → Faada (soil beneath the next Egg). Intent: good done → service → heal the field → new sons born and enabled to become their own butterflies.
+The circle closes: Butterfly → Ark Builder → Gardener → Faada (soil beneath the next Egg). Intent: Livity → service → heal the field → new sons born and enabled to become their own butterflies.
 
 ## The bait strategy (LOCKED — Drew's design principle)
 XP is NOT the enemy of the philosophy. XP is the fishing rod. Two locked DaddyManisms govern it:
 - *"Easier fi fly wid honey dan vinegar."* — XP/gamification is the honey that gets them close.
 - *"If yuh bait naav enuff spice inna it, di fish dem nah guh smell it once di sea water dilute it."* — the XP layer must be genuinely compelling or daily life drowns it before it hooks anybody.
 
-So: **XP (honey) baits and hooks; Good Done (vinegar) is what we actually want them to drink.**
+So: **XP (honey) baits and hooks; Livity (vinegar) is what we actually want them to drink.**
 - Egg → Caterpillar: XP carries them (familiar rewards, the onramp).
 - At the J-Shape the hook sets: XP stops being enough — "to go further, something is required of you."
-- From the J-Shape up, Good Done is the ONLY currency. XP stops mattering the moment they take their first step into real service.
-- Build order agreed: XP stays but caps as primary driver at Caterpillar; Good Done track activates at Caterpillar; build the transition UI (language shifts from "earn XP" to "log a Good Done"); build the Elder verification workflow (the human layer Good Done requires).
+- From the J-Shape up, Livity is the ONLY currency. XP stops mattering the moment they take their first step into real service.
+- Build order agreed: XP stays but caps as primary driver at Caterpillar; Livity track activates at Caterpillar; build the transition UI (language shifts from "earn XP" to "log Livity"); build the Elder verification workflow (the human layer Livity requires).
 
 ## The build filter — run every feature through these
 1. **Butterfly Test** — does it help the user fly? (ability only — weak test)
@@ -61,7 +61,7 @@ So: **XP (honey) baits and hooks; Good Done (vinegar) is what we actually want t
 - If a feature grows engagement/retention but reduces capability → it FAILS. Cut it.
 
 ## Locked principles
-- The TRUE measure is **Good Done** (witnessed acts of Good, Creation, Preservation, Reconciliation), witnessed and never self-reported. XP is permitted ONLY as the entry bait (Egg → Caterpillar); it caps as a driver at Caterpillar and stops mattering from the J-Shape up. Never let XP become the destination — it is the honey, not the meal.
+- The TRUE measure is **Livity** (witnessed acts of Good, Creation, Preservation, Reconciliation), witnessed and never self-reported. XP is permitted ONLY as the entry bait (Egg → Caterpillar); it caps as a driver at Caterpillar and stops mattering from the J-Shape up. Never let XP become the destination — it is the honey, not the meal.
 - Stage advancement past the J-Shape is conferred by an Elder reading a pattern of genuine service — human judgement, not an XP threshold or arithmetic.
 - The J-Shape is STAFFED by a human Elder, never automated — it is the one place to add people, not gamification.
 - **No money ever buys rank. No rank ever pays money. No profit from those below.**

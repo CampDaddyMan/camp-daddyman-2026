@@ -42,7 +42,7 @@ interface XpData {
   isMaxLevel: boolean;
 }
 
-interface GoodDoneAct {
+interface LivityAct {
   id: string;
   type: string;
   description: string;
@@ -51,35 +51,35 @@ interface GoodDoneAct {
   createdAt: string;
 }
 
-const GD_TYPES = [
-  { value: 'GOOD',           label: 'Act of Good' },
-  { value: 'CREATION',       label: 'Act of Creation' },
-  { value: 'PRESERVATION',   label: 'Act of Preservation' },
-  { value: 'RECONCILIATION', label: 'Act of Reconciliation' },
+const LIVITY_TYPES = [
+  { value: 'GOOD',           label: 'Conscious Living' },
+  { value: 'CREATION',       label: 'Creation' },
+  { value: 'PRESERVATION',   label: 'Preservation' },
+  { value: 'RECONCILIATION', label: 'Healing' },
 ];
 
-const GD_STATUS_COLOR: Record<string, string> = {
+const LIVITY_STATUS_COLOR: Record<string, string> = {
   PENDING:  '#f8c202',
   APPROVED: '#4ade80',
   REJECTED: '#f87171',
 };
 
-function GoodDoneSection({ onSubmit }: { onSubmit: (type: string, desc: string) => Promise<GoodDoneAct> }) {
-  const [acts, setActs]     = useState<GoodDoneAct[]>([]);
+function LivitySection({ onSubmit }: { onSubmit: (type: string, desc: string) => Promise<LivityAct> }) {
+  const [acts, setActs]     = useState<LivityAct[]>([]);
   const [open, setOpen]     = useState(false);
   const [type, setType]     = useState('GOOD');
   const [desc, setDesc]     = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get('/good-done')
+    api.get('/livity')
       .then((r) => setActs(r.data.acts ?? []))
       .catch(() => {});
   }, []);
 
   async function handleSubmit() {
     if (desc.trim().length < 10) {
-      Alert.alert('Too short', 'Describe the act in at least 10 characters.');
+      Alert.alert('Too short', 'Describe your Livity in at least 10 characters.');
       return;
     }
     setSaving(true);
@@ -99,18 +99,18 @@ function GoodDoneSection({ onSubmit }: { onSubmit: (type: string, desc: string) 
     <View style={gdStyles.container}>
       <View style={gdStyles.header}>
         <View>
-          <Text style={gdStyles.title}>Good Done</Text>
-          <Text style={gdStyles.sub}>Witnessed acts of service</Text>
+          <Text style={gdStyles.title}>Livity</Text>
+          <Text style={gdStyles.sub}>Your righteous living, witnessed</Text>
         </View>
         <TouchableOpacity onPress={() => setOpen((v) => !v)} style={gdStyles.logBtn}>
-          <Text style={gdStyles.logBtnText}>{open ? 'Cancel' : '+ Log act'}</Text>
+          <Text style={gdStyles.logBtnText}>{open ? 'Cancel' : '+ Log Livity'}</Text>
         </TouchableOpacity>
       </View>
 
       {open && (
         <View style={gdStyles.form}>
           <View style={gdStyles.typeRow}>
-            {GD_TYPES.map((t) => (
+            {LIVITY_TYPES.map((t) => (
               <TouchableOpacity
                 key={t.value}
                 onPress={() => setType(t.value)}
@@ -125,7 +125,7 @@ function GoodDoneSection({ onSubmit }: { onSubmit: (type: string, desc: string) 
           <TextInput
             value={desc}
             onChangeText={setDesc}
-            placeholder="Describe what you did and who was affected…"
+            placeholder="Describe your Livity — what you did, where, who was touched by it…"
             placeholderTextColor="#444"
             multiline
             maxLength={1000}
@@ -141,10 +141,10 @@ function GoodDoneSection({ onSubmit }: { onSubmit: (type: string, desc: string) 
         <View style={gdStyles.historyList}>
           {acts.map((a) => (
             <View key={a.id} style={gdStyles.actRow}>
-              <View style={[gdStyles.statusDot, { backgroundColor: GD_STATUS_COLOR[a.status] ?? '#888' }]} />
+              <View style={[gdStyles.statusDot, { backgroundColor: LIVITY_STATUS_COLOR[a.status] ?? '#888' }]} />
               <View style={{ flex: 1 }}>
                 <Text style={gdStyles.actType}>
-                  {GD_TYPES.find((t) => t.value === a.type)?.label ?? a.type}
+                  {LIVITY_TYPES.find((t) => t.value === a.type)?.label ?? a.type}
                 </Text>
                 <Text style={gdStyles.actDesc} numberOfLines={2}>{a.description}</Text>
                 {a.witnessNote && (
@@ -158,7 +158,7 @@ function GoodDoneSection({ onSubmit }: { onSubmit: (type: string, desc: string) 
       )}
 
       {acts.length === 0 && !open && (
-        <Text style={gdStyles.empty}>No acts logged yet.</Text>
+        <Text style={gdStyles.empty}>No Livity logged yet.</Text>
       )}
     </View>
   );
@@ -275,7 +275,7 @@ function XpCard({ xp: xpData }: { xp: XpData }) {
         <View style={styles.xpJShapeMsg}>
           <Ionicons name="person-outline" size={13} color="#f8c202" />
           <Text style={styles.xpJShapeMsgText}>
-            An Elder will reach out. This stage cannot be automated.
+            An Elder will meet you here. Log your Livity below.
           </Text>
         </View>
       )}
@@ -316,8 +316,8 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError]           = useState('');
 
-  async function submitGoodDone(type: string, description: string): Promise<GoodDoneAct> {
-    const { data } = await api.post('/good-done', { type, description });
+  async function submitLivity(type: string, description: string): Promise<LivityAct> {
+    const { data } = await api.post('/livity', { type, description });
     return data.act;
   }
 
@@ -387,9 +387,9 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {/* Good Done — visible at Caterpillar (index 2) and above */}
+      {/* Livity — visible at Caterpillar (index 2) and above */}
       {xpData && xpData.index >= 2 && (
-        <GoodDoneSection onSubmit={submitGoodDone} />
+        <LivitySection onSubmit={submitLivity} />
       )}
 
       {/* All-time stats */}

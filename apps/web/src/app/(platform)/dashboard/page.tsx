@@ -138,9 +138,9 @@ function EngagementChart({ data }: { data: ActivityDay[] }) {
   );
 }
 
-// ── Good Done ─────────────────────────────────────────────────────────────────
+// ── Livity ────────────────────────────────────────────────────────────────────
 
-interface GoodDoneAct {
+interface LivityAct {
   id: string;
   type: string;
   description: string;
@@ -150,32 +150,32 @@ interface GoodDoneAct {
   createdAt: string;
 }
 
-const GD_TYPES = [
-  { value: 'GOOD',           label: 'Act of Good',           hint: 'Helping an elder, mentoring a youth, community cleanup' },
-  { value: 'CREATION',       label: 'Act of Creation',       hint: 'Song, poem, book, film, artwork' },
-  { value: 'PRESERVATION',   label: 'Act of Preservation',   hint: 'Culture, wisdom, stories, history' },
-  { value: 'RECONCILIATION', label: 'Act of Reconciliation', hint: 'Healing relationships, peacemaking' },
+const LIVITY_TYPES = [
+  { value: 'GOOD',           label: 'Conscious Living', hint: 'Treating others with love, respect, and non-violence — helping, mentoring, serving the community' },
+  { value: 'CREATION',       label: 'Creation',         hint: 'Song, poem, book, film, artwork — giving form to what lives within you' },
+  { value: 'PRESERVATION',   label: 'Preservation',     hint: 'Holding culture, wisdom, stories, and history — keeping the roots alive' },
+  { value: 'RECONCILIATION', label: 'Healing',          hint: 'Restoring harmony, making peace, bringing balance where there was discord' },
 ];
 
-const GD_STATUS_STYLE: Record<string, string> = {
+const LIVITY_STATUS_STYLE: Record<string, string> = {
   PENDING:  'bg-amber-500/10 text-amber-400 border-amber-500/30',
   APPROVED: 'bg-green-500/10 text-green-400 border-green-500/30',
   REJECTED: 'bg-red-500/10  text-red-400  border-red-500/30',
 };
 
-function GoodDoneSection({ acts, onSubmit }: {
-  acts: GoodDoneAct[];
+function LivitySection({ acts, onSubmit }: {
+  acts: LivityAct[];
   onSubmit: (type: string, description: string) => Promise<void>;
 }) {
-  const [open, setOpen]   = useState(false);
-  const [type, setType]   = useState('GOOD');
-  const [desc, setDesc]   = useState('');
+  const [open, setOpen]     = useState(false);
+  const [type, setType]     = useState('GOOD');
+  const [desc, setDesc]     = useState('');
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg]     = useState('');
+  const [msg, setMsg]       = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (desc.trim().length < 10) return setMsg('Describe the act in at least 10 characters.');
+    if (desc.trim().length < 10) return setMsg('Describe your Livity in at least 10 characters.');
     setSaving(true);
     setMsg('');
     try {
@@ -195,21 +195,21 @@ function GoodDoneSection({ acts, onSubmit }: {
     <div className="bg-surface-800 border border-surface-700 rounded-xl p-5 mb-8">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">Good Done</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Witnessed acts of service — the real currency</p>
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">Livity</h2>
+          <p className="text-xs text-gray-500 mt-0.5">Your righteous living, witnessed and forever remembered</p>
         </div>
         <button
           onClick={() => setOpen((v) => !v)}
           className="text-xs bg-brand-500 text-black font-bold px-3 py-1.5 rounded-lg hover:bg-brand-400 transition-colors"
         >
-          {open ? 'Cancel' : '+ Log an act'}
+          {open ? 'Cancel' : '+ Log your Livity'}
         </button>
       </div>
 
       {open && (
         <form onSubmit={handleSubmit} className="mb-5 space-y-3 border border-surface-700 rounded-xl p-4 bg-surface-900/50">
           <div className="grid grid-cols-2 gap-2">
-            {GD_TYPES.map((t) => (
+            {LIVITY_TYPES.map((t) => (
               <button
                 key={t.value}
                 type="button"
@@ -230,7 +230,7 @@ function GoodDoneSection({ acts, onSubmit }: {
             onChange={(e) => setDesc(e.target.value)}
             rows={3}
             maxLength={1000}
-            placeholder="Describe what you did, where, and who was affected. Be specific — an Elder will witness this."
+            placeholder="Describe your Livity — what you did, where, and who was touched by it. An Elder will witness this."
             className="w-full bg-surface-700 border border-surface-600 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brand-400 resize-none placeholder:text-gray-600"
           />
           <div className="flex items-center gap-3">
@@ -249,18 +249,18 @@ function GoodDoneSection({ acts, onSubmit }: {
 
       {acts.length === 0 ? (
         <p className="text-sm text-gray-600 text-center py-4">
-          No acts logged yet. Every act you log goes to an Elder for witnessing.
+          No Livity logged yet. Every act you log is witnessed by an Elder.
         </p>
       ) : (
         <div className="space-y-2">
           {acts.map((a) => (
             <div key={a.id} className="flex items-start gap-3 px-3 py-3 rounded-lg bg-surface-900/40">
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 mt-0.5 ${GD_STATUS_STYLE[a.status]}`}>
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 mt-0.5 ${LIVITY_STATUS_STYLE[a.status]}`}>
                 {a.status}
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-400 font-semibold mb-0.5">
-                  {GD_TYPES.find((t) => t.value === a.type)?.label ?? a.type}
+                  {LIVITY_TYPES.find((t) => t.value === a.type)?.label ?? a.type}
                 </p>
                 <p className="text-sm text-white leading-snug">{a.description}</p>
                 {a.witnessNote && (
@@ -773,7 +773,7 @@ export default function DashboardPage() {
   const [linkCopied, setLinkCopied]       = useState(false);
   const [badges, setBadges]               = useState<BadgeData[]>([]);
   const [liveXp, setLiveXp]               = useState<{ xp: number; currentStreak: number; longestStreak: number } | null>(null);
-  const [goodDones, setGoodDones]         = useState<GoodDoneAct[]>([]);
+  const [livityActs, setLivityActs]       = useState<LivityAct[]>([]);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -805,7 +805,7 @@ export default function DashboardPage() {
         setBadges(r.data.badges ?? []);
         setLiveXp({ xp: r.data.xp ?? 0, currentStreak: r.data.currentStreak ?? 0, longestStreak: r.data.longestStreak ?? 0 });
         if ((r.data.xp ?? 0) >= 100) {
-          api.get('/good-done').then((g) => setGoodDones(g.data.acts ?? [])).catch(() => {});
+          api.get('/livity').then((g) => setLivityActs(g.data.acts ?? [])).catch(() => {});
         }
       })
       .catch(() => {});
@@ -888,9 +888,9 @@ export default function DashboardPage() {
     } catch { setPortalLoading(false); }
   }
 
-  async function handleSubmitGoodDone(type: string, description: string) {
-    const { data } = await api.post('/good-done', { type, description });
-    setGoodDones((prev) => [data.act, ...prev]);
+  async function handleSubmitLivity(type: string, description: string) {
+    const { data } = await api.post('/livity', { type, description });
+    setLivityActs((prev) => [data.act, ...prev]);
   }
 
   async function handleResend() {
@@ -1022,9 +1022,9 @@ export default function DashboardPage() {
           {/* ── Badges ── */}
           {badges.length > 0 && <BadgesSection badges={badges} />}
 
-          {/* ── Good Done ── */}
+          {/* ── Livity ── */}
           {(liveXp?.xp ?? 0) >= 100 && (
-            <GoodDoneSection acts={goodDones} onSubmit={handleSubmitGoodDone} />
+            <LivitySection acts={livityActs} onSubmit={handleSubmitLivity} />
           )}
 
           {/* ── Milestone progress ── */}

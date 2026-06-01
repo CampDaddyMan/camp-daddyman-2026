@@ -21,6 +21,10 @@ npx prisma migrate resolve \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 
 npx prisma migrate resolve \
+  --rolled-back 20260601000001_rename_good_done_to_livity \
+  --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
+
+npx prisma migrate resolve \
   --rolled-back 20260524000001_add_series_trailer_url \
   --schema=apps/api/prisma/schema.prisma 2>/dev/null || true
 

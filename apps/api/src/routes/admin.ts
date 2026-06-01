@@ -15,7 +15,7 @@ import {
   listReports,
   resolveReport,
 } from '../controllers/admin.controller';
-import { adminListGoodDone, adminVerifyGoodDone } from '../controllers/goodDone.controller';
+import { adminListLivity, adminWitnessLivity } from '../controllers/livity.controller';
 import {
   adminListSubscribers,
   adminDeleteSubscriber,
@@ -96,8 +96,8 @@ router.post('/banners',                  writeLimiter, createBanner);
 router.patch('/banners/:id',             writeLimiter, updateBanner);
 router.delete('/banners/:id',            writeLimiter, deleteBanner);
 
-// Good Done verification (Elder workflow)
-router.get('/good-done',             readLimiter,  adminListGoodDone);
-router.post('/good-done/:id/verify', writeLimiter, adminVerifyGoodDone);
+// Livity witnessing (Elder workflow)
+router.get('/livity',                readLimiter,  adminListLivity);
+router.post('/livity/:id/witness',   writeLimiter, adminWitnessLivity);
 
 export default router;

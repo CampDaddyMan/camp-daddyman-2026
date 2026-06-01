@@ -85,8 +85,8 @@ model User {
   // Values: ARK_BUILDER | GARDENER | FAADA | null
   // GARDENER and FAADA have no badge and no public announcement (by constitution)
   station                String?
-  goodDones              GoodDone[]      @relation("GoodDoneSubmitter")
-  verifiedGoodDones      GoodDone[]      @relation("GoodDoneVerifier")
+  livityActs             Livity[]        @relation("LivitySubmitter")
+  verifiedLivityActs     Livity[]        @relation("LivityVerifier")
 }
 
 model Token {
@@ -1128,35 +1128,35 @@ model LoyaltyRedemption {
   @@index([userId])
 }
 
-// ── Good Done ─────────────────────────────────────────────────────────────────
-// Witnessed acts of service — the real currency from J-Shape up.
-// Never self-reported as valid: every act requires Elder verification.
+// ── Livity ────────────────────────────────────────────────────────────────────
+// Righteous living, witnessed and forever remembered.
+// The real currency from J-Shape up — never self-reported.
 
-model GoodDone {
-  id           String         @id @default(cuid())
+model Livity {
+  id           String       @id @default(cuid())
   userId       String
-  user         User           @relation("GoodDoneSubmitter", fields: [userId], references: [id], onDelete: Cascade)
-  type         GoodDoneType
+  user         User         @relation("LivitySubmitter", fields: [userId], references: [id], onDelete: Cascade)
+  type         LivityType
   description  String
-  status       GoodDoneStatus @default(PENDING)
-  witnessNote  String?        // Elder's note on verification
+  status       LivityStatus @default(PENDING)
+  witnessNote  String?
   verifiedById String?
-  verifiedBy   User?          @relation("GoodDoneVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedBy   User?        @relation("LivityVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
   verifiedAt   DateTime?
-  createdAt    DateTime       @default(now())
+  createdAt    DateTime     @default(now())
 
   @@index([userId, status])
   @@index([status, createdAt])
 }
 
-enum GoodDoneType {
-  GOOD           // Acts of Good — helping an elder, mentoring a youth, community cleanup
-  CREATION       // Acts of Creation — song, poem, book, film, artwork
-  PRESERVATION   // Acts of Preservation — culture, wisdom, stories, history
-  RECONCILIATION // Acts of Reconciliation — healing relationships, peacemaking
+enum LivityType {
+  GOOD           // Conscious Living — love, respect, community, mentoring
+  CREATION       // Creation — song, poem, book, film, artwork
+  PRESERVATION   // Preservation — culture, wisdom, stories, roots
+  RECONCILIATION // Healing — restoring harmony, peacemaking
 }
 
-enum GoodDoneStatus {
+enum LivityStatus {
   PENDING
   APPROVED
   REJECTED

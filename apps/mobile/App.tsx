@@ -7,6 +7,7 @@ LogBox.ignoreLogs([
   'VirtualizedLists should never be nested',
 ]);
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
 import { DrawerProvider } from './src/context/DrawerContext';
@@ -35,14 +36,16 @@ function AppInner() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <DrawerProvider>
-          <PlayerProvider>
-            <AppInner />
-          </PlayerProvider>
-        </DrawerProvider>
-      </CartProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <CartProvider>
+          <DrawerProvider>
+            <PlayerProvider>
+              <AppInner />
+            </PlayerProvider>
+          </DrawerProvider>
+        </CartProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

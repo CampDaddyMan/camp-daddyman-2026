@@ -61,11 +61,11 @@ Theme: *"Can anyone be trusted with the real me?"*
 | 23 | Let Truth Find Them | If people know the truth, they will leave. | The right people need truth to find you. | ✅ WRITTEN |
 | 24 | Feeling Again | I am safer numb. | Numbness protects, but it also imprisons. | ✅ WRITTEN |
 | 25 | Guard and Builder | My anger is my only protection. | Anger may guard the gate, but it cannot build the house. | ✅ WRITTEN |
-| 26 | Truthful Forgiveness | Forgiveness means pretending it did not happen. | Forgiveness tells the truth without letting the wound rule forever. | 🗺️ FRAMEWORK |
-| 27 | Clean Hands | Apology makes me small. | Apology is strength kneeling without disappearing. | 🗺️ FRAMEWORK |
-| 28 | Human Need | If I need people, I am weak. | Need is human; dependency is not destiny. | 🗺️ FRAMEWORK |
-| 29 | Soft Strength | I must become hard to survive. | Soft does not mean defenseless. | 🗺️ FRAMEWORK |
-| 30 | Honor the Weight | Nobody can understand me. | Someone does not need your exact wound to honor its weight. | 🗺️ FRAMEWORK |
+| 26 | Truthful Forgiveness | Forgiveness means pretending it did not happen. | Forgiveness tells the truth without letting the wound rule forever. | ✅ WRITTEN |
+| 27 | Clean Hands | Apology makes me small. | Apology is strength kneeling without disappearing. | ✅ WRITTEN |
+| 28 | Human Need | If I need people, I am weak. | Need is human; dependency is not destiny. | ✅ WRITTEN |
+| 29 | Soft Strength | I must become hard to survive. | Soft does not mean defenseless. | ✅ WRITTEN |
+| 30 | Honor the Weight | Nobody can understand me. | Someone does not need your exact wound to honor its weight. | ✅ WRITTEN |
 | 31 | Not Yours to Carry | I am responsible for everyone's feelings. | Care is not control. | 🗺️ FRAMEWORK |
 | 32 | Disappoint Fear | I cannot disappoint anyone. | Maturity sometimes disappoints people who benefited from your fear. | 🗺️ FRAMEWORK |
 | 33 | The Line | Boundaries are rejection. | Boundaries are how love survives without becoming ownership. | 🗺️ FRAMEWORK |

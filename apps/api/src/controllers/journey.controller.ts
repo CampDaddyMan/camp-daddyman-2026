@@ -1582,6 +1582,339 @@ to build.`,
     closingText: "Your anger kept you alive.\n\nHonor it for that.\n\n—\n\nAnd then ask it to step aside\nlong enough for you to build something\nthe gate was always meant to protect.",
     published: true,
   },
+  {
+    dayNumber: 26,
+    phase: 'EGG',
+    title: 'Truthful Forgiveness',
+    lie: 'Forgiveness means pretending it did not happen.',
+    truth: 'Forgiveness tells the truth without letting the wound rule forever.',
+    body: `Someone hurt you.
+
+And someone — maybe many people — have told you that you should forgive them.
+
+Move on. Let it go. Don't carry bitterness.
+
+And underneath that advice, implied but rarely said:
+
+act like it didn't happen.
+
+Pretend. Minimize. Make peace by making the wound smaller than it was.
+
+—
+
+That is not forgiveness.
+
+That is suppression wearing forgiveness as a disguise.
+
+—
+
+Real forgiveness does not require you to minimize.
+
+It does not require you to pretend the wound was smaller than it was.
+
+It does not require you to reconcile with the person who hurt you, or trust them again, or let them back into proximity with anything you care about.
+
+—
+
+Real forgiveness is a decision you make for yourself.
+
+Not for them.
+
+It says: what happened was real and it was wrong —
+
+and I am choosing not to let it have the final word over how I live.
+
+—
+
+The wound gets to be exactly as big as it was.
+
+The anger gets to be exactly as real as it is.
+
+And you still get to choose:
+
+this will not be the thing that runs me.
+
+—
+
+That is forgiveness.
+
+Not erasure.
+
+Liberation.`,
+    daddyManism: 'Forgiveness nuh mean yuh forget. It mean yuh refuse to let it be di boss of yuh life.',
+    reflectionPrompt: 'Is there something you have been told to forgive but have only been suppressing? What would it look like to tell the full truth about the wound — and still choose not to be ruled by it?',
+    challengePrompt: "Write down what actually happened — the full, unminimized version. No softening. Let it be as big as it was. Then write one sentence: \"This happened. And I am choosing not to let it run me.\" That is the beginning of real forgiveness.",
+    livityPrompt: 'Support someone today in their real grief — without rushing them toward forgiveness. Let the wound be real. That is the only ground real forgiveness can grow from.',
+    journalPrompt: 'What have I been told to forgive that I have only been hiding?',
+    closingText: "The wound was real.\n\nYou don't have to pretend otherwise.\n\n—\n\nForgiveness is not a smaller truth.\n\nIt is a bigger freedom.\n\nBegin there.",
+    published: true,
+  },
+  {
+    dayNumber: 27,
+    phase: 'EGG',
+    title: 'Clean Hands',
+    lie: 'Apology makes me small.',
+    truth: 'Apology is strength kneeling without disappearing.',
+    body: `You have hurt someone.
+
+You know it.
+
+And somewhere between knowing it and saying it — there is a wall.
+
+Pride, maybe. Or fear. Or the belief that admitting wrong means surrendering something you can't get back.
+
+—
+
+So you haven't said it.
+
+Or you said something that sounded like it: "I'm sorry you feel that way." "I'm sorry if that came across wrong."
+
+Which is not an apology.
+
+It is a defense wearing an apology's clothes.
+
+—
+
+A real apology is harder.
+
+It says: I did this. Not the circumstance, not you, not the misunderstanding. I did this. And it caused harm. And I am sorry.
+
+—
+
+That takes more strength than silence.
+
+Silence is easy.
+
+Silence keeps the armor on.
+
+—
+
+The person who can look at what they did, name it clearly, and offer a real account of it —
+
+that person is not small.
+
+That person has learned something most people never do:
+
+that accountability does not diminish you.
+
+It is the only thing that actually cleans the hands.
+
+—
+
+And clean hands can build.
+
+Dirty hands only build more of what needs to be apologized for later.`,
+    daddyManism: 'Real sorry nuh mek yuh small. It mek yuh clean. And clean hands build better.',
+    reflectionPrompt: 'Who are you carrying an unspoken apology toward? What has kept you from saying it? Name the thing underneath the silence.',
+    challengePrompt: "Offer one real apology today — to someone you have wronged, or to yourself for something you've been carrying guilt about. No qualifications. No 'but.' Just: I did this. I am sorry.",
+    livityPrompt: "Make it easier for someone to apologize to you today. Receive it fully if it comes. Don't make them earn your acceptance of it. Let it be enough.",
+    journalPrompt: 'What do I need to apologize for that I have been avoiding?',
+    closingText: "The apology you owe is not weakness.\n\nIt is the only door back to your own integrity.\n\n—\n\nSay it.\n\nAnd mean it.\n\nAnd then build with clean hands.",
+    published: true,
+  },
+  {
+    dayNumber: 28,
+    phase: 'EGG',
+    title: 'Human Need',
+    lie: 'If I need people, I am weak.',
+    truth: 'Need is human. Dependency is not destiny.',
+    body: `You were told, somewhere, that needing people was a liability.
+
+That self-sufficiency was the goal.
+
+That the strongest version of you was the one who required nothing from anyone.
+
+—
+
+And so you built yourself toward that.
+
+You learned to want less.
+
+To ask less.
+
+To make do with whatever you could produce on your own.
+
+—
+
+And you are good at it.
+
+You are very good at it.
+
+—
+
+But here is what the self-sufficiency project costs you:
+
+Real intimacy requires need.
+
+Not manufactured need. Not performance of vulnerability.
+
+The actual, honest acknowledgment that you are a person who requires other people.
+
+That you are built for connection the way a lung is built for air.
+
+—
+
+Needing people is not weakness.
+
+It is the most human thing there is.
+
+Every person you have ever admired needed people.
+
+Every person who has done anything worth doing was held up, at some point, by someone else.
+
+—
+
+The lie is not that you need people.
+
+The lie is that needing them makes you less.
+
+It doesn't.
+
+It makes you honest.
+
+And honesty is the beginning of real connection.`,
+    daddyManism: "Yuh need people. Dat nuh make yuh weak. It mek yuh human. Stop fighting it.",
+    reflectionPrompt: 'Where did you learn that needing people was dangerous or shameful? And what has it cost you to keep proving you don\'t need anyone?',
+    challengePrompt: 'Let yourself need something from someone today. Not a crisis — something small. Ask for company, for input, for help with a decision. Let the need be real and the asking be honest.',
+    livityPrompt: "Let someone know you need them today. Not in a way that burdens them — in a way that honors them. 'I'm glad you're here.' 'I needed this.' Let them feel that they matter to you.",
+    journalPrompt: 'What do I actually need from people that I have been pretending I don\'t?',
+    closingText: "You need people.\n\nThat is not a flaw.\n\nThat is the design.\n\n—\n\nStop fighting the blueprint.\n\nYou were built for this.",
+    published: true,
+  },
+  {
+    dayNumber: 29,
+    phase: 'EGG',
+    title: 'Soft Strength',
+    lie: 'I must become hard to survive.',
+    truth: 'Soft does not mean defenseless.',
+    body: `Somewhere along the way you decided:
+
+If I stay soft, I will keep getting hurt.
+
+If I let things affect me, I will be destroyed by them.
+
+If I care too much, I will lose too much.
+
+So you hardened.
+
+Not all at once — gradually.
+
+A little more after this. A little more after that.
+
+Until the hardness felt like safety.
+
+Until the hardness started to feel like you.
+
+—
+
+But there is a cost to hardness.
+
+The same shell that keeps the pain out keeps everything else out too.
+
+The love. The surprise. The grief that needs to move through you to let you grow.
+
+The moments of genuine beauty that require you to be permeable.
+
+—
+
+Hard is not strong.
+
+Hard is defended.
+
+There is a difference.
+
+—
+
+The strongest things in nature are not the hardest.
+
+Water is soft. Water carves canyons.
+
+Roots are soft. Roots split stone.
+
+The reed bends in the storm. The oak breaks.
+
+—
+
+Softness is not defenselessness.
+
+It is adaptability.
+
+It is the capacity to be moved without being destroyed.
+
+It is the proof that you are still alive inside the life you are living.`,
+    daddyManism: 'Water soft. Water carve di stone. Nuh confuse hardness wid strength.',
+    reflectionPrompt: 'Where did you harden yourself that you wish you hadn\'t? What softness did you protect by becoming hard — and what did you lose in the process?',
+    challengePrompt: 'Let something affect you today that you would normally deflect. A kind word. A beautiful thing. A moment that deserves more than a nod. Let it land. See what happens.',
+    livityPrompt: "Be soft with someone today who might be used to hardness from you. Not weakness — gentleness. Not agreement — warmth. Let them feel the difference.",
+    journalPrompt: 'What would become possible in me if I stopped equating softness with weakness?',
+    closingText: "The hardness was protection.\n\nAnd it kept you from being held.\n\n—\n\nSoft is not small.\n\nSoft is how the root finds the crack in the stone\nand grows anyway.",
+    published: true,
+  },
+  {
+    dayNumber: 30,
+    phase: 'EGG',
+    title: 'Honor the Weight',
+    lie: 'Nobody can understand me.',
+    truth: 'Someone does not need your exact wound to honor its weight.',
+    body: `You have tried to explain it before.
+
+And they nodded.
+
+But you could tell they didn't get it.
+
+They understood the words but not the weight.
+
+They knew what happened but not what it cost.
+
+And so you stopped trying.
+
+And you decided: nobody can understand this.
+
+Nobody can understand me.
+
+—
+
+That conclusion is partly right.
+
+Your specific wound, in its specific weight, in its specific combination — no one else carries exactly that.
+
+You are right about that.
+
+—
+
+But understanding does not require identical experience.
+
+—
+
+The person who has never lost a child can still grieve with you.
+
+The person who was never abandoned can still sit inside your loneliness without flinching.
+
+The person whose damage looks nothing like yours can still say: that is heavy. I can feel that it is heavy. I will not ask you to carry it alone.
+
+—
+
+What you need is not someone who has the same wound.
+
+What you need is someone with the capacity to honor what yours weighs.
+
+—
+
+Those people exist.
+
+You may not have found them yet.
+
+But their inability to fully understand
+
+is not the same as their inability to stand with you inside it.`,
+    daddyManism: "Yuh nuh need dem fi carry di same wound. Yuh need dem fi know di weight is real.",
+    reflectionPrompt: 'Who have you written off as unable to understand you? Is it possible that what you needed was not understanding — but presence? And did you give them the chance to offer that?',
+    challengePrompt: "Tell someone today about something hard — not expecting them to fully understand, but giving them the chance to honor the weight. See if they can be present without needing to fix or fully comprehend.",
+    livityPrompt: 'Honor someone\'s weight today without needing to understand it fully. You don\'t have to have been through what they\'ve been through. You just have to be willing to sit in it with them.',
+    journalPrompt: 'Who in my life has tried to be present with me that I have not let close enough because they couldn\'t fully understand?',
+    closingText: "You don't need to be fully understood.\n\nYou need to be honestly held.\n\n—\n\nThose are different things.\n\nAnd the second one\nis closer than you think.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Camp DaddyMan",
     "slug": "camp-daddyman",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,12 +27,12 @@
       },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
-      "versionCode": 4
+      "versionCode": 5
     },
     "updates": {
       "url": "https://u.expo.dev/635cd17a-b97d-44cd-9432-eddfae9c2af8",
       "enabled": true,
-      "checkAutomatically": "ON_LOAD",
+      "checkAutomatically": "ON_ERROR_RECOVERY",
       "fallbackToCacheTimeout": 3000
     },
     "runtimeVersion": {

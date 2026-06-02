@@ -1241,6 +1241,347 @@ even if you had nothing left to give.`,
     closingText: "You are not a function.\n\nYou are a person.\n\n—\n\nThe field has worth in winter\nwhen it produces nothing.\n\nSo do you.",
     published: true,
   },
+  {
+    dayNumber: 21,
+    phase: 'EGG',
+    title: 'Wise Trust',
+    lie: 'If I trust, I will be betrayed.',
+    truth: 'Trust requires wisdom, not total refusal.',
+    body: `You have been betrayed.
+
+Maybe more than once.
+
+And the lesson you drew from it was reasonable:
+
+If I trust, I get hurt.
+
+Therefore: don't trust.
+
+—
+
+But there is a difference between a lesson and a life sentence.
+
+The lesson is true — careless trust costs you.
+
+The life sentence is different: trust no one, ever, with anything real.
+
+—
+
+That sentence protects you.
+
+But it also keeps you in solitary confinement.
+
+It keeps the people who could be trusted — the careful ones, the consistent ones, the ones who have earned it slowly — at the same distance as the ones who hurt you.
+
+—
+
+Trust is not binary.
+
+It is not all-or-nothing, full-surrender or full-shutdown.
+
+It is a practice.
+
+It is calibrated.
+
+It is given in increments, watched over time, extended as it is honored.
+
+—
+
+Wisdom does not say: trust everyone.
+
+Wisdom does not say: trust no one.
+
+Wisdom watches. Wisdom waits. Wisdom reads the pattern.
+
+And when the pattern holds —
+
+wisdom opens the door.
+
+Not all the way.
+
+Enough.`,
+    daddyManism: 'Nuh stop trusting. Learn who deserve it. Dat is not di same thing.',
+    reflectionPrompt: 'Who taught you that trust always ends in betrayal? Was that person the whole story, or just one chapter you let write the whole book?',
+    challengePrompt: 'Extend one small act of trust today to someone who has earned it slowly and quietly. Not a leap — a step. Notice whether the ground holds.',
+    livityPrompt: 'Be someone worthy of trust today. Do what you said you would. Show up when you said you would. Let your word be the thing someone can lean on.',
+    journalPrompt: 'Who in my life has been consistent enough to deserve more trust than I have given them?',
+    closingText: "Trust is not the enemy.\n\nCarelessness is.\n\n—\n\nLearn the difference.\n\nThen open the door — just enough\nto let the right ones in.",
+    published: true,
+  },
+  {
+    dayNumber: 22,
+    phase: 'EGG',
+    title: 'Not Alone',
+    lie: 'I must carry everything alone.',
+    truth: 'Some burdens were never meant for one back.',
+    body: `There is a specific kind of pride that looks like strength.
+
+It refuses help.
+
+It minimizes struggle.
+
+It says: I'm fine, I've got it, don't worry about me.
+
+And it carries everything alone until it breaks.
+
+—
+
+You know this kind of pride.
+
+You may live inside it.
+
+—
+
+The question is not whether you can carry it alone.
+
+You probably can.
+
+You have been doing it long enough.
+
+The question is whether you were supposed to.
+
+—
+
+The heaviest things were not designed for one person.
+
+Some weight is relational — it needs two sides to hold it without deforming what's between them.
+
+Some weight is historical — it needs to be witnessed to be released.
+
+Some weight is simply too much — and the person who insists on carrying it alone is not strong.
+
+They are proud in a way that costs them more than they know.
+
+—
+
+Letting someone carry with you is not weakness.
+
+It is an act of trust.
+
+It says: I believe you can handle what I am carrying.
+
+And sometimes — the moment you say that —
+
+the weight changes.
+
+Not because it got lighter.
+
+Because it is finally shared.`,
+    daddyManism: 'Even di strongest back was not built fi carry everything. Dat is why we have each other.',
+    reflectionPrompt: 'What are you carrying right now that you have refused to share? What would it cost you to let someone hold part of it?',
+    challengePrompt: "Tell one person today about one real thing you are carrying. Not to fix it — just to say it out loud to someone. Notice what shifts when the weight becomes shared.",
+    livityPrompt: "Offer to carry something for someone today — not a metaphor, though that too. Literally help with something that is heavy for them. Show up for the weight.",
+    journalPrompt: 'What am I carrying alone that was never meant for one person?',
+    closingText: "You were not built to carry this alone.\n\nThe burden was too big for one back from the beginning.\n\n—\n\nLet someone in.\n\nThe load doesn't disappear.\n\nBut shared weight moves differently.",
+    published: true,
+  },
+  {
+    dayNumber: 23,
+    phase: 'EGG',
+    title: 'Let Truth Find Them',
+    lie: 'If people know the truth, they will leave.',
+    truth: 'The right people need truth to find you.',
+    body: `You have been careful about what you show.
+
+Careful about which version of yourself people meet.
+
+The edited version. The capable version. The version that doesn't have the parts that might push them away.
+
+—
+
+And it has worked.
+
+The people around you like the version you've shown them.
+
+—
+
+But here is the problem:
+
+They like a version of you that isn't fully real.
+
+Which means the acceptance you feel — the connection, the belonging — is built on something partial.
+
+And somewhere underneath the warmth of being liked,
+
+there is a quiet terror:
+
+if they knew the rest, they'd go.
+
+—
+
+So you keep editing.
+
+And the connection gets shallower even as it gets longer.
+
+—
+
+But consider this:
+
+The people who leave when they see the truth were never staying.
+
+They were staying for the performance.
+
+And their leaving — as painful as it is — is a service.
+
+It clears the room.
+
+—
+
+The people who stay when they see the truth —
+
+those are your people.
+
+You cannot find them while you're hiding.
+
+The truth is not what drives them away.
+
+The truth is how they find you.`,
+    daddyManism: "Dem can't find yuh if yuh nuh deh deh. Show up. Di right ones will stay.",
+    reflectionPrompt: 'What part of your truth are you hiding to keep people close? And is the closeness you feel real — or is it closeness to the version of you that you perform?',
+    challengePrompt: "Let one true thing show today — something you would normally hide. Not a confession. Just a moment of being less edited. Notice who responds to it and how.",
+    livityPrompt: "Create space for someone else's truth today. Ask a question that invites honesty. Make it clear that what they share won't change how you see them. Then prove it.",
+    journalPrompt: 'What truth about me, if known, would actually bring the right people closer?',
+    closingText: "The performance keeps people near.\n\nThe truth keeps the right ones.\n\n—\n\nStop editing.\n\nLet the ones who stay for the real thing\nfind where you actually are.",
+    published: true,
+  },
+  {
+    dayNumber: 24,
+    phase: 'EGG',
+    title: 'Feeling Again',
+    lie: 'I am safer numb.',
+    truth: 'Numbness protects. It also imprisons.',
+    body: `You learned to go numb for good reasons.
+
+Feeling was too expensive.
+
+The pain was too frequent, or too sharp, or arrived before you were old enough to have somewhere to put it.
+
+So you found the switch.
+
+And you turned it down.
+
+And it worked.
+
+—
+
+Numbness is efficient.
+
+It keeps you functioning when feeling would stop you.
+
+It keeps the peace when emotion would make things worse.
+
+It lets you move through rooms that would otherwise be unbearable.
+
+—
+
+But numbness is not a tool you pick up and put down.
+
+It is not surgical.
+
+When you numb the pain, you also numb the rest.
+
+The joy. The wonder. The love that wants to land somewhere in you but has nowhere to go.
+
+The numbness that saved you from the worst
+
+is also blocking the best.
+
+—
+
+You are safer numb.
+
+That is true.
+
+And you are also less.
+
+Less alive. Less present. Less able to feel the things that make being here worth it.
+
+—
+
+Feeling again is terrifying.
+
+We are not asking you to feel everything at once.
+
+We are asking you to crack the door.
+
+Let a little in.
+
+See what comes through first.`,
+    daddyManism: 'When yuh numb di pain, yuh numb di joy too. Yuh cyan have one without di other.',
+    reflectionPrompt: 'When did you learn to go numb? What was happening that made feeling too dangerous? And what has staying numb cost you since?',
+    challengePrompt: 'Allow yourself to feel one thing fully today — one small, manageable thing. Joy, gratitude, beauty, even mild sadness. Do not push it away. Let it move through you completely.',
+    livityPrompt: 'Help someone feel something good today. Not manufactured emotion — a genuine moment of beauty, laughter, or warmth. Be the thing that cracks their door a little.',
+    journalPrompt: 'What have I stopped feeling that I miss feeling?',
+    closingText: "The numbness kept you safe.\n\nAnd it cost you.\n\n—\n\nCrack the door.\n\nNot all the way.\n\nJust enough to remember\nwhat it felt like to be here.",
+    published: true,
+  },
+  {
+    dayNumber: 25,
+    phase: 'EGG',
+    title: 'Guard and Builder',
+    lie: 'My anger is my only protection.',
+    truth: 'Anger may guard the gate. It cannot build the house.',
+    body: `Your anger is not the enemy.
+
+Before we go any further — say that to yourself.
+
+Your anger is not the enemy.
+
+It arrived for good reasons.
+
+It stood between you and things that would have broken you.
+
+It said: no further. It said: I will not be treated this way. It said: I am still here.
+
+Anger, in that form, is a form of self-respect.
+
+—
+
+But anger has a range.
+
+At one end: the righteous kind — the one that draws the line, refuses the violation, protects what matters.
+
+At the other end: the kind that has been running so long it has become the whole personality.
+
+The kind that scans every room for threat.
+
+The kind that reaches for the gate before anyone has even tried to come in.
+
+—
+
+That kind of anger thinks it is protecting you.
+
+And it is — from connection, from intimacy, from the vulnerability that healing requires.
+
+—
+
+The gate is necessary.
+
+But a gate is not a home.
+
+You cannot live at the gate.
+
+—
+
+Anger can guard what matters.
+
+But it cannot build what you need.
+
+For that, you need something anger cannot offer:
+
+the willingness to put the weapon down
+
+and trust that you are safe enough
+
+to build.`,
+    daddyManism: 'Anger is a good guard. A terrible architect. Know which one yuh need right now.',
+    reflectionPrompt: 'Where is your anger standing guard over something that no longer needs that level of protection? What is it keeping out that you actually want in?',
+    challengePrompt: "In one interaction today, notice the moment anger starts to rise as a reflex. Pause before it takes over. Ask: is this a real threat, or a familiar pattern? Then respond to what's actually happening.",
+    livityPrompt: 'Approach someone today with patience you normally would not offer. Not because they deserve it automatically — but because you are choosing who you want to be in this moment.',
+    journalPrompt: 'What is my anger protecting me from that I actually want to have?',
+    closingText: "Your anger kept you alive.\n\nHonor it for that.\n\n—\n\nAnd then ask it to step aside\nlong enough for you to build something\nthe gate was always meant to protect.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

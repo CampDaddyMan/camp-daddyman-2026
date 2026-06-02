@@ -56,11 +56,11 @@ Theme: *"Can anyone be trusted with the real me?"*
 | 18 | Safe Hands | Vulnerability destroys you. | Vulnerability with the wrong person wounds; vulnerability with the right person heals. | ✅ WRITTEN |
 | 19 | Not Wages | Love must be earned. | Real love is not wages. | ✅ WRITTEN |
 | 20 | More Than Useful | People only value what I can provide. | Your usefulness is not your worth. | ✅ WRITTEN |
-| 21 | Wise Trust | If I trust, I will be betrayed. | Trust requires wisdom, not total refusal. | 🗺️ FRAMEWORK |
-| 22 | Not Alone | I must carry everything alone. | Some burdens were never meant for one back. | 🗺️ FRAMEWORK |
-| 23 | Let Truth Find Them | If people know the truth, they will leave. | The right people need truth to find you. | 🗺️ FRAMEWORK |
-| 24 | Feeling Again | I am safer numb. | Numbness protects, but it also imprisons. | 🗺️ FRAMEWORK |
-| 25 | Guard and Builder | My anger is my only protection. | Anger may guard the gate, but it cannot build the house. | 🗺️ FRAMEWORK |
+| 21 | Wise Trust | If I trust, I will be betrayed. | Trust requires wisdom, not total refusal. | ✅ WRITTEN |
+| 22 | Not Alone | I must carry everything alone. | Some burdens were never meant for one back. | ✅ WRITTEN |
+| 23 | Let Truth Find Them | If people know the truth, they will leave. | The right people need truth to find you. | ✅ WRITTEN |
+| 24 | Feeling Again | I am safer numb. | Numbness protects, but it also imprisons. | ✅ WRITTEN |
+| 25 | Guard and Builder | My anger is my only protection. | Anger may guard the gate, but it cannot build the house. | ✅ WRITTEN |
 | 26 | Truthful Forgiveness | Forgiveness means pretending it did not happen. | Forgiveness tells the truth without letting the wound rule forever. | 🗺️ FRAMEWORK |
 | 27 | Clean Hands | Apology makes me small. | Apology is strength kneeling without disappearing. | 🗺️ FRAMEWORK |
 | 28 | Human Need | If I need people, I am weak. | Need is human; dependency is not destiny. | 🗺️ FRAMEWORK |

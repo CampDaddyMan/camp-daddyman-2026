@@ -27,7 +27,7 @@
       },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
-      "versionCode": 2
+      "versionCode": 3
     },
     "updates": {
       "url": "https://u.expo.dev/635cd17a-b97d-44cd-9432-eddfae9c2af8",
@@ -41,15 +41,7 @@
     "plugins": [
       "expo-video",
       "expo-updates",
-      "expo-font",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#f8c202",
-          "defaultChannel": "default"
-        }
-      ]
+      "expo-font"
     ],
     "extra": {
       "eas": {

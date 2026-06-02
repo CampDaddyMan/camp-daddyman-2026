@@ -1,9 +1,35 @@
 # SAFEGUARDING ARCHITECTURE — The J-Shape Elder Problem
 
-> **Status:** Counsel proposal for Drew's review. No code written yet.
+> **Status:** ACCEPTED IN PRINCIPLE by Drew. No code written yet.
+> One amendment applied: **Elders witness transformation; they do not confer it.**
+> The platform recognizes the *evidence*; the Elder recognizes the *person*.
 > Governs how human Elder support works at the J-Shape without creating
 > bottlenecks, abuse risk, or reputational/legal ruin.
 > Companion to `The_Ark_Constitution`, `THE_FOUR_TESTS.md`, `JOURNEY_CURRICULUM.md`.
+
+---
+
+## 0. The Core Distinction (Drew's amendment — supersedes all else below)
+
+**The J-Shape is where Camp DaddyMan stops being an app.**
+
+- Up to Day 110 — **the app teaches.**
+- After Day 110 — **humans bear witness.**
+
+Not because humans *control* progress. Because humans *give it meaning.*
+
+**Elders witness; they do not judge.** An Elder may never decide "you may proceed" or
+"you may not proceed." That is gatekeeping, and gatekeeping becomes ownership — which the
+Constitution forbids at every turn.
+
+- The **platform** recognizes the *evidence* of growth (the pattern of genuine service,
+  logged and visible).
+- The **Elder** recognizes the *person* — sees it, names it, celebrates it, says
+  *"I see it too."*
+
+The Chrysalis does not open because *Elder Bob approved you*. It opens because the
+journey's evidence shows growth occurred — and a human was there to witness it. The
+witness is essential. The witness is not a gate.
 
 ---
 
@@ -93,9 +119,10 @@ off from the open pool entirely. Run youth safety through the 501c3.**
 
 1. **Daily content never blocks.** Reaching the J-Shape does not freeze the user. Days
    keep coming. (Q1)
-2. **Conferral is human but non-blocking.** Advancement *into* the Chrysalis is recognized
-   by a human Elder reading a pattern of genuine service — layered on top of continued
-   engagement, never a turnstile in front of it. (Q1)
+2. **Witness is human but non-blocking.** The platform recognizes the *evidence* of growth;
+   a human Elder *witnesses* it — sees it, names it, celebrates it — layered on top of
+   continued engagement, never a turnstile in front of it. The Elder witnesses; the Elder
+   does not confer, approve, or gate. (Q1)
 3. **Adults and minors run completely separate J-Shape tracks.** (Q2)
 4. **Minors are prohibited from the open Elder pool.** No exceptions. (Q3)
 5. **No private adult↔minor channel may exist in the system.** (Q4)
@@ -113,9 +140,11 @@ off from the open pool entirely. Run youth safety through the 501c3.**
   is human-authored.
 - **Non-blocking.** While awaiting/inside circle contact, the user's daily journey
   continues. They are never staring at a frozen screen at their breaking point.
+- **The Elder witnesses, never gates.** The Elder sees the person and names the growth.
+  The Elder cannot stop, approve, or own a person's progress.
 - **Elder supply scales with the base** — graduates become Elders (Butterfly → Ark
   Builder), so the ratio improves as the platform grows.
-- **Currency:** Livity, conferred — consistent with the Constitution from the J-Shape up.
+- **Currency:** Livity, witnessed — consistent with the Constitution from the J-Shape up.
 
 ## 5. Minor J-Shape Model
 
@@ -132,6 +161,10 @@ off from the open pool entirely. Run youth safety through the 501c3.**
   legal armor are in place.
 
 ## 6. Prohibited Interactions (hard rules, enforced in code)
+
+> **DOCTRINE (not policy):** The platform *shall not create* the capability for a private
+> adult-minor channel. The safest DM is the one that cannot exist. This is not a setting,
+> a best practice, or a moderation target — the capability is never built.
 
 - ❌ Any **private 1:1 channel** between an adult Elder and a minor.
 - ❌ Any **minor access to the open/adult Elder pool.**
@@ -212,8 +245,13 @@ J-Shape.
 > **group-based and asynchronous**; it need not be one-to-one or live. Automation may
 > **hold, route, and accompany** the person, but may never **replace** the human contact
 > or **fake** it with canned response. Reaching the J-Shape must **never freeze** a
-> person's daily journey; advancement is conferred by an Elder reading genuine service,
-> layered upon continued engagement, never used as a turnstile before it.*
+> person's daily journey.*
+>
+> *The Elder **witnesses** transformation; the Elder does **not confer** it. The platform
+> recognizes the evidence of growth; the Elder recognizes the person — sees it, names it,
+> celebrates it. No Elder may decide whether another may proceed. To witness is essential;
+> to gate is forbidden, for the gate becomes ownership, and fathering must never become
+> ownership.*
 >
 > *Minors are exempt from the open Elder system entirely. No minor may be connected to an
 > Elder privately or through the open pool. All mentoring of minors runs through D.A.D.D.Y.
@@ -230,7 +268,8 @@ system both **scalable** (groups, async, self-supplying Elders, non-blocking) an
 ## Answers to the Nine Questions (summary)
 
 1. **Block on human approval?** No — daily content continues; human support is offered;
-   conferral is human but non-blocking.
+   the Elder *witnesses* (sees, names, celebrates), never confers or gates. The platform
+   recognizes the evidence; the human recognizes the person.
 2. **Separate adult/minor tracks?** Yes, completely.
 3. **Minors barred from the open Elder pool?** Yes, absolutely.
 4. **Architecture preventing private adult-minor contact?** No such channel may exist;

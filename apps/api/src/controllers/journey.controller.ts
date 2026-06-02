@@ -5255,6 +5255,415 @@ Learn to hunger for the real.`,
     closingText: "Full was never the goal.\n\nNourished was.\n\n—\n\nStop settling for empty calories\nin every part of your life.\n\nHunger for the real.",
     published: true,
   },
+  {
+    dayNumber: 71,
+    phase: 'CATERPILLAR',
+    title: 'Gratitude Is Digestion',
+    lie: 'I focus on what’s missing.',
+    truth: 'Gratitude is how you digest what you already have.',
+    body: `You have an appetite that is never satisfied.
+
+Not because you are greedy.
+
+Because you have trained your eyes to land on what is missing.
+
+The gap. The lack. The thing not yet yours.
+
+—
+
+And so even the good that comes
+
+passes through you without feeding you.
+
+You barely taste it before you are looking past it
+
+at the next thing you do not have.
+
+—
+
+This is a kind of starvation in the middle of plenty.
+
+—
+
+Gratitude is not a feeling you wait to arrive.
+
+Gratitude is the act of digesting what you have already received.
+
+—
+
+Bitterness cannot digest.
+
+It takes in blessing and turns it to complaint.
+
+It receives good and finds the flaw.
+
+It is fed constantly and stays hungry always.
+
+—
+
+Gratitude is the opposite.
+
+It takes what is here — even the small thing, even the hard thing —
+
+and metabolizes it into strength.
+
+—
+
+The same meal, eaten with bitterness, poisons.
+
+Eaten with gratitude, it nourishes.
+
+—
+
+You do not need more before you can be fed.
+
+You need to digest what is already on your plate.
+
+Start there.
+
+Name what is good.
+
+Let it actually feed you
+
+before you go looking for the next thing.`,
+    daddyManism: 'Bitterness cyaa digest nothing. Gratitude tek di same meal and turn it to strength.',
+    reflectionPrompt: 'What good in your life right now have you failed to actually taste because you were looking past it at what is missing? Name three things on your plate today.',
+    challengePrompt: 'Before you ask for anything today, name three things you already have that are good. Out loud or written down. Let yourself actually digest them before reaching for more.',
+    livityPrompt: 'Tell someone today, specifically, what you are grateful for about them. Not generic thanks — the specific thing. Let them feel digested, received, seen.',
+    journalPrompt: 'What have I been refusing to let nourish me because I was focused on what was missing?',
+    closingText: "You are not starving for lack.\n\nYou are starving because you never digest what arrives.\n\n—\n\nName the good.\n\nLet it feed you.\n\nThat is gratitude — and it is a kind of eating.",
+    published: true,
+  },
+  {
+    dayNumber: 72,
+    phase: 'CATERPILLAR',
+    title: 'Learning Is Eating',
+    lie: 'I already know enough.',
+    truth: 'A growing thing never stops feeding its mind.',
+    body: `Somewhere you decided you were done learning.
+
+Maybe when school ended.
+
+Maybe when you got good enough at one thing to stop being a beginner at anything.
+
+Maybe when knowing less felt safer than admitting you did not know.
+
+—
+
+And since then, your mind has been on the same diet.
+
+The same opinions. The same sources. The same loop.
+
+Eating, but not growing.
+
+—
+
+A caterpillar that stops eating does not stay the same size.
+
+It dies.
+
+—
+
+There is no neutral.
+
+A mind that stops feeding does not hold steady.
+
+It shrinks. It hardens. It begins to mistake its own staleness for wisdom.
+
+—
+
+Learning is eating.
+
+Real learning — the kind that costs you the comfort of already knowing.
+
+The book that challenges you. The person who sees it differently. The question you cannot answer yet.
+
+The skill you are bad at and have to be a beginner in.
+
+—
+
+This is humbling.
+
+Being a beginner always is.
+
+—
+
+But the humility of learning is the appetite of a thing that is still alive.
+
+The person who can still say "I don't know that — teach me"
+
+is still growing.
+
+—
+
+Stay hungry to learn.
+
+It is one of the surest signs
+
+that you are not done becoming.`,
+    daddyManism: 'Di mind dat stop eating nuh stay di same — it shrink. Stay hungry fi learn.',
+    reflectionPrompt: 'Where have you stopped learning because knowing felt safer than not knowing? What have you avoided being a beginner at because being bad at something is uncomfortable?',
+    challengePrompt: 'Learn one thing today you do not already know. Read it, ask someone, try the skill you have avoided. Be a beginner on purpose. Notice the discomfort and feed on it anyway.',
+    livityPrompt: 'Teach someone something today — freely, patiently. And let someone teach you something too. Feed a mind and let yours be fed.',
+    journalPrompt: 'What am I pretending to already know that I could grow by actually learning?',
+    closingText: "A mind that stops eating shrinks.\n\nThere is no holding steady.\n\n—\n\nStay a beginner at something.\n\nIt is the appetite of a thing\nthat is still alive.",
+    published: true,
+  },
+  {
+    dayNumber: 73,
+    phase: 'CATERPILLAR',
+    title: 'What You Eat in Pain',
+    lie: 'When it hurts, I reach for whatever numbs.',
+    truth: 'What you consume in pain decides who you become after it.',
+    body: `Pain makes you hungry.
+
+Not for food — for relief.
+
+For anything that will quiet the ache, even for a minute.
+
+—
+
+And in that moment, you do not reach for what is good for you.
+
+You reach for what is fastest.
+
+The drink. The scroll. The substance. The person who is bad for you. The old habit that always answers the phone.
+
+—
+
+We are not here to shame the reaching.
+
+Pain is real, and the hunger it creates is real.
+
+—
+
+But here is the truth nobody tells you:
+
+What you feed on in your pain
+
+becomes who you are on the other side of it.
+
+—
+
+Two people go through the same loss.
+
+One feeds the pain with bitterness, numbing, isolation —
+
+and comes out smaller, harder, more afraid.
+
+The other feeds it with honesty, with the right people, with the slow real work —
+
+and comes out deeper, softer, more rooted.
+
+—
+
+Same pain.
+
+Different meal.
+
+Different person on the other side.
+
+—
+
+You will not always be able to avoid the pain.
+
+But you can decide, in advance, what you will feed it.
+
+—
+
+Because the wound is not what shapes you most.
+
+What you consume while you are wounded — that is what shapes you.
+
+Choose that meal before the pain arrives.`,
+    daddyManism: 'A nuh di pain that mek yuh — a what yuh eat while yuh hurting. Choose dat meal before di pain come.',
+    reflectionPrompt: 'What do you reach for when you are in pain? Be honest. And who has that meal been making you on the other side of the hurt?',
+    challengePrompt: 'Decide today — in advance, while you are calm — what you will feed on the next time pain hits. Name the better meal: who you will call, what you will do instead of numbing. Have it ready before you need it.',
+    livityPrompt: 'Be the better meal for someone in pain today. Be the call they can make instead of the bottle. Be present for someone who would otherwise feed their hurt alone.',
+    journalPrompt: 'What do I feed my pain with — and what would I rather it make me into?',
+    closingText: "The wound is not the thing that shapes you most.\n\nWhat you eat while wounded is.\n\n—\n\nDecide the meal\nbefore the hunger comes.",
+    published: true,
+  },
+  {
+    dayNumber: 74,
+    phase: 'CATERPILLAR',
+    title: 'Enough',
+    lie: 'More will finally be enough.',
+    truth: 'Knowing when you are full is its own kind of wisdom.',
+    body: `You have been chasing more for so long
+
+you have forgotten to ask whether you are already full.
+
+—
+
+More money. More proof. More approval. More security. More.
+
+As if "enough" were a number you have not reached yet.
+
+As if one more unit of more would finally flip the switch
+
+and let you rest.
+
+—
+
+But more is not a destination.
+
+More is a direction —
+
+and a direction has no end.
+
+—
+
+The person who does not know when they are full
+
+will eat forever and never be satisfied.
+
+Not because they lack.
+
+Because they never learned to recognize fullness.
+
+—
+
+The caterpillar eats enormously — and then it stops.
+
+It knows.
+
+Something in it recognizes: I have taken in what I need to become the next thing.
+
+Now I stop consuming and start transforming.
+
+—
+
+If it never stopped eating, it would never become anything.
+
+—
+
+There is a wisdom you have been skipping:
+
+the wisdom of enough.
+
+—
+
+Not the enough of giving up.
+
+The enough of recognizing that you already have what you need to begin —
+
+and that the endless chase for more
+
+is keeping you from the transformation
+
+that only begins when the consuming stops.
+
+—
+
+Ask it honestly today:
+
+What if this is already enough to begin?`,
+    daddyManism: 'More is a direction, not a destination. Learn fi know when yuh full — dat is wisdom.',
+    reflectionPrompt: 'What "more" have you been chasing, believing it will finally be enough? What if you already have enough of it to begin the next thing?',
+    challengePrompt: 'Name one area where you have enough — and act on it today. Stop acquiring, start using. Begin the thing you have been telling yourself you need more before you can start.',
+    livityPrompt: 'Give something away today from your enough. Money, time, a possession, knowledge. Proving to yourself you have enough is one of the most freeing things you can do — and it feeds someone else.',
+    journalPrompt: 'Where in my life do I already have enough — and what would I do differently if I believed that?',
+    closingText: "More has no finish line.\n\nEnough is a place you can choose to stand.\n\n—\n\nThe caterpillar stops eating\nso it can finally become.\n\nWhen will you?",
+    published: true,
+  },
+  {
+    dayNumber: 75,
+    phase: 'CATERPILLAR',
+    title: 'You Are What You Ate',
+    lie: 'What I consume doesn’t add up to anything.',
+    truth: 'You are becoming the sum of what you feed on.',
+    body: `Fifteen days into the Caterpillar.
+
+You have been learning one thing from every angle:
+
+what you consume becomes you.
+
+—
+
+The attention you gave. The words you spoke. The company you kept.
+
+What you fed your body. What you fed your pain.
+
+The rest you allowed. The silence you made room for.
+
+What you learned. What you were grateful for. What you finally called enough.
+
+—
+
+None of it was neutral.
+
+All of it was building you, meal by meal,
+
+into the person now reading these words.
+
+—
+
+That is the end of Ring 1.
+
+And it is sobering — because it means you are responsible
+
+for what you have been becoming.
+
+—
+
+But it is also the best news there is.
+
+—
+
+Because if you are the sum of what you feed on,
+
+then changing what you feed on
+
+changes what you become.
+
+Not instantly. Not by force.
+
+Meal after meal, day after day,
+
+until one day you look up
+
+and you are someone different.
+
+—
+
+You have spent fifteen days learning to consume well.
+
+Now comes the next question.
+
+—
+
+Because consuming well is not the end.
+
+The caterpillar that only ate would just be a fat caterpillar.
+
+The point of eating is to grow —
+
+and growth has to become visible.
+
+—
+
+Ring 2 begins now.
+
+Not what you take in —
+
+what you build with it,
+
+out in the open,
+
+through repetition.
+
+You have fed yourself well.
+
+Now show what you are growing into.`,
+    daddyManism: 'Yuh are di sum of what yuh feed on. Change di meal, change di man. One plate at a time.',
+    reflectionPrompt: 'Look back over the last fifteen days. What is the single change in what you consume that would most change who you are becoming? Name it.',
+    challengePrompt: 'Choose the one feeding habit from Ring 1 you most need to change — and commit to it for the rest of this phase. Write it where you will see it daily. This is the meal you carry into Ring 2.',
+    livityPrompt: 'Feed someone well today in a way that helps them grow, not just feel good. The truest nourishment sometimes costs the giver something. Give that.',
+    journalPrompt: 'Who am I becoming based on what I have been feeding on — and what one change would bend that arc?',
+    closingText: "You are the sum of what you feed on.\n\nRing 1 taught you to eat well.\n\n—\n\nBut a caterpillar that only eats\nis just a fat caterpillar.\n\nThe point of eating is to grow.\n\nRing 2 begins.\n\nNow we make the growth visible.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

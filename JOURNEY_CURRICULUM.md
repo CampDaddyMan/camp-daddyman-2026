@@ -130,7 +130,11 @@ Theme: *"What am I feeding on?"*
 | 68 | The Body Is Not Separate | My body and my growth are separate things. | What you feed your body feeds everything else. | ✅ WRITTEN |
 | 69 | Room to Digest | I have to be consuming something every moment. | Stillness is where what you consumed becomes part of you. | ✅ WRITTEN |
 | 70 | Hunger for the Real | If it satisfies the craving, it's good enough. | Cheap fullness is still empty. Learn to want the real thing. | ✅ WRITTEN |
-| 71–75 | *(Ring 1 continues)* | — | — | 🗺️ TO WRITE |
+| 71 | Gratitude Is Digestion | I focus on what's missing. | Gratitude is how you digest what you already have. | ✅ WRITTEN |
+| 72 | Learning Is Eating | I already know enough. | A growing thing never stops feeding its mind. | ✅ WRITTEN |
+| 73 | What You Eat in Pain | When it hurts, I reach for whatever numbs. | What you consume in pain decides who you become after it. | ✅ WRITTEN |
+| 74 | Enough | More will finally be enough. | Knowing when you are full is its own kind of wisdom. | ✅ WRITTEN |
+| 75 | You Are What You Ate | What I consume doesn't add up to anything. | You are becoming the sum of what you feed on. *(Ring 1 capstone)* | ✅ WRITTEN |
 
 ## RING 2 — GROWING VISIBLY (Days 76–95)
 Theme: *"What am I becoming through repetition?"* — 🗺️ TO WRITE

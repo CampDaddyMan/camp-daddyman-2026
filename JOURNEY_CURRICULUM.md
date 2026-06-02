@@ -51,11 +51,11 @@ Theme: *"Can anyone be trusted with the real me?"*
 
 | Day | Title | Lie | Truth | Status |
 |-----|-------|-----|-------|--------|
-| 16 | Some Stay | No one stays. | Some people leave; that does not mean everyone will. | 🗺️ FRAMEWORK |
-| 17 | Ask | Asking for help is weakness. | Asking for help is how the field starts tending you. | 🗺️ FRAMEWORK |
-| 18 | Safe Hands | Vulnerability destroys you. | Vulnerability with the wrong person wounds; vulnerability with the right person heals. | 🗺️ FRAMEWORK |
-| 19 | Not Wages | Love must be earned. | Real love is not wages. | 🗺️ FRAMEWORK |
-| 20 | More Than Useful | People only value what I can provide. | Your usefulness is not your worth. | 🗺️ FRAMEWORK |
+| 16 | Some Stay | No one stays. | Some people leave; that does not mean everyone will. | ✅ WRITTEN |
+| 17 | Ask | Asking for help is weakness. | Asking for help is how the field starts tending you. | ✅ WRITTEN |
+| 18 | Safe Hands | Vulnerability destroys you. | Vulnerability with the wrong person wounds; vulnerability with the right person heals. | ✅ WRITTEN |
+| 19 | Not Wages | Love must be earned. | Real love is not wages. | ✅ WRITTEN |
+| 20 | More Than Useful | People only value what I can provide. | Your usefulness is not your worth. | ✅ WRITTEN |
 | 21 | Wise Trust | If I trust, I will be betrayed. | Trust requires wisdom, not total refusal. | 🗺️ FRAMEWORK |
 | 22 | Not Alone | I must carry everything alone. | Some burdens were never meant for one back. | 🗺️ FRAMEWORK |
 | 23 | Let Truth Find Them | If people know the truth, they will leave. | The right people need truth to find you. | 🗺️ FRAMEWORK |

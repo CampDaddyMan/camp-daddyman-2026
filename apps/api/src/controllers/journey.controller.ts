@@ -902,6 +902,345 @@ Now — begin anyway.`,
     closingText: "You made it through Ring 1.\n\nFifteen days.\n\nFifteen lies.\n\n—\n\nYou were never waiting to be ready.\n\nYou were becoming ready by staying.\n\nBegin.",
     published: true,
   },
+
+  // ── RING 2 — RELATIONAL LIES (Days 16–40) ────────────────────────────────
+  // Theme: "Can anyone be trusted with the real me?"
+
+  {
+    dayNumber: 16,
+    phase: 'EGG',
+    title: 'Some Stay',
+    lie: 'No one stays.',
+    truth: 'Some people leave. That does not mean everyone will.',
+    body: `You have watched them go.
+
+One by one or all at once — it doesn't matter.
+
+What matters is the pattern you drew from it:
+
+Nobody stays.
+
+—
+
+That pattern is understandable.
+
+If every person you trusted eventually left, the logical conclusion is that everyone leaves.
+
+The pattern isn't irrational. It is built on real evidence.
+
+—
+
+But the pattern has a flaw.
+
+It is a conclusion drawn from the people who left.
+
+It says nothing about the people who haven't come yet.
+
+It says nothing about the ones already beside you that you have not allowed close enough to prove themselves.
+
+—
+
+Some people leave because they were supposed to.
+
+They were not built for the long road. They were built for a season.
+
+Their leaving was not a verdict on you.
+
+It was a completion — theirs, not yours.
+
+—
+
+And some people stay.
+
+Not because they haven't had the chance to leave.
+
+Because they chose not to.
+
+Because you are worth staying for.
+
+You have not met all of them yet.
+
+But they exist.
+
+And the belief that nobody stays is the very thing that prevents them from getting close enough to prove it.`,
+    daddyManism: 'Not everybody who leave was supposed to stay. And not everybody who stay has gone yet.',
+    reflectionPrompt: 'Who left that you drew the biggest conclusion from? And have you let that one departure become the rule for everyone who came after?',
+    challengePrompt: "Identify one person in your life who has shown up consistently — even in small ways. Let yourself acknowledge that they are still here. Write down one specific thing they did that proved it. Don't dismiss it.",
+    livityPrompt: 'Stay for someone today who might be waiting to see if you will. Not in a grand gesture. Just — be there. Follow up. Show up. Let them feel that you are not going anywhere.',
+    journalPrompt: 'Who has stayed that I have not fully let myself see?',
+    closingText: "Some people leave.\n\nThat is true.\n\n—\n\nBut the field is still here.\n\nAnd some of what was planted in it never left.\n\nLook again.",
+    published: true,
+  },
+  {
+    dayNumber: 17,
+    phase: 'EGG',
+    title: 'Ask',
+    lie: 'Asking for help is weakness.',
+    truth: 'Asking for help is how the field starts tending you.',
+    body: `You have been carrying this alone for a long time.
+
+Not because no one offered.
+
+Because you wouldn't let them.
+
+Because somewhere you learned that needing help was the same as being helpless.
+
+That asking was the same as admitting you couldn't handle it.
+
+That independence was the thing that proved you were worth something.
+
+—
+
+But independence is not strength.
+
+Self-sufficiency taken too far is isolation wearing a better name.
+
+—
+
+The strongest fields are not the ones that receive no rain.
+
+They are the ones that know how to receive it.
+
+The ones that have been tended — by hands other than their own.
+
+—
+
+Asking for help does not mean you are drowning.
+
+It means you understand something the person who never asks doesn't:
+
+That you were not built to carry everything alone.
+
+That the people around you are part of your ecosystem.
+
+That receiving is not the opposite of strength.
+
+It is one of its forms.
+
+—
+
+You do not have to ask for everything.
+
+But ask for something.
+
+Let one person in.
+
+Let them tend something that has been untended too long.`,
+    daddyManism: 'Di strong tree nuh refuse di rain. It know di rain is why it tall.',
+    reflectionPrompt: 'What have you been carrying alone that you could have asked for help with? What stopped you? Name the belief underneath the refusal.',
+    challengePrompt: 'Ask for help with one thing today. It does not have to be the big thing. It does not have to be from the most important person. Just ask. Notice what happens in you when you do.',
+    livityPrompt: 'Make it easy for someone to ask you for help today. Lower the barrier. Let them know, in some way, that asking you is safe. Be the proof that receiving is not weakness.',
+    journalPrompt: 'What would I ask for if I believed asking was allowed?',
+    closingText: "You were not built to carry this alone.\n\nNobody was.\n\n—\n\nThe field that receives tending grows taller than the one that refuses it.\n\nLet someone in.",
+    published: true,
+  },
+  {
+    dayNumber: 18,
+    phase: 'EGG',
+    title: 'Safe Hands',
+    lie: 'Vulnerability destroys you.',
+    truth: 'Vulnerability with the wrong person wounds. With the right person, it heals.',
+    body: `You have been open before.
+
+And it cost you.
+
+You showed someone something real — something unguarded — and they used it against you.
+
+Or they left.
+
+Or they looked at you differently afterward.
+
+And you drew the correct conclusion from that experience:
+
+Being open is dangerous.
+
+—
+
+You were right.
+
+With that person, it was.
+
+—
+
+But the conclusion got wider than the evidence.
+
+It moved from: that person could not be trusted with what I showed them
+
+to: no person can be trusted with anything real about me.
+
+—
+
+That is where the lie lives.
+
+Not in the wound — the wound was real.
+
+In the generalization.
+
+—
+
+Vulnerability is not the variable.
+
+The hands you put it in are.
+
+—
+
+Reckless vulnerability — showing everything to everyone, using openness as performance — that is not connection. That is something else.
+
+But careful vulnerability. Chosen vulnerability. The kind that reads the room and reads the person and still decides:
+
+this one.
+
+This one I will let see something true.
+
+—
+
+That kind of vulnerability does not destroy you.
+
+It is how you find the people who can hold what you are.`,
+    daddyManism: 'Nuh blame di openness. Blame di wrong hands. Di right hands was always di answer.',
+    reflectionPrompt: 'Who taught you that vulnerability was dangerous? Was it one person, one moment, one pattern? And have you applied that lesson to everyone since?',
+    challengePrompt: "Identify one person in your life who has earned a degree of trust — someone who has shown they can hold something carefully. Share one true thing with them today. Not the deepest thing. One real thing.",
+    livityPrompt: 'Be safe hands for someone today. Let them share something with you — and hold it like it matters. Do not fix it, minimize it, or share it. Just receive it and honor it.',
+    journalPrompt: 'Who in my life might be safe enough to let see something real?',
+    closingText: "The wound was real.\n\nAnd the hands that made it are not the only hands there are.\n\n—\n\nSomewhere there are hands that will hold what you are\nwithout dropping it.\n\nStart looking.",
+    published: true,
+  },
+  {
+    dayNumber: 19,
+    phase: 'EGG',
+    title: 'Not Wages',
+    lie: 'Love must be earned.',
+    truth: 'Real love is not wages.',
+    body: `You have been working for it.
+
+Behaving your way toward it.
+
+Being good enough, useful enough, easy enough, low-maintenance enough.
+
+Performing the version of yourself most likely to be loved in return.
+
+—
+
+And somewhere in all that performing, you lost track of the question:
+
+Is this real?
+
+Or is this a transaction?
+
+—
+
+Because transactional love exists.
+
+It is common.
+
+It says: I will love you as long as you behave in certain ways.
+
+As long as you produce. As long as you don't need too much. As long as you stay useful.
+
+—
+
+But that is not love.
+
+That is wages.
+
+And wages can be docked.
+
+Wages can be withheld.
+
+Wages run out when the work stops.
+
+—
+
+Real love is not a payment for services rendered.
+
+It is not contingent on your performance.
+
+It does not require you to earn it on Tuesday to keep it on Wednesday.
+
+—
+
+You have been working for something you were supposed to simply receive.
+
+And the exhaustion you feel is not weakness.
+
+It is the cost of performing love
+
+instead of being in it.`,
+    daddyManism: "Love weh yuh haffi earn every day isn't love. A employment.",
+    reflectionPrompt: 'Where are you performing in order to keep love — from a partner, a parent, a friend, God? What behavior are you afraid to stop in case the love stops with it?',
+    challengePrompt: "Do one thing today not to earn love but to express it — freely, with no expectation of return. Notice how different it feels to give without the ledger open.",
+    livityPrompt: 'Love someone today with no agenda. Not to earn something back. Not to be seen doing it. Just because they exist and you can. Let that be enough.',
+    journalPrompt: 'What would I stop doing if I believed love was not something I had to earn?',
+    closingText: "You were not supposed to work for this.\n\n—\n\nThe field does not earn the rain.\n\nIt receives it.\n\nAnd grows.",
+    published: true,
+  },
+  {
+    dayNumber: 20,
+    phase: 'EGG',
+    title: 'More Than Useful',
+    lie: 'People only value what I can provide.',
+    truth: 'Your usefulness is not your worth.',
+    body: `You have been useful for a long time.
+
+Reliable. Available. The one people call when they need something.
+
+And somewhere in all that usefulness, you made a deal with yourself:
+
+If I stay useful, I will stay valued.
+
+If I keep providing, I will keep belonging.
+
+—
+
+So you kept providing.
+
+You gave when you were empty.
+
+You showed up when you were already carrying too much.
+
+You said yes when every part of you wanted to say no.
+
+Because the alternative — not being useful — felt like disappearing.
+
+—
+
+But here is what nobody told you:
+
+There is a version of you that has nothing to offer right now.
+
+No resources. No solutions. No energy to give.
+
+Just — you.
+
+And that version of you still has worth.
+
+—
+
+Not because of what you produce.
+
+Not because of what you provide.
+
+Because you exist.
+
+Because you are a person, not a function.
+
+—
+
+The people who only value what you can give are not wrong to take it.
+
+But they are not seeing you.
+
+And you deserve to be seen by people who would stay
+
+even if you had nothing left to give.`,
+    daddyManism: 'Yuh worth more dan what yuh carry. Stop letting people only see di load.',
+    reflectionPrompt: 'Where have you made yourself useful in order to feel valued? What are you afraid would happen to those relationships if you stopped providing?',
+    challengePrompt: "Say no to one request today that you would normally say yes to out of obligation. Not to be difficult. To practice the truth that you are allowed to have limits and still be worth loving.",
+    livityPrompt: "Serve someone today from a place of genuine want — not obligation. Notice the difference between giving freely and giving to earn your place. Let the first one remind you what it's supposed to feel like.",
+    journalPrompt: 'Who in my life would stay if I had nothing left to give?',
+    closingText: "You are not a function.\n\nYou are a person.\n\n—\n\nThe field has worth in winter\nwhen it produces nothing.\n\nSo do you.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

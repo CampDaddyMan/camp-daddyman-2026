@@ -27,8 +27,7 @@
       },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
-      "versionCode": 4,
-      "googleServicesFile": "./google-services.json"
+      "versionCode": 4
     },
     "updates": {
       "url": "https://u.expo.dev/635cd17a-b97d-44cd-9432-eddfae9c2af8",

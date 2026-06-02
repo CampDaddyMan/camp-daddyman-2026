@@ -85,23 +85,23 @@ Theme: *"Can someone like me actually become?"*
 
 | Day | Title | Lie | Truth | Status |
 |-----|-------|-----|-------|--------|
-| 41 | Not Him | I am what my father was. | Inheritance is not imprisonment. | 🗺️ FRAMEWORK |
-| 42 | Not Built Wrong | I was built wrong. | You may have been wounded early, but you were not made wrong. | 🗺️ FRAMEWORK |
-| 43 | Deep Roots | The damage is too deep. | Deep wounds need deep roots. | 🗺️ FRAMEWORK |
-| 44 | Not Disqualified | My past disqualifies my future. | Your past is evidence, not a sentence. | 🗺️ FRAMEWORK |
-| 45 | For You Too | Transformation is for other people. | The circle does not exclude you. | 🗺️ FRAMEWORK |
-| 46 | Late Rain | I missed my chance. | The field can receive late rain. | 🗺️ FRAMEWORK |
-| 47 | Soil | I must become famous to matter. | Soil matters without being seen. | 🗺️ FRAMEWORK |
-| 48 | Bigger Room | Success will heal me. | Success without healing only gives pain a bigger room. | 🗺️ FRAMEWORK |
-| 49 | More Than Gifted | I am only my talent. | Your gift is what you carry, not all you are. | 🗺️ FRAMEWORK |
-| 50 | Molt | If I fail again, that proves I am finished. | Failure can be a molt, not a funeral. | 🗺️ FRAMEWORK |
-| 51 | No Betrayal | I have to become someone else to survive. | Survival should not require self-betrayal. | 🗺️ FRAMEWORK |
-| 52 | Practice Responsibility | I cannot be trusted with responsibility. | Responsibility grows by being practiced. | 🗺️ FRAMEWORK |
-| 53 | No Shame | My story is shameful. | Your story may be painful, but pain is not shame. | 🗺️ FRAMEWORK |
-| 54 | Honor the Field | If I become better, I betray where I came from. | Healing the field honors the place that raised you. | 🗺️ FRAMEWORK |
-| 55 | Righteous Power | I must choose between peace and power. | Peace is power under righteous command. | 🗺️ FRAMEWORK |
-| 56 | Something to Give | I have nothing to give. | Even an Egg can plant a seed. | 🗺️ FRAMEWORK |
-| 57 | Final Word | The world already decided who I am. | The world does not get the final word. | 🗺️ FRAMEWORK |
-| 58 | Become the Tending | I cannot become a father because I was not fathered well. | The untended can become the tending. | 🗺️ FRAMEWORK |
-| 59 | Leave the Shell | If I leave the shell, I will lose myself. | The shell protected the beginning, not the whole life. | 🗺️ FRAMEWORK |
-| 60 | Crack the Shell | I am not ready to grow. | Growth begins before readiness feels complete. | 🗺️ FRAMEWORK |
+| 41 | Not Him | I am what my father was. | Inheritance is not imprisonment. | ✅ WRITTEN |
+| 42 | Not Built Wrong | I was built wrong. | You may have been wounded early, but you were not made wrong. | ✅ WRITTEN |
+| 43 | Deep Roots | The damage is too deep. | Deep wounds need deep roots. | ✅ WRITTEN |
+| 44 | Not Disqualified | My past disqualifies my future. | Your past is evidence, not a sentence. | ✅ WRITTEN |
+| 45 | For You Too | Transformation is for other people. | The circle does not exclude you. | ✅ WRITTEN |
+| 46 | Late Rain | I missed my chance. | The field can receive late rain. | ✅ WRITTEN |
+| 47 | Soil | I must become famous to matter. | Soil matters without being seen. | ✅ WRITTEN |
+| 48 | Bigger Room | Success will heal me. | Success without healing only gives pain a bigger room. | ✅ WRITTEN |
+| 49 | More Than Gifted | I am only my talent. | Your gift is what you carry, not all you are. | ✅ WRITTEN |
+| 50 | Molt | If I fail again, that proves I am finished. | Failure can be a molt, not a funeral. | ✅ WRITTEN |
+| 51 | No Betrayal | I have to become someone else to survive. | Survival should not require self-betrayal. | ✅ WRITTEN |
+| 52 | Practice Responsibility | I cannot be trusted with responsibility. | Responsibility grows by being practiced. | ✅ WRITTEN |
+| 53 | No Shame | My story is shameful. | Your story may be painful, but pain is not shame. | ✅ WRITTEN |
+| 54 | Honor the Field | If I become better, I betray where I came from. | Healing the field honors the place that raised you. | ✅ WRITTEN |
+| 55 | Righteous Power | I must choose between peace and power. | Peace is power under righteous command. | ✅ WRITTEN |
+| 56 | Something to Give | I have nothing to give. | Even an Egg can plant a seed. | ✅ WRITTEN |
+| 57 | Final Word | The world already decided who I am. | The world does not get the final word. | ✅ WRITTEN |
+| 58 | Become the Tending | I cannot become a father because I was not fathered well. | The untended can become the tending. | ✅ WRITTEN |
+| 59 | Leave the Shell | If I leave the shell, I will lose myself. | The shell protected the beginning, not the whole life. | ✅ WRITTEN |
+| 60 | Crack the Shell | I am not ready to grow. | Growth begins before readiness feels complete. | ✅ WRITTEN |

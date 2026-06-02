@@ -1915,6 +1915,389 @@ is not the same as their inability to stand with you inside it.`,
     closingText: "You don't need to be fully understood.\n\nYou need to be honestly held.\n\n—\n\nThose are different things.\n\nAnd the second one\nis closer than you think.",
     published: true,
   },
+  {
+    dayNumber: 31,
+    phase: 'EGG',
+    title: "Not Yours to Carry",
+    lie: "I am responsible for everyone's feelings.",
+    truth: 'Care is not control.',
+    body: `You have been managing people's emotions for a long time.
+
+Watching the room. Reading the temperature. Adjusting yourself before anyone even asks.
+
+Making sure nobody is uncomfortable, nobody is upset, nobody leaves the conversation having felt something they didn't want to feel.
+
+—
+
+You are very good at it.
+
+And it is exhausting you.
+
+—
+
+Here is what nobody told you:
+
+Other people's feelings are not your responsibility to prevent.
+
+You are responsible for how you treat people.
+
+You are not responsible for how they feel about being treated well.
+
+—
+
+Those are different things.
+
+Confusing them is what turns care into control.
+
+Because when you make yourself responsible for other people's emotional states,
+
+you don't stop at caring for them.
+
+You start managing them.
+
+Shrinking yourself so they stay comfortable.
+
+Withholding truth so they stay calm.
+
+Making yourself smaller so their feelings stay manageable.
+
+—
+
+That is not love.
+
+That is self-erasure wearing love's name.
+
+—
+
+You can care deeply about how someone feels.
+
+You can be thoughtful about how you act.
+
+And you can let them be responsible for the rest.
+
+That is not cruelty.
+
+That is the only way to love someone without disappearing in the process.`,
+    daddyManism: "Yuh responsible fi how yuh treat people. Not fi how dem feel about being treated right.",
+    reflectionPrompt: "Whose emotional state have you been managing — so carefully and for so long — that you've lost track of your own? What has that cost you?",
+    challengePrompt: "Let one person today feel something difficult without fixing it. Don't smooth it over. Don't apologize. Don't adjust yourself to prevent it. Just let them have their feeling while you stay present and honest.",
+    livityPrompt: "Care for someone today in a way that serves them — not in a way that keeps them comfortable. Sometimes real care delivers a hard truth. Offer that instead of comfort.",
+    journalPrompt: "Whose feelings am I carrying that were never mine to carry?",
+    closingText: "You are not the emotional thermostat for everyone in your life.\n\n—\n\nCare for people.\n\nLet them carry what is theirs.\n\nAnd finally — carry what is yours.",
+    published: true,
+  },
+  {
+    dayNumber: 32,
+    phase: 'EGG',
+    title: 'Disappoint Fear',
+    lie: 'I cannot disappoint anyone.',
+    truth: 'Maturity sometimes disappoints people who benefited from your fear.',
+    body: `There are people in your life who are comfortable with who you have been.
+
+The version of you that doesn't push back.
+
+The version that absorbs. That accommodates. That says yes when it means no and stays quiet when it means speak.
+
+—
+
+When you start to change — when you start to become someone who has limits and a voice and a self that doesn't disappear on demand —
+
+some of those people will be disappointed.
+
+—
+
+They will call it selfishness.
+
+They will call it attitude.
+
+They will call it you changing, as if changing is the problem.
+
+—
+
+What they mean is: you are no longer the version of you that was convenient for them.
+
+—
+
+Their disappointment is real.
+
+And it is not a verdict on whether you are doing the right thing.
+
+—
+
+Some disappointment is the cost of becoming.
+
+The caterpillar, when it begins to dissolve, disappoints the form it had before.
+
+The form had plans. The form had habits. The form was expected to keep going as it was.
+
+—
+
+But the butterfly does not owe the caterpillar an apology.
+
+—
+
+You will disappoint people as you grow.
+
+The ones who needed you small.
+
+The ones who benefited from your fear.
+
+Let them be disappointed.
+
+And keep going.`,
+    daddyManism: "Some people nuh want yuh to grow. Dem want yuh to stay convenient. Disappoint dem.",
+    reflectionPrompt: "Who in your life are you afraid to disappoint? Now ask: do they want what is good for you, or what is comfortable for them? Those are not always the same thing.",
+    challengePrompt: "Do one thing today that serves your becoming, even if someone in your life would prefer you didn't. Not recklessly. Deliberately. Let the disappointment be the proof that you are growing.",
+    livityPrompt: "Encourage someone today who is in the process of becoming — even if their becoming is inconvenient for people around them. Be the voice that says: keep going.",
+    journalPrompt: "Who am I staying small to keep comfortable? And what is that costing me?",
+    closingText: "You will disappoint people as you grow.\n\nThe ones who needed you small.\n\n—\n\nLet them be disappointed.\n\nThe field does not apologize for the harvest.",
+    published: true,
+  },
+  {
+    dayNumber: 33,
+    phase: 'EGG',
+    title: 'The Line',
+    lie: 'Boundaries are rejection.',
+    truth: 'Boundaries are how love survives without becoming ownership.',
+    body: `When you draw a line, some people feel rejected.
+
+They experience your limit as a refusal of them.
+
+Your no as a no to their worth.
+
+Your boundary as a wall instead of a door.
+
+—
+
+And if you grew up in a place without healthy limits — where love and control were the same thing — that interpretation makes sense.
+
+In that world, love was supposed to be boundless.
+
+Limitless.
+
+The person who loved you had no edges.
+
+And so edges feel like unlove.
+
+—
+
+But edges are not unlove.
+
+Edges are what make love possible without it consuming one of you.
+
+—
+
+A river without banks is not a river.
+
+It is a flood.
+
+It covers everything.
+
+It destroys what it was meant to nourish.
+
+—
+
+A boundary is a bank.
+
+It gives the love shape.
+
+It gives it direction.
+
+It makes it possible for two people to exist in relationship without one of them disappearing.
+
+—
+
+You are not rejecting someone when you tell them what you need.
+
+You are telling them what they need to know
+
+to love you in a way that works.
+
+—
+
+The boundary is not the end of the relationship.
+
+It is the thing that makes it possible
+
+to keep going.`,
+    daddyManism: 'A river wid no banks is just a flood. Di banks is what mek it a river.',
+    reflectionPrompt: "Where have you experienced someone else's boundary as rejection? And where have you refused to draw a line because you were afraid of what it would mean to them?",
+    challengePrompt: "Name one limit you have needed to draw that you have been afraid to draw. Write it down clearly: what you need, and why. You don't have to say it today. But write it as if you will.",
+    livityPrompt: "Respect someone's boundary today without making them justify it. Let their no be enough. Let their limit be honored without negotiation. That is one of the most loving things you can do.",
+    journalPrompt: "What line do I need to draw that I have been too afraid to draw?",
+    closingText: "The boundary is not rejection.\n\nIt is the shape of something real.\n\n—\n\nDraw the line.\n\nAnd let love have room\nto be what it was always meant to be.",
+    published: true,
+  },
+  {
+    dayNumber: 34,
+    phase: 'EGG',
+    title: 'Holy No',
+    lie: 'If I say no, I am bad.',
+    truth: 'A righteous no can protect a holy yes.',
+    body: `You have been saying yes when you meant no for a long time.
+
+To keep the peace.
+
+To avoid the guilt.
+
+To hold on to the version of yourself that people find easy to love.
+
+—
+
+And every yes that was really a no
+
+has cost you something.
+
+Your time. Your energy. Your sense of yourself.
+
+The slow erosion of knowing what you actually want.
+
+—
+
+The no you are afraid to say is not cruelty.
+
+It is a door.
+
+On the other side of a righteous no
+
+is everything you would have said yes to
+
+if you hadn't used that yes on the wrong thing.
+
+—
+
+The person who can say no
+
+protects what matters.
+
+They are not withholding.
+
+They are guarding.
+
+—
+
+You cannot say a full yes
+
+when you have no nos left.
+
+You cannot give fully
+
+when you have given everything to things you should have declined.
+
+—
+
+A holy yes is not just saying yes.
+
+It is saying yes to the right thing.
+
+With your full self behind it.
+
+With nothing taken.
+
+With nothing obligated.
+
+With nothing remaining but choice.
+
+—
+
+That kind of yes is only possible
+
+because of the nos that protected it.`,
+    daddyManism: "Di 'no' yuh afraid fi say is guarding di 'yes' yuh actually mean.",
+    reflectionPrompt: "What yes in your life is actually a no that you have been afraid to say? What would happen if you said the truth?",
+    challengePrompt: "Say no to one thing today that you would normally say yes to out of guilt or obligation. Not aggressively — clearly. 'I can't do that.' Or simply: 'No.' Notice the ground doesn't open up.",
+    livityPrompt: "Free someone today from an obligation they are keeping out of fear. Make it easy for them to say no to you. Give them the gift of an honest no being enough.",
+    journalPrompt: "What holy yes is waiting on the other side of a no I haven't said yet?",
+    closingText: "Every righteous no\nis a door.\n\n—\n\nOn the other side:\nthe yes you actually meant.\n\nThe thing worth giving everything to.\n\nSay no.\n\nAnd find it.",
+    published: true,
+  },
+  {
+    dayNumber: 35,
+    phase: 'EGG',
+    title: 'Not the Owner',
+    lie: 'I must fix everyone to be good.',
+    truth: 'Tending the field does not mean owning every seed.',
+    body: `You care deeply.
+
+That is real.
+
+You see people struggling and it pulls at you.
+
+You see the gap between who someone is and who they could be,
+
+and something in you wants to close it.
+
+—
+
+So you try.
+
+You offer. You advise. You push. You fix.
+
+You carry concern for people's growth the way some carry debt —
+
+heavily, always, without a clear date when it ends.
+
+—
+
+But here is what the compulsive fixer often misses:
+
+People are not yours to fix.
+
+Not your partner. Not your children. Not your closest friends.
+
+Not even yourself, in the way you are trying.
+
+—
+
+The gardener tends the field.
+
+The gardener creates conditions.
+
+The gardener removes what chokes.
+
+The gardener waters.
+
+—
+
+But the gardener does not reach into the seed
+
+and pull the plant out.
+
+That is not gardening.
+
+That is destruction wearing the name of help.
+
+—
+
+The seed grows on its own timeline.
+
+In its own direction.
+
+Toward the light it finds, not the light you point to.
+
+—
+
+You can tend.
+
+You can care.
+
+You can be present for the growing.
+
+—
+
+But you cannot own it.
+
+And trying to
+
+is the surest way to break what you were trying to help.`,
+    daddyManism: "Tend di garden. Yuh nuh own di seeds. Dem will grow when dem ready — not when yuh ready fi dem.",
+    reflectionPrompt: "Who are you trying to fix right now? And is your fixing helping them grow, or helping you feel less anxious about their growth?",
+    challengePrompt: "Choose one person you have been trying to fix. Today, do not offer advice, solutions, or gentle pressure. Just be present. Ask how they are. Listen without an agenda. See what they offer when you stop pulling.",
+    livityPrompt: "Serve someone today in the way they actually need — not the way you think they need. Ask first. Then do that. Let their need lead, not yours.",
+    journalPrompt: "Whose growth am I trying to control because I cannot tolerate watching them struggle?",
+    closingText: "You are the gardener.\n\nNot the owner.\n\n—\n\nTend what you can.\n\nLet the seeds do what only seeds can do.\n\nAnd trust the field.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

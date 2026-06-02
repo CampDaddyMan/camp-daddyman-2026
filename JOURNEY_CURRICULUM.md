@@ -66,11 +66,11 @@ Theme: *"Can anyone be trusted with the real me?"*
 | 28 | Human Need | If I need people, I am weak. | Need is human; dependency is not destiny. | ✅ WRITTEN |
 | 29 | Soft Strength | I must become hard to survive. | Soft does not mean defenseless. | ✅ WRITTEN |
 | 30 | Honor the Weight | Nobody can understand me. | Someone does not need your exact wound to honor its weight. | ✅ WRITTEN |
-| 31 | Not Yours to Carry | I am responsible for everyone's feelings. | Care is not control. | 🗺️ FRAMEWORK |
-| 32 | Disappoint Fear | I cannot disappoint anyone. | Maturity sometimes disappoints people who benefited from your fear. | 🗺️ FRAMEWORK |
-| 33 | The Line | Boundaries are rejection. | Boundaries are how love survives without becoming ownership. | 🗺️ FRAMEWORK |
-| 34 | Holy No | If I say no, I am bad. | A righteous no can protect a holy yes. | 🗺️ FRAMEWORK |
-| 35 | Not the Owner | I must fix everyone to be good. | Tending the field does not mean owning every seed. | 🗺️ FRAMEWORK |
+| 31 | Not Yours to Carry | I am responsible for everyone's feelings. | Care is not control. | ✅ WRITTEN |
+| 32 | Disappoint Fear | I cannot disappoint anyone. | Maturity sometimes disappoints people who benefited from your fear. | ✅ WRITTEN |
+| 33 | The Line | Boundaries are rejection. | Boundaries are how love survives without becoming ownership. | ✅ WRITTEN |
+| 34 | Holy No | If I say no, I am bad. | A righteous no can protect a holy yes. | ✅ WRITTEN |
+| 35 | Not the Owner | I must fix everyone to be good. | Tending the field does not mean owning every seed. | ✅ WRITTEN |
 | 36 | Honest Peace | My silence keeps peace. | Some silence only protects the poison. | 🗺️ FRAMEWORK |
 | 37 | Fear's Armor | I am only safe if I control everything. | Control is not safety; it is fear wearing armor. | 🗺️ FRAMEWORK |
 | 38 | Known | If I let people close, they will see I am not enough. | Being known is not the same as being exposed. | 🗺️ FRAMEWORK |

@@ -105,3 +105,30 @@ Theme: *"Can someone like me actually become?"*
 | 58 | Become the Tending | I cannot become a father because I was not fathered well. | The untended can become the tending. | ✅ WRITTEN |
 | 59 | Leave the Shell | If I leave the shell, I will lose myself. | The shell protected the beginning, not the whole life. | ✅ WRITTEN |
 | 60 | Crack the Shell | I am not ready to grow. | Growth begins before readiness feels complete. | ✅ WRITTEN |
+
+---
+
+# CATERPILLAR PHASE CURRICULUM MAP — Days 61–110 (LOCKED)
+
+> Structure: **Hunger → Nourishment** (not Lie→Truth). The Egg removed
+> falsehood; the Caterpillar feeds growth. XP fades, Livity rises —
+> primary evidence of growth by Ring 3. Final day (110) hands off to a
+> human Elder at the J-Shape — never automated.
+
+## RING 1 — CONSUMING WELL (Days 61–75)
+Theme: *"What am I feeding on?"*
+
+| Day | Title | The Hunger | The Nourishment | Status |
+|-----|-------|-----------|-----------------|--------|
+| 61 | The First Meal | I survived the hard part. Now I can coast. | Surviving was the beginning. Now you grow. | ✅ WRITTEN |
+| 62 | The Appetite You Inherited | I crave what I crave. That is just who I am. | You can choose a new appetite. | ✅ WRITTEN |
+| 63 | Attention Is Food | What I look at doesn't really affect me. | What you watch becomes what you are. | ✅ WRITTEN |
+| 64 | Discipline Is Feeding | Discipline is punishment. | Discipline is feeding yourself on purpose. | ✅ WRITTEN |
+| 65 | Rest Is Nourishment | Rest is laziness. I have to earn the right to stop. | Rest is part of growth, not the absence of it. | ✅ WRITTEN |
+| 66–75 | *(Ring 1 continues)* | — | — | 🗺️ TO WRITE |
+
+## RING 2 — GROWING VISIBLY (Days 76–95)
+Theme: *"What am I becoming through repetition?"* — 🗺️ TO WRITE
+
+## RING 3 — BEGINNING TO GIVE (Days 96–110)
+Theme: *"What can I give from what I've grown?"* — Livity primary. Ends at the J-Shape handoff. — 🗺️ TO WRITE

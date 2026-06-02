@@ -45,6 +45,13 @@ const PHASE_LABEL: Record<string, string> = {
   CHRYSALIS: 'The Chrysalis', BUTTERFLY: 'The Butterfly',
 };
 
+// What the lie/truth fields are called in each phase.
+// Egg dismantles lies; Caterpillar feeds growth.
+const POLARITY_LABEL: Record<string, { neg: string; pos: string }> = {
+  EGG: { neg: 'The Lie', pos: 'The Truth' },
+  CATERPILLAR: { neg: 'The Hunger', pos: 'The Nourishment' },
+};
+
 // ── Start screen ──────────────────────────────────────────────────────────────
 
 function StartScreen({ onBegin }: { onBegin: () => Promise<void> }) {
@@ -136,9 +143,9 @@ function DayScreen({
       {/* Title */}
       <h1 className="text-3xl font-black text-white mb-1 leading-tight">{day.title}</h1>
       <p className="text-gray-600 text-xs uppercase tracking-wider mb-8">
-        The Lie: <span className="text-gray-500 italic">{day.lie}</span>
+        {(POLARITY_LABEL[day.phase] ?? POLARITY_LABEL.EGG).neg}: <span className="text-gray-500 italic">{day.lie}</span>
         <span className="mx-2">·</span>
-        The Truth: <span className="text-brand-400 italic">{day.truth}</span>
+        {(POLARITY_LABEL[day.phase] ?? POLARITY_LABEL.EGG).pos}: <span className="text-brand-400 italic">{day.truth}</span>
       </p>
 
       {/* Body */}

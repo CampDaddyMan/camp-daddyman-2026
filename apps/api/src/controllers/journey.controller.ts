@@ -4469,6 +4469,393 @@ That is the whole beginning.`,
     closingText: "The Egg Phase is complete.\n\nSixty days.\n\nSixty lies answered.\n\n—\n\nThe shell is cracking from the inside.\n\nThat is the sound of you\nbecoming what you were always going to be.\n\nThe Caterpillar begins.\n\nKeep going.",
     published: true,
   },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CATERPILLAR PHASE — Days 61–110
+  // The Egg removed lies. The Caterpillar feeds growth.
+  // Structure shifts: Lie→Truth becomes Hunger→Nourishment.
+  // (lie field = The Hunger, truth field = The Nourishment)
+  // XP fades, Livity rises — primary evidence of growth by Ring 3.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── RING 1 — CONSUMING WELL (Days 61–75) ─────────────────────────────────
+  // "What am I feeding on?"
+
+  {
+    dayNumber: 61,
+    phase: 'CATERPILLAR',
+    title: 'The First Meal',
+    lie: 'I survived the hard part. Now I can coast.',
+    truth: 'Surviving was the beginning. Now you grow.',
+    body: `You made it through the Egg.
+
+Sixty days. Sixty lies. And you are still here.
+
+Take that in for a moment — because most people never crack the shell.
+
+—
+
+But here is what the shell-crack actually means:
+
+It does not mean you have arrived.
+
+It means you have been born.
+
+—
+
+The caterpillar that emerges from the egg does not rest.
+
+It does one thing, immediately and constantly:
+
+It eats.
+
+—
+
+Not out of greed.
+
+Out of necessity.
+
+Because everything it will become — the chrysalis, the wings, the flight —
+
+is built from what it consumes now.
+
+—
+
+You have spent sixty days clearing out what was false.
+
+The ground is open.
+
+Empty.
+
+Ready.
+
+—
+
+The question is no longer: what lies have been holding me down?
+
+The question is now: what am I going to feed on
+
+to become what I am meant to be?
+
+—
+
+The Egg was about subtraction.
+
+The Caterpillar is about what you take in.
+
+Eat well.
+
+Everything depends on it.`,
+    daddyManism: 'Yuh hatch already. Now di real work start — yuh haffi eat fi grow.',
+    reflectionPrompt: 'The Egg cleared the ground. What do you want to grow in the open space now? Not what you want to remove — what you want to build.',
+    challengePrompt: 'Choose one thing today that you will deliberately feed on this phase — a book, a practice, a skill, a discipline. Name it. Write down why it will help you grow. This is your first meal.',
+    livityPrompt: "Feed someone today — literally or otherwise. Share something that helps another person grow. You are learning to consume; begin also learning to nourish.",
+    journalPrompt: 'What am I choosing to grow into now that the ground is clear?',
+    closingText: "The shell is behind you.\n\nThe growing is ahead.\n\n—\n\nA caterpillar eats its own weight many times over\nbefore it can fly.\n\nBegin the feast.",
+    published: true,
+  },
+  {
+    dayNumber: 62,
+    phase: 'CATERPILLAR',
+    title: 'The Appetite You Inherited',
+    lie: 'I crave what I crave. That is just who I am.',
+    truth: 'You can choose a new appetite.',
+    body: `You did not choose your first hungers.
+
+They were fed to you.
+
+What comforted you. What numbed you. What you reached for when the day got heavy.
+
+You learned those appetites the way you learned a language —
+
+before you knew you were learning anything at all.
+
+—
+
+And now they feel like you.
+
+The craving feels like identity.
+
+"This is just what I like. This is just how I am."
+
+—
+
+But an appetite is not a fixed thing.
+
+It is a trained thing.
+
+—
+
+What you feed grows hungrier.
+
+What you starve grows quieter.
+
+—
+
+The person who feeds on outrage develops an appetite for outrage.
+
+The person who feeds on distraction craves more distraction.
+
+The person who feeds on the cheap thing loses the taste for the real thing.
+
+—
+
+This works in reverse too.
+
+Feed on something good long enough, and you begin to crave it.
+
+The body and the mind adapt to what they are given.
+
+—
+
+You are not stuck with the appetite you inherited.
+
+You can retrain it.
+
+Not by willpower alone —
+
+by what you choose to put in front of yourself,
+
+meal after meal,
+
+until the craving itself begins to change.`,
+    daddyManism: 'What yuh feed grow hungry. What yuh starve grow quiet. Choose what yuh feed.',
+    reflectionPrompt: 'What is one appetite you inherited rather than chose? Where did it come from? And is it feeding your growth or just feeding itself?',
+    challengePrompt: 'Identify one craving you want to retrain. Today, when it rises, feed it something better instead — not nothing, something better. Replacement, not just refusal. Notice it is possible.',
+    livityPrompt: 'Help someone replace a hunger today — not by lecturing, but by offering something better. Sit with someone instead of letting them scroll alone. Be the better meal.',
+    journalPrompt: 'What appetite do I want to train myself out of — and what would I feed instead?',
+    closingText: "The craving you inherited\nis not a life sentence.\n\n—\n\nFeed the new appetite\nmeal after meal\nuntil it becomes the one you reach for.",
+    published: true,
+  },
+  {
+    dayNumber: 63,
+    phase: 'CATERPILLAR',
+    title: 'Attention Is Food',
+    lie: 'What I look at doesn’t really affect me.',
+    truth: 'What you watch becomes what you are.',
+    body: `You think you are just looking.
+
+Just scrolling. Just watching. Just passing the time.
+
+As if attention were free.
+
+As if what passes before your eyes leaves nothing behind.
+
+—
+
+But attention is not free.
+
+Attention is the most valuable thing you have —
+
+and everything you give it to
+
+is feeding on you while you feed on it.
+
+—
+
+What you watch is not neutral.
+
+It is shaping the inside of you, frame by frame.
+
+The comparison that makes you feel small.
+
+The outrage that keeps you agitated.
+
+The endless feed engineered to take your hours and give back nothing.
+
+—
+
+You are what you eat.
+
+And attention is a kind of eating.
+
+—
+
+The caterpillar that eats poison leaves does not become a poisoned butterfly.
+
+It dies before it can transform.
+
+—
+
+What you give your eyes and your hours to
+
+is becoming you.
+
+Slowly. Invisibly. Certainly.
+
+—
+
+So guard the gate.
+
+Not with shame — with intention.
+
+Choose what you let in
+
+the way you would choose what you put in your body
+
+if you knew it was building the person you are becoming.
+
+Because it is.`,
+    daddyManism: 'What yuh watch a feed yuh. So mind what yuh let inna yuh eye.',
+    reflectionPrompt: 'What have you been feeding your attention to lately? If you became what you watched this week, who would you be?',
+    challengePrompt: 'Cut one source of empty attention today — one feed, one app, one habit that takes your hours and gives nothing back. Replace that time with something that builds you. Just for today. Notice the difference.',
+    livityPrompt: 'Give someone your full attention today — no phone, no half-listening. Real presence is a gift almost no one gives anymore. Feed someone with the attention they have been starving for.',
+    journalPrompt: 'What is my attention building in me right now — and is it what I want to become?',
+    closingText: "Attention is food.\n\nYou are eating with your eyes\nevery hour of every day.\n\n—\n\nChoose the meal\nthat builds the wings.",
+    published: true,
+  },
+  {
+    dayNumber: 64,
+    phase: 'CATERPILLAR',
+    title: 'Discipline Is Feeding',
+    lie: 'Discipline is punishment.',
+    truth: 'Discipline is feeding yourself on purpose.',
+    body: `Somewhere you learned that discipline was a kind of punishment.
+
+Something done to you.
+
+Something cold, harsh, joyless — the opposite of freedom.
+
+And so you have resisted it.
+
+Associated it with deprivation. With control. With the people who used "discipline" as a word for cruelty.
+
+—
+
+But that was never what discipline was.
+
+—
+
+Discipline is not punishment.
+
+Discipline is feeding yourself on purpose
+
+instead of letting your weakest impulse decide what you eat.
+
+—
+
+The caterpillar does not eat at random.
+
+It does not wait until it feels like eating.
+
+It eats steadily, deliberately, because growth requires it.
+
+—
+
+Discipline is just that:
+
+doing the thing that feeds your growth
+
+whether or not the feeling has arrived to make it easy.
+
+—
+
+The undisciplined life is not a free life.
+
+It is a life ruled by whatever impulse is loudest in the moment.
+
+That is not freedom.
+
+That is being eaten by your own appetites.
+
+—
+
+Discipline is how you take the fork back.
+
+It is how you decide what feeds you
+
+instead of being fed on by every craving that walks by.
+
+—
+
+It is not the enemy of freedom.
+
+It is the only road to it.`,
+    daddyManism: 'Discipline nuh punishment. A just yuh deciding what feed yuh, instead of yuh weakness deciding.',
+    reflectionPrompt: 'Where have you been resisting discipline because you confused it with punishment? What would it look like to see it instead as feeding yourself on purpose?',
+    challengePrompt: 'Do one disciplined thing today before the feeling to do it arrives. The workout, the page, the call, the practice. Act first; let the feeling catch up. That is the whole skill.',
+    livityPrompt: 'Support someone today who is building a discipline. Encourage the boring, unglamorous repetition. Be the voice that says: keep going, it is working even when it does not feel like it.',
+    journalPrompt: 'What discipline would feed my growth if I stopped waiting to feel like it?',
+    closingText: "Discipline is not the whip.\n\nIt is the fork —\nin your own hand,\nchoosing the meal that builds you.\n\n—\n\nTake it back.",
+    published: true,
+  },
+  {
+    dayNumber: 65,
+    phase: 'CATERPILLAR',
+    title: 'Rest Is Nourishment',
+    lie: 'Rest is laziness. I have to earn the right to stop.',
+    truth: 'Rest is part of growth, not the absence of it.',
+    body: `You have been treating rest like a reward you have not earned.
+
+Something to be allowed only after everything is done.
+
+And since everything is never done —
+
+you rarely allow it.
+
+—
+
+So you push. You grind. You keep going on empty,
+
+wearing your exhaustion like proof of your worth.
+
+—
+
+But here is what the field knows:
+
+Growth does not happen during the work alone.
+
+—
+
+The muscle does not grow in the gym.
+
+It grows in the rest after.
+
+The field does not produce in constant motion.
+
+It lies fallow between seasons so it can produce again.
+
+—
+
+The caterpillar, between its feeding, is still.
+
+That stillness is not laziness.
+
+It is where the eating becomes growing.
+
+—
+
+Rest is not the opposite of growth.
+
+Rest is the part of growth you have been skipping.
+
+—
+
+And the refusal to rest is not strength.
+
+It is often fear —
+
+fear that if you stop, you will discover you are only worth what you produce.
+
+—
+
+You are worth more than your output.
+
+And the rest you have been denying yourself
+
+is not a luxury.
+
+It is the soil where everything you are feeding on
+
+finally turns into who you are becoming.`,
+    daddyManism: 'Di muscle nuh grow inna di work. It grow inna di rest after. Stop wearing tiredness like a medal.',
+    reflectionPrompt: 'Why is it hard for you to rest? What do you believe stopping says about you? And is that belief actually true?',
+    challengePrompt: 'Rest on purpose today — without guilt, without earning it first. Take real rest, not collapse. Let it be deliberate. Notice what it gives back to you.',
+    livityPrompt: 'Give someone permission to rest today. Take something off their plate. Tell the tired person they are allowed to stop. Be the rest someone else cannot give themselves.',
+    journalPrompt: 'What would change if I treated rest as part of the work instead of a reward for it?',
+    closingText: "Rest is not the absence of growth.\n\nIt is where the feeding\nbecomes the becoming.\n\n—\n\nLie fallow.\n\nTrust the season.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

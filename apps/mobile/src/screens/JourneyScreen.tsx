@@ -50,6 +50,13 @@ const PHASE_LABEL: Record<string, string> = {
   BUTTERFLY: 'The Butterfly',
 };
 
+// What the lie/truth fields are called per phase.
+// Egg dismantles lies; Caterpillar feeds growth.
+const POLARITY_LABEL: Record<string, { neg: string; pos: string }> = {
+  EGG: { neg: 'The Lie', pos: 'The Truth' },
+  CATERPILLAR: { neg: 'The Hunger', pos: 'The Nourishment' },
+};
+
 // ── Start Screen ──────────────────────────────────────────────────────────────
 
 function StartScreen({ onBegin, loading }: { onBegin: () => void; loading: boolean }) {
@@ -172,10 +179,10 @@ function DayScreen({
       {/* Title + lie/truth */}
       <Text style={s.dayTitle}>{day.title}</Text>
       <Text style={s.lieTruth}>
-        <Text style={s.lieLabel}>The Lie: </Text>
+        <Text style={s.lieLabel}>{(POLARITY_LABEL[day.phase] ?? POLARITY_LABEL.EGG).neg}: </Text>
         <Text style={s.lieText}>{day.lie}</Text>
         {'  ·  '}
-        <Text style={s.truthLabel}>The Truth: </Text>
+        <Text style={s.truthLabel}>{(POLARITY_LABEL[day.phase] ?? POLARITY_LABEL.EGG).pos}: </Text>
         <Text style={s.truthText}>{day.truth}</Text>
       </Text>
 

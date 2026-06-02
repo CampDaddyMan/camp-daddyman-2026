@@ -15,3 +15,4 @@ tsconfig.tsbuildinfo
 .env*.local
 
 .vercel
+google-services.json

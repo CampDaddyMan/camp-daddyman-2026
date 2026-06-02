@@ -57,7 +57,8 @@ export default function RegisterPage() {
       const { data } = await api.post('/auth/verify-2fa', { challengeId, code });
       setAuth(data.token, data.user);
       try { localStorage.removeItem('referralCode'); } catch {}
-      router.push('/dashboard');
+      const next = new URLSearchParams(window.location.search).get('next');
+      router.push(next || '/dashboard');
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Verification failed. Check your code.');
     } finally {

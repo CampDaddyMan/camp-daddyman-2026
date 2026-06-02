@@ -46,7 +46,7 @@ export default function LoginPage() {
 
       if (data.token) {
         setAuth(data.token, data.user);
-        router.push('/dashboard');
+        router.push(new URLSearchParams(window.location.search).get('next') || '/dashboard');
         return;
       }
 
@@ -69,7 +69,7 @@ export default function LoginPage() {
 
       if (data.token) {
         setAuth(data.token, data.user);
-        router.push('/dashboard');
+        router.push(new URLSearchParams(window.location.search).get('next') || '/dashboard');
         return;
       }
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
     try {
       const { data } = await api.post('/auth/force-login', { forceId });
       setAuth(data.token, data.user);
-      router.push('/dashboard');
+      router.push(new URLSearchParams(window.location.search).get('next') || '/dashboard');
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Something went wrong. Please sign in again.');
       setStep('credentials');

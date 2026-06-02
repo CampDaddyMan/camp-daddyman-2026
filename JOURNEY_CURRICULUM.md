@@ -71,11 +71,11 @@ Theme: *"Can anyone be trusted with the real me?"*
 | 33 | The Line | Boundaries are rejection. | Boundaries are how love survives without becoming ownership. | ✅ WRITTEN |
 | 34 | Holy No | If I say no, I am bad. | A righteous no can protect a holy yes. | ✅ WRITTEN |
 | 35 | Not the Owner | I must fix everyone to be good. | Tending the field does not mean owning every seed. | ✅ WRITTEN |
-| 36 | Honest Peace | My silence keeps peace. | Some silence only protects the poison. | 🗺️ FRAMEWORK |
-| 37 | Fear's Armor | I am only safe if I control everything. | Control is not safety; it is fear wearing armor. | 🗺️ FRAMEWORK |
-| 38 | Known | If I let people close, they will see I am not enough. | Being known is not the same as being exposed. | 🗺️ FRAMEWORK |
-| 39 | Stop the Chain | I cannot heal what I inherited. | What was passed down can stop with you. | 🗺️ FRAMEWORK |
-| 40 | Returned | Relationship always costs me myself. | Healthy love returns you to yourself. | 🗺️ FRAMEWORK |
+| 36 | Honest Peace | My silence keeps peace. | Some silence only protects the poison. | ✅ WRITTEN |
+| 37 | Fear's Armor | I am only safe if I control everything. | Control is not safety; it is fear wearing armor. | ✅ WRITTEN |
+| 38 | Known | If I let people close, they will see I am not enough. | Being known is not the same as being exposed. | ✅ WRITTEN |
+| 39 | Stop the Chain | I cannot heal what I inherited. | What was passed down can stop with you. | ✅ WRITTEN |
+| 40 | Returned | Relationship always costs me myself. | Healthy love returns you to yourself. | ✅ WRITTEN |
 
 ---
 

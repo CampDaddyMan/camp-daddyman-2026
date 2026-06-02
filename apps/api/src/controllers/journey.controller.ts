@@ -2298,6 +2298,449 @@ is the surest way to break what you were trying to help.`,
     closingText: "You are the gardener.\n\nNot the owner.\n\n—\n\nTend what you can.\n\nLet the seeds do what only seeds can do.\n\nAnd trust the field.",
     published: true,
   },
+  {
+    dayNumber: 36,
+    phase: 'EGG',
+    title: 'Honest Peace',
+    lie: 'My silence keeps peace.',
+    truth: 'Some silence only protects the poison.',
+    body: `You have learned to keep quiet to keep the peace.
+
+To swallow the thing you needed to say.
+
+To let it pass. Let it go. Choose your battles.
+
+And on the surface, it works.
+
+The room stays calm.
+
+The relationship stays intact.
+
+Nobody has to deal with the discomfort of the truth.
+
+—
+
+But here is what silence actually does:
+
+It does not remove the thing that needed to be said.
+
+It buries it.
+
+Alive.
+
+—
+
+And buried things grow in the dark.
+
+The resentment that wasn't spoken becomes the distance that shows up years later.
+
+The need that wasn't named becomes the wound that can't be explained.
+
+The truth that was swallowed becomes the thing that poisons what it was trying to protect.
+
+—
+
+Silence is not always peace.
+
+Sometimes silence is just the decision to let something rot quietly
+
+instead of dealing with it in the open air.
+
+—
+
+Real peace is not the absence of conflict.
+
+Real peace is the presence of honesty
+
+after the conflict has been handled.
+
+—
+
+Some things have to be said
+
+for the silence after them
+
+to mean anything.`,
+    daddyManism: "Di quiet room ain't always a peaceful room. Sometimes it's just a room full of things nobody said.",
+    reflectionPrompt: 'What have you been keeping quiet to keep the peace? And what has that silence been doing to you — and to the relationship — while it sits unspoken?',
+    challengePrompt: 'Say one true thing today that you have been swallowing. Not everything — one thing. The one that has been sitting heaviest. Say it clearly and without cruelty. Let it breathe.',
+    livityPrompt: 'Create a space today where someone else can say the thing they have been swallowing. Ask: is there something you have needed to say? And mean it when you ask.',
+    journalPrompt: 'What have I been keeping quiet that is slowly poisoning something I care about?',
+    closingText: "Some silences protect.\n\nAnd some silences rot what they were meant to preserve.\n\n—\n\nLearn the difference.\n\nAnd then — say the thing.",
+    published: true,
+  },
+  {
+    dayNumber: 37,
+    phase: 'EGG',
+    title: "Fear's Armor",
+    lie: 'I am only safe if I control everything.',
+    truth: 'Control is not safety. It is fear wearing armor.',
+    body: `You have been managing.
+
+The variables. The outcomes. The other people's behavior.
+
+Making sure everything goes the way it needs to go
+
+so that nothing goes wrong.
+
+—
+
+And it is exhausting.
+
+Because you are trying to hold something that cannot be held.
+
+—
+
+Control is not safety.
+
+Control is the attempt to manufacture safety
+
+in the absence of trust.
+
+—
+
+When you were young — or when something broke — you learned that the world was not safe.
+
+That things could go wrong without warning.
+
+That people could hurt you.
+
+That unpredictability was dangerous.
+
+And so you reached for the one thing that felt like protection:
+
+control.
+
+—
+
+But control is a leaky container.
+
+No matter how tightly you hold it,
+
+something always slips through.
+
+The thing you couldn't anticipate.
+
+The person who wouldn't cooperate.
+
+The outcome that refused to follow the plan.
+
+—
+
+And every time something slips through,
+
+the fear gets louder.
+
+So you tighten more.
+
+And exhaust yourself more.
+
+—
+
+Real safety does not come from controlling everything.
+
+It comes from trusting that you can handle what comes.
+
+Even the things you didn't plan for.
+
+Even the outcomes you didn't choose.
+
+—
+
+You are more capable than the fear believes.
+
+Let something go.
+
+See what happens.`,
+    daddyManism: "Control is just fear in a suit. Tek off di suit and ask what yuh actually afraid of.",
+    reflectionPrompt: 'Where in your life are you gripping hardest? And what are you actually afraid would happen if you released that grip?',
+    challengePrompt: 'Let one thing today be outside your control without intervening. Watch it unfold without managing it. Notice that you survived.',
+    livityPrompt: 'Give someone today the freedom to do something their way — not yours. Resist the urge to correct, advise, or steer. Let their approach be enough.',
+    journalPrompt: 'What am I controlling that I need to trust instead?',
+    closingText: "You cannot hold the weather.\n\nYou can learn to stand in it.\n\n—\n\nLet go of what you cannot hold.\n\nAnd discover\nwhat you were strong enough for\nall along.",
+    published: true,
+  },
+  {
+    dayNumber: 38,
+    phase: 'EGG',
+    title: 'Known',
+    lie: 'If I let people close, they will see I am not enough.',
+    truth: 'Being known is not the same as being exposed.',
+    body: `You are afraid of what people would find
+
+if they got close enough to actually see.
+
+Not the performance. Not the capable version.
+
+The underneath.
+
+The places you have not finished.
+
+The things you have done and regret.
+
+The fears you have not shared.
+
+The ways you are still figuring it out.
+
+—
+
+And so you keep a certain distance.
+
+Close enough to feel connected.
+
+Far enough that the real thing stays hidden.
+
+—
+
+But here is what that distance is costing you:
+
+You are never fully loved.
+
+You are liked, admired, appreciated, valued.
+
+But the version of you they love
+
+is the version you curated.
+
+And somewhere in you,
+
+you know it.
+
+And it is lonely.
+
+—
+
+Being known is not the same as being exposed.
+
+Exposure is when something is taken from you.
+
+Being known is when something is offered.
+
+—
+
+The difference is who holds it, and how.
+
+—
+
+You do not have to show everything to everyone.
+
+You are not required to perform full transparency for people who have not earned it.
+
+—
+
+But there are people in your life
+
+who have been waiting, quietly,
+
+for you to let them in.
+
+Who would not use what they found against you.
+
+Who would hold it carefully.
+
+Who would stay.
+
+—
+
+Let one of them see something real.
+
+Not to be fixed.
+
+To be known.`,
+    daddyManism: "Being known is not a threat. It's di closest thing to being loved dat actually counts.",
+    reflectionPrompt: 'What are you most afraid people would find if they saw the whole of you? And is it possible that the right person — one who has earned it — could see it and stay?',
+    challengePrompt: 'Let one safe person see one real thing today. Not a crisis. Something true about where you are right now. Offer it as a gift, not a confession. See how they hold it.',
+    livityPrompt: 'Hold something carefully today that someone trusted you with. Do not share it. Do not minimize it. Do not try to fix it. Just be the proof that being known is safe.',
+    journalPrompt: 'Who has earned the right to know me more than I have let them?',
+    closingText: "You were not made to be a performance.\n\nYou were made to be known.\n\n—\n\nLet the right ones in.\n\nThe real you is not a liability.\n\nIt is the thing worth finding.",
+    published: true,
+  },
+  {
+    dayNumber: 39,
+    phase: 'EGG',
+    title: 'Stop the Chain',
+    lie: 'I cannot heal what I inherited.',
+    truth: 'What was passed down can stop with you.',
+    body: `You came from something.
+
+A family. A history. A set of patterns that were handed down
+
+before anyone asked whether they should be.
+
+Rage that nobody named. Silence that passed as peace. Distance that was called strength. Absence that was called providing.
+
+—
+
+You received it.
+
+Not because you asked for it.
+
+Because it was there, and you were young, and it was all you saw.
+
+—
+
+And now you carry it.
+
+And you wonder, somewhere underneath the wondering:
+
+Is this just who I am?
+
+Is this the shape of me, passed down from them?
+
+Am I just the next generation of this?
+
+—
+
+You are not.
+
+—
+
+Here is what is true about inherited things:
+
+They are real.
+
+They shaped you.
+
+They are not nothing.
+
+—
+
+And they can stop with you.
+
+—
+
+You did not choose what you received.
+
+You do choose what you pass on.
+
+—
+
+The chain does not break by pretending it isn't there.
+
+It breaks by seeing it clearly.
+
+By naming what it cost.
+
+By deciding — deliberately, with your whole self —
+
+that the thing you received
+
+will not be the thing you give.
+
+—
+
+This is not easy.
+
+It is some of the hardest work a person can do.
+
+—
+
+But you are the one standing at the link.
+
+And the direction it goes from here
+
+is yours to choose.`,
+    daddyManism: "Yuh nuh choose what dem pass down. But yuh choose what yuh pass on. Dat is where di power live.",
+    reflectionPrompt: 'What did you inherit that you are in danger of passing on? Not as accusation — as honest inventory. What pattern, what silence, what wound arrived before you were old enough to refuse it?',
+    challengePrompt: 'Name one inherited pattern you are committed to stopping. Write it down with both parts: what was passed to you, and what you are choosing to do differently. Make it specific.',
+    livityPrompt: 'Be for someone today what someone failed to be for you. Not to prove anything. Because you are the one standing at the link — and you can choose the direction.',
+    journalPrompt: 'What ends with me?',
+    closingText: "The chain is real.\n\nAnd it can stop.\n\n—\n\nNot because you are stronger than what came before.\n\nBecause you are willing to see it\nand choose differently.\n\nWhat ends with you\nis just as powerful as what began.",
+    published: true,
+  },
+  {
+    dayNumber: 40,
+    phase: 'EGG',
+    title: 'Returned',
+    lie: 'Relationship always costs me myself.',
+    truth: 'Healthy love returns you to yourself.',
+    body: `You have arrived at the end of Ring 2.
+
+Twenty-five days of relational lies.
+
+Twenty-five places where the wound about other people became the rule about all people.
+
+—
+
+Before Ring 3 begins, we want to say something:
+
+If relationship has always cost you yourself —
+
+if closeness has always meant losing ground —
+
+if love has always come with a price tag that included something essential —
+
+that was not love.
+
+That was something wearing love's name.
+
+—
+
+Real love does not require you to disappear.
+
+Real love does not ask you to shrink to fit.
+
+Real love does not demand that you become less
+
+so it can become more.
+
+—
+
+Real love returns you to yourself.
+
+—
+
+It gives you back the parts of you that smaller relationships took.
+
+It makes you more — not less — of who you actually are.
+
+It gives you the safety to be real
+
+and the room to become.
+
+—
+
+You may not have experienced that kind of love yet.
+
+Or you may have glimpsed it.
+
+Or it may be what you are becoming capable of giving.
+
+—
+
+Either way — it exists.
+
+And it is what the field has been growing toward
+
+this whole time.
+
+—
+
+You were not made to lose yourself in relationship.
+
+You were made to find yourself
+
+in the presence of people who could actually see you.
+
+—
+
+Ring 2 is complete.
+
+You have been seen.
+
+Now we move into the deepest ring:
+
+Who you are.
+
+And what you can become.`,
+    daddyManism: "Real love nuh tek from yuh. It give yuh back di parts of you dat di wrong love took.",
+    reflectionPrompt: 'Has there been a relationship — any relationship — where you felt more yourself, not less? What made it different? What did it ask of you that was different from what took from you?',
+    challengePrompt: 'Write down three things that are true about you — not what you do, not what you provide, but who you are — that you want to carry into Ring 3. These are the parts of you that belong to you, regardless of who is watching.',
+    livityPrompt: 'Be a returning presence for someone today. Not grand. Just: be the person who, when they are with you, they feel a little more like themselves. That is one of the greatest gifts one person can give another.',
+    journalPrompt: 'What version of me do I want to bring into Ring 3?',
+    closingText: "Ring 2 is complete.\n\nTwenty-five lies about people.\n\nTwenty-five truths about what love can actually be.\n\n—\n\nYou were not made to lose yourself.\n\nYou were made to be found.\n\nRing 3 begins now.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

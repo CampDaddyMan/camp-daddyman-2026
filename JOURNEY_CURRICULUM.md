@@ -125,7 +125,12 @@ Theme: *"What am I feeding on?"*
 | 63 | Attention Is Food | What I look at doesn't really affect me. | What you watch becomes what you are. | ✅ WRITTEN |
 | 64 | Discipline Is Feeding | Discipline is punishment. | Discipline is feeding yourself on purpose. | ✅ WRITTEN |
 | 65 | Rest Is Nourishment | Rest is laziness. I have to earn the right to stop. | Rest is part of growth, not the absence of it. | ✅ WRITTEN |
-| 66–75 | *(Ring 1 continues)* | — | — | 🗺️ TO WRITE |
+| 66 | The Company You Keep | The people around me don't change who I am. | You become who you consume. | ✅ WRITTEN |
+| 67 | Words Are Food | Words are just words. | What is spoken — over you and by you — feeds you. | ✅ WRITTEN |
+| 68 | The Body Is Not Separate | My body and my growth are separate things. | What you feed your body feeds everything else. | ✅ WRITTEN |
+| 69 | Room to Digest | I have to be consuming something every moment. | Stillness is where what you consumed becomes part of you. | ✅ WRITTEN |
+| 70 | Hunger for the Real | If it satisfies the craving, it's good enough. | Cheap fullness is still empty. Learn to want the real thing. | ✅ WRITTEN |
+| 71–75 | *(Ring 1 continues)* | — | — | 🗺️ TO WRITE |
 
 ## RING 2 — GROWING VISIBLY (Days 76–95)
 Theme: *"What am I becoming through repetition?"* — 🗺️ TO WRITE

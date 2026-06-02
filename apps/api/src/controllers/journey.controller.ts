@@ -4856,6 +4856,405 @@ finally turns into who you are becoming.`,
     closingText: "Rest is not the absence of growth.\n\nIt is where the feeding\nbecomes the becoming.\n\n—\n\nLie fallow.\n\nTrust the season.",
     published: true,
   },
+  {
+    dayNumber: 66,
+    phase: 'CATERPILLAR',
+    title: 'The Company You Keep',
+    lie: 'The people around me don’t change who I am.',
+    truth: 'You become who you consume.',
+    body: `You are eating the people around you.
+
+Not literally — but in every way that matters.
+
+Their words. Their moods. Their standards. Their appetites.
+
+What they accept. What they laugh at. What they have given up on.
+
+—
+
+You absorb the people you spend time with
+
+the way the body absorbs a meal.
+
+Slowly. Invisibly. Becoming what it takes in.
+
+—
+
+You have felt this.
+
+The person who leaves you drained every time.
+
+The one whose bitterness is contagious.
+
+The room you walk out of smaller than you walked in.
+
+—
+
+And the opposite:
+
+The person who makes you want to be better just by being near them.
+
+The one whose discipline is contagious too.
+
+The room that leaves you larger.
+
+—
+
+This is not about cutting people off.
+
+Some people you carry out of love, even when they cost you.
+
+—
+
+But be honest about what you are consuming.
+
+Because the company you keep is a diet.
+
+And you are becoming the average of what you take in.
+
+—
+
+Feed on people who are growing.
+
+Get near the ones who are further down the road.
+
+It is the fastest way to change what you become —
+
+because you become who you are around.`,
+    daddyManism: 'Yuh turn into di people yuh sit wid. So mind who yuh eating wid every day.',
+    reflectionPrompt: 'Who are you consuming the most of right now? Are they growing you or shrinking you? Be honest — name the ones who leave you larger and the ones who leave you smaller.',
+    challengePrompt: 'Spend deliberate time today near someone who is further down the road than you — in person, on a call, even through their words or work. Get close to growth and let it feed you.',
+    livityPrompt: 'Be good company for someone today. Be the person who leaves them larger, not smaller. Bring the encouragement, the standard, the warmth you would want fed to you.',
+    journalPrompt: 'Who do I want to become more like — and how do I get nearer to them?',
+    closingText: "You are the average\nof what you take in.\n\n—\n\nGet near the ones who are growing.\n\nYou will start to grow\nbefore you even decide to.",
+    published: true,
+  },
+  {
+    dayNumber: 67,
+    phase: 'CATERPILLAR',
+    title: 'Words Are Food',
+    lie: 'Words are just words.',
+    truth: 'What is spoken — over you and by you — feeds you.',
+    body: `You have been fed words your whole life.
+
+Some built you.
+
+Some poisoned you.
+
+And you are still digesting all of them.
+
+—
+
+The thing someone said about you when you were small that you never forgot.
+
+The name you were called that became a voice in your own head.
+
+The praise you couldn't believe and the criticism you couldn't release.
+
+—
+
+Words are not just words.
+
+Words are food.
+
+They go in, and they become part of the structure of you.
+
+—
+
+And here is the part most people miss:
+
+The loudest voice feeding you words
+
+is your own.
+
+—
+
+What you say about yourself, all day, in the quiet —
+
+"I'm an idiot." "I always do this." "I'll never change." —
+
+you are eating those words.
+
+Meal after meal.
+
+And becoming them.
+
+—
+
+You would not feed a child poison and expect them to grow.
+
+Stop feeding it to yourself.
+
+—
+
+This is not about empty positivity.
+
+It is about truth spoken in your own favor
+
+instead of lies spoken against yourself out of habit.
+
+—
+
+Watch what you say.
+
+Over others. Over yourself.
+
+You are setting the table
+
+for who everyone becomes —
+
+including you.`,
+    daddyManism: 'Di words yuh chat over yuhself a feed yuh. Stop poisoning yuh own plate.',
+    reflectionPrompt: 'What words do you speak over yourself most often? Write down the phrase that runs on repeat in your head. Is it food that builds you — or poison you have gotten used to?',
+    challengePrompt: 'Catch yourself in one piece of self-talk today that tears you down. Stop. Replace it with something true and in your favor. Not a lie — a truer truth. Do it every time it rises today.',
+    livityPrompt: 'Speak life over someone today. Tell them something true and good that they need to hear and may not say to themselves. Feed them a word that builds. Watch it land.',
+    journalPrompt: 'What word do I need to stop feeding myself — and what would I feed myself instead?',
+    closingText: "Words are food.\n\nYou are eating yours\nevery hour, in your own voice.\n\n—\n\nSet a better table.\n\nStart with what you say to yourself.",
+    published: true,
+  },
+  {
+    dayNumber: 68,
+    phase: 'CATERPILLAR',
+    title: 'The Body Is Not Separate',
+    lie: 'My body and my growth are separate things.',
+    truth: 'What you feed your body feeds everything else.',
+    body: `You have been treating your body like a vehicle.
+
+Something that carries the real you around.
+
+Something to push, ignore, override, run on empty —
+
+as if the mind and the spirit grow on one track
+
+and the body is just along for the ride.
+
+—
+
+But you are not a mind driving a body.
+
+You are one thing.
+
+—
+
+What you put in your body becomes the fuel for every thought you think,
+
+every emotion you feel,
+
+every act of discipline you try to summon.
+
+—
+
+The poor sleep that makes everything harder.
+
+The food that leaves you foggy.
+
+The substance that numbs the very feelings you came here to face.
+
+The body that never moves and slowly forgets it is strong.
+
+—
+
+These are not separate from your growth.
+
+They are the ground it grows in.
+
+—
+
+The caterpillar is not a spirit pretending to have a body.
+
+It is a body that eats and moves and rests
+
+and becomes a butterfly through entirely physical means.
+
+—
+
+You cannot think your way into transformation
+
+while feeding the vessel poison.
+
+—
+
+Tend the body.
+
+Not out of vanity.
+
+Because it is the soil
+
+every other kind of growth is rooted in.`,
+    daddyManism: 'Yuh nuh have a body — yuh are one. Feed it like everything else depend on it. Because it do.',
+    reflectionPrompt: 'Where have you been treating your body as separate from your growth — overriding it, numbing it, neglecting it? What is that costing the rest of you?',
+    challengePrompt: 'Do one thing for your body today that feeds your whole self — real sleep, real movement, real food, real water. Pick the one you have been neglecting most. Treat it as foundational, because it is.',
+    livityPrompt: 'Care for someone’s physical needs today. Make a meal, check on someone who is unwell, move alongside someone who is struggling to. Tend a body and you tend a whole person.',
+    journalPrompt: 'What is my body trying to tell me that I have been overriding?',
+    closingText: "You are not a mind\ndragging a body around.\n\nYou are one thing.\n\n—\n\nTend the soil.\n\nEverything else grows from it.",
+    published: true,
+  },
+  {
+    dayNumber: 69,
+    phase: 'CATERPILLAR',
+    title: 'Room to Digest',
+    lie: 'I have to be consuming something every moment.',
+    truth: 'Stillness is where what you consumed becomes part of you.',
+    body: `You can't sit still.
+
+The moment there is a gap — a line, a pause, a quiet minute —
+
+you reach for something.
+
+The phone. The noise. The next input.
+
+Anything but silence.
+
+—
+
+You have confused constant consumption with growth.
+
+As if the more you take in, the more you become.
+
+—
+
+But that is not how it works.
+
+—
+
+A caterpillar that ate without pause would not grow faster.
+
+It would die.
+
+Digestion requires stillness.
+
+The eating only becomes growth
+
+in the quiet that follows it.
+
+—
+
+You have been eating without digesting.
+
+Taking in input after input —
+
+podcasts, feeds, articles, videos, conversation, noise —
+
+and never giving any of it room to become part of you.
+
+—
+
+That is why so much passes through you and leaves nothing.
+
+You never sat still long enough
+
+to let it land.
+
+—
+
+Silence is not empty.
+
+Silence is where the meal turns into muscle.
+
+Where the lesson becomes wisdom.
+
+Where what you consumed
+
+finally becomes who you are.
+
+—
+
+Make room.
+
+Put the next input down.
+
+Let what you already have
+
+finish becoming you.`,
+    daddyManism: 'Yuh eat and eat but never sit still fi digest. Di quiet is where di food turn to flesh.',
+    reflectionPrompt: 'When was the last time you sat in silence with no input at all? What are you afraid will come up if you stop filling every gap with noise?',
+    challengePrompt: 'Take ten minutes of true silence today — no phone, no music, no input. Just stillness. Let your mind digest what it has been swallowing. Notice how hard it is, and do it anyway.',
+    livityPrompt: 'Give someone the gift of unhurried presence today — a conversation with no rush, no phone, no agenda. Let there be silence in it. Let them feel unhurried for once.',
+    journalPrompt: 'What have I consumed lately that I never gave myself room to digest?',
+    closingText: "You have been eating without digesting.\n\n—\n\nSit still.\n\nLet the meal become muscle.\n\nThat is where growth actually happens.",
+    published: true,
+  },
+  {
+    dayNumber: 70,
+    phase: 'CATERPILLAR',
+    title: 'Hunger for the Real',
+    lie: 'If it satisfies the craving, it’s good enough.',
+    truth: 'Cheap fullness is still empty. Learn to want the real thing.',
+    body: `There is a kind of full that is still empty.
+
+You know it.
+
+The hours that passed and gave you nothing.
+
+The thing you reached for that quieted the craving
+
+without ever feeding the need underneath it.
+
+—
+
+This is the trap of cheap fullness.
+
+—
+
+The world is full of food engineered to satisfy the craving
+
+while starving the body.
+
+Designed to keep you eating
+
+without ever leaving you nourished.
+
+—
+
+And it is not just food.
+
+It is the entertainment that fills the hours and leaves you hollow.
+
+The connection that is only contact.
+
+The achievement that scratches the itch and never touches the ache.
+
+The endless scroll that feels like something and is nothing.
+
+—
+
+Cheap fullness keeps you coming back
+
+precisely because it never satisfies.
+
+Real nourishment satisfies —
+
+and so you need less of it, not more.
+
+—
+
+That is how you can tell the difference.
+
+The cheap thing leaves you needing more of the cheap thing.
+
+The real thing leaves you fed.
+
+—
+
+You have trained yourself to accept fullness as the goal.
+
+But fullness was never the goal.
+
+Nourishment was.
+
+—
+
+Stop settling for full.
+
+Learn to hunger for the real.`,
+    daddyManism: 'Plenty things fill yuh up and leave yuh empty. Learn fi hungry fi di real thing.',
+    reflectionPrompt: 'Where in your life are you settling for cheap fullness — full but not fed? What is the real need underneath the craving you keep feeding with the cheap thing?',
+    challengePrompt: 'Today, when you reach for the cheap fullness, pause and ask: what am I actually hungry for? Then feed that instead, even if it is harder. Aim for nourished, not just full.',
+    livityPrompt: 'Offer someone the real thing today instead of the cheap version — real conversation instead of small talk, real help instead of a quick word, real presence instead of a like. Nourish, don’t just fill.',
+    journalPrompt: 'What am I truly hungry for underneath the things I keep reaching for?',
+    closingText: "Full was never the goal.\n\nNourished was.\n\n—\n\nStop settling for empty calories\nin every part of your life.\n\nHunger for the real.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

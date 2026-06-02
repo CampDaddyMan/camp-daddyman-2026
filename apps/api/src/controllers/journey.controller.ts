@@ -658,6 +658,250 @@ You are deeply rooted.`,
     closingText: "You are not your worst season.\n\nYou are the field that survived it.\n\n—\n\nDeep roots grow in hard ground.\n\nYou are more ready than you know.",
     published: true,
   },
+  {
+    dayNumber: 12,
+    phase: 'EGG',
+    title: 'Seen Anyway',
+    lie: 'Nobody sees me.',
+    truth: 'Being unseen is not the same as being invisible.',
+    body: `You have become very good at not being seen.
+
+You have practiced it.
+
+You take up less space than you need. You speak a little quieter than your thought deserves. You wait to be invited before you offer what you have to give.
+
+And somewhere in all that practice, the invisibility started to feel like truth.
+
+Like evidence.
+
+Like: nobody sees me because there is nothing worth seeing.
+
+—
+
+But being unseen is not the same as being invisible.
+
+Invisible means you aren't there.
+
+Unseen means the people around you haven't learned how to look.
+
+—
+
+You have been in rooms where the most valuable thing went unnoticed.
+
+You have walked past art without registering it.
+
+You have sat next to someone who would have changed your life if you had asked one right question.
+
+The art was still art.
+
+The person was still that person.
+
+The seeing was the variable.
+
+—
+
+You are not invisible.
+
+You are in a room where the lighting is wrong.
+
+That is not a permanent condition.`,
+    daddyManism: 'Di tree in di forest is still a tree, even when nobody walk past it.',
+    reflectionPrompt: 'Where have you made yourself smaller to avoid being seen? What did you protect yourself from — and what did that cost you?',
+    challengePrompt: 'Take up your full space in one moment today where you normally shrink. Speak at your actual volume. Offer the thought you would normally keep. Let yourself be present.',
+    livityPrompt: 'See someone today who is not being seen. Call them by name. Ask them a real question. Let them know they registered.',
+    journalPrompt: 'What would I offer if I believed it was worth seeing?',
+    closingText: "You are not invisible.\n\nYou are unseen.\n\nThose are not the same thing.\n\n—\n\nThe field doesn't disappear because nobody is looking.\n\nIt is still growing.",
+    published: true,
+  },
+  {
+    dayNumber: 13,
+    phase: 'EGG',
+    title: 'Sleeping Wings',
+    lie: 'I have nothing good inside me.',
+    truth: 'The wings were already there.',
+    body: `You have looked inside and found nothing worth keeping.
+
+Not nothing — you can function. You can perform. You can produce things the world finds useful.
+
+But at the core of it, when you look past the performance, you find: empty. Or broken. Or nothing that anyone would choose if they saw it clearly.
+
+—
+
+This is the deepest lie of Ring 1.
+
+Not because it feels small — it doesn't. It feels absolute.
+
+But because it is wrong in a specific way:
+
+You have been looking for the wings in the caterpillar.
+
+—
+
+They are not visible yet.
+
+That is not evidence they are not there.
+
+The caterpillar, in the last stage before the chrysalis, does not look like something that is about to become extraordinary.
+
+It looks like a caterpillar.
+
+The wings are already forming — hidden, unrecognizable, not yet anything the eye can name.
+
+—
+
+What you cannot see inside yourself is not absence.
+
+It may simply be wings in a form you don't yet recognize.
+
+The good that is in you does not wear the shape you were told goodness wears.
+
+It does not announce itself the way you expect.
+
+—
+
+It is there.
+
+Sleeping.
+
+Waiting for the conditions to become what it was always going to be.`,
+    daddyManism: "Yuh cyan't see di wings yet. Dat nuh mean dem nuh deh.",
+    reflectionPrompt: "What have you decided is not inside you that might simply be unformed — not absent, but not yet visible? What good do you dismiss in yourself before anyone else gets the chance to?",
+    challengePrompt: "Ask one person who knows you what they see in you that you don't see in yourself. Do not deflect. Do not argue. Just receive it. Write it down.",
+    livityPrompt: 'Tell someone today what you see in them that they may not see in themselves. Be specific. Make it real. Let them feel it land.',
+    journalPrompt: 'What might be sleeping inside me that I have been calling absence?',
+    closingText: "The wings were always there.\n\nNot visible.\n\nNot formed.\n\nBut already yours.\n\n—\n\nDi wings did inna yuh di whole time.",
+    published: true,
+  },
+  {
+    dayNumber: 14,
+    phase: 'EGG',
+    title: 'Imaginal Cells',
+    lie: 'The part of me trying to become is the enemy.',
+    truth: 'The imaginal cells were attacked before they became wings.',
+    body: `Here is something most people don't know about the butterfly.
+
+Inside the chrysalis, when the caterpillar begins to dissolve, new cells appear.
+
+They are called imaginal cells.
+
+They carry the blueprint of the butterfly — the wings, the colors, everything the caterpillar cannot imagine becoming.
+
+And the caterpillar's own immune system attacks them.
+
+—
+
+The body attacks what is trying to become.
+
+—
+
+You may know this feeling.
+
+The part of you that is trying to change — the version of yourself reaching for something different — has been under attack.
+
+Not always from outside.
+
+From inside.
+
+From the habits and beliefs that kept you alive and are now fighting what is trying to emerge.
+
+From the fear of what the change will cost.
+
+From the old identity that does not want to dissolve.
+
+—
+
+The imaginal cells were attacked.
+
+And they won anyway.
+
+They found each other. They held. They organized in the dark.
+
+And the caterpillar became what it could not imagine.
+
+—
+
+The part of you that is trying to become is not the enemy.
+
+It is the most important thing in you.
+
+Do not let the old immune system win.`,
+    daddyManism: 'Di body attack what it nuh understand. But what it attack can still win.',
+    reflectionPrompt: 'What part of you is trying to emerge that you keep attacking? What does that part want — and what in you is afraid of it?',
+    challengePrompt: 'Do one thing today that supports the part of you that is trying to become. Not a big thing. Feed it. Protect it. Let it know you are on its side.',
+    livityPrompt: "Find someone whose growth is being attacked — by others or by themselves — and stand beside what is trying to emerge in them. Name what you see. Call it real.",
+    journalPrompt: 'What is trying to emerge in me that I keep fighting?',
+    closingText: "The imaginal cells were attacked.\n\nAnd they won.\n\n—\n\nWhat is trying to become in you is not the enemy.\n\nIt is the whole point.",
+    published: true,
+  },
+  {
+    dayNumber: 15,
+    phase: 'EGG',
+    title: 'Begin Anyway',
+    lie: 'I cannot begin until I feel ready.',
+    truth: 'Beginning is how readiness is born.',
+    body: `You have arrived at the end of Ring 1.
+
+Fifteen days.
+
+You came when you didn't feel like it.
+
+You stayed when it would have been easier to stop.
+
+You sat with words that named things you had never said out loud.
+
+—
+
+Some of what you read landed.
+
+Some of it didn't — not yet.
+
+That is fine.
+
+The field does not absorb every rain immediately.
+
+Some water has to sit before it sinks.
+
+—
+
+But we want to name something before Ring 2 begins:
+
+You are still here.
+
+That is not a small thing.
+
+—
+
+For fifteen days, something in you was told:
+
+You don't matter. Nothing you do matters. You are alone. You are what was done to you. You don't belong. It's too late. You don't know who you are. Nobody came. You have to hide to survive. Your pain makes you weak. You're too damaged to grow. Nobody sees you. There is nothing good in you. The part of you trying to become is the enemy. You cannot begin until you are ready.
+
+—
+
+And you are still here.
+
+Still reading.
+
+Still trying.
+
+—
+
+That is not nothing.
+
+That is the beginning.
+
+You were never waiting to be ready.
+
+You were becoming ready by staying.
+
+Now — begin anyway.`,
+    daddyManism: 'Readiness nuh come before di beginning. It come from it.',
+    reflectionPrompt: 'What have you been waiting to feel before you allow yourself to begin? Name the feeling. Now ask: what if beginning is the only way to feel it?',
+    challengePrompt: 'Begin one thing today that you have been waiting to feel ready for. One step. Not the whole journey. The step you have been standing in front of, waiting for permission. You have it.',
+    livityPrompt: 'Tell one person who is waiting for readiness that they are already ready enough. Not to push them. To free them.',
+    journalPrompt: 'What have I been waiting for permission to begin?',
+    closingText: "You made it through Ring 1.\n\nFifteen days.\n\nFifteen lies.\n\n—\n\nYou were never waiting to be ready.\n\nYou were becoming ready by staying.\n\nBegin.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

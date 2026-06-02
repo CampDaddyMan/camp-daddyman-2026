@@ -38,10 +38,10 @@ Theme: *"Do I have the right to be here?"*
 | 9 | The Hidden Self | I must hide the real me to survive. | Hiding protected you once, but it cannot become your home. | ✅ WRITTEN |
 | 10 | The Pain Is Real | My pain makes me weak. | Pain means something real happened; weakness is not the same as woundedness. | ✅ WRITTEN |
 | 11 | Still Growing | I am too damaged to grow. | Damage is not destiny. | ✅ WRITTEN |
-| 12 | Seen Anyway | Nobody sees me. | Being unseen is not the same as being invisible. | 🗺️ FRAMEWORK |
-| 13 | Sleeping Wings | I have nothing good inside me. | The wings were already there. | 🗺️ FRAMEWORK |
-| 14 | Imaginal Cells | The part of me trying to become is the enemy. | The imaginal cells were attacked before they became wings. | 🗺️ FRAMEWORK |
-| 15 | Begin Anyway | I cannot begin until I feel ready. | Beginning is how readiness is born. | 🗺️ FRAMEWORK |
+| 12 | Seen Anyway | Nobody sees me. | Being unseen is not the same as being invisible. | ✅ WRITTEN |
+| 13 | Sleeping Wings | I have nothing good inside me. | The wings were already there. | ✅ WRITTEN |
+| 14 | Imaginal Cells | The part of me trying to become is the enemy. | The imaginal cells were attacked before they became wings. | ✅ WRITTEN |
+| 15 | Begin Anyway | I cannot begin until I feel ready. | Beginning is how readiness is born. | ✅ WRITTEN |
 
 ---
 

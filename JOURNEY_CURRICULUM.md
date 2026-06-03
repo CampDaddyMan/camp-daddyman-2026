@@ -137,7 +137,16 @@ Theme: *"What am I feeding on?"*
 | 75 | You Are What You Ate | What I consume doesn't add up to anything. | You are becoming the sum of what you feed on. *(Ring 1 capstone)* | ✅ WRITTEN |
 
 ## RING 2 — GROWING VISIBLY (Days 76–95)
-Theme: *"What am I becoming through repetition?"* — 🗺️ TO WRITE
+Theme: *"What am I becoming through repetition?"*
+
+| Day | Title | The Hunger | The Nourishment | Status |
+|-----|-------|-----------|-----------------|--------|
+| 76 | Growth Has to Show | My growth is my private business. | Real growth eventually becomes visible. | ✅ WRITTEN |
+| 77 | Small Reps Beat Big Intentions | I'm waiting for the big moment to change. | You become through small reps, not grand gestures. | ✅ WRITTEN |
+| 78 | Earned in the Boring Middle | I'll do it when I feel inspired. | Mastery is built in the boring middle, not the inspired start. | ✅ WRITTEN |
+| 79 | Keeping Your Word to Yourself | Breaking promises to myself doesn't matter. | Keeping your word to yourself is how you learn to trust yourself. | ✅ WRITTEN |
+| 80 | Beginner in Public | I won't try until I'm good at it. | Growth requires being a beginner where people can see. | ✅ WRITTEN |
+| 81–95 | *(Ring 2 continues)* | — | — | 🗺️ TO WRITE |
 
 ## RING 3 — BEGINNING TO GIVE (Days 96–110)
 Theme: *"What can I give from what I've grown?"* — Livity primary. Ends at the J-Shape handoff. — 🗺️ TO WRITE

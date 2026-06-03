@@ -5664,6 +5664,403 @@ Now show what you are growing into.`,
     closingText: "You are the sum of what you feed on.\n\nRing 1 taught you to eat well.\n\n—\n\nBut a caterpillar that only eats\nis just a fat caterpillar.\n\nThe point of eating is to grow.\n\nRing 2 begins.\n\nNow we make the growth visible.",
     published: true,
   },
+
+  // ── RING 2 — GROWING VISIBLY (Days 76–95) ────────────────────────────────
+  // "What am I becoming through repetition?"
+
+  {
+    dayNumber: 76,
+    phase: 'CATERPILLAR',
+    title: 'Growth Has to Show',
+    lie: 'My growth is my private business.',
+    truth: 'Real growth eventually becomes visible.',
+    body: `You have been doing the inner work.
+
+The reading. The reflecting. The feeding.
+
+And some part of you wants to keep it there — private, internal, safe.
+
+Where no one can see it.
+
+Where no one can judge it.
+
+Where it cannot fail in front of anybody.
+
+—
+
+But there is a kind of growth that stays invisible on purpose
+
+because invisible growth can never be tested.
+
+—
+
+The caterpillar does not grow in secret.
+
+Its growth is the most visible thing about it.
+
+It gets bigger. It sheds its skin. It changes shape where everyone can see.
+
+Growth, for the caterpillar, is not a private feeling.
+
+It is a public fact.
+
+—
+
+Inner work that never becomes outer change
+
+is not transformation.
+
+It is rehearsal.
+
+—
+
+You can feel like you are growing for years
+
+and have nothing to show for it
+
+because the growth never left the inside of your own head.
+
+—
+
+This ring is about the turn:
+
+from what you take in
+
+to what you build with it
+
+out where it can be seen, tested, and counted.
+
+—
+
+Real growth eventually shows.
+
+Not for applause.
+
+Because that is what real means.
+
+It changes what you actually do.`,
+    daddyManism: 'Growth weh nobody can see might just be growth weh never happen. Mek it show.',
+    reflectionPrompt: 'Where have you been telling yourself you are growing — but nothing in your actual life has changed? What would visible evidence of that growth look like?',
+    challengePrompt: 'Take one piece of inner work you have been doing and make it visible today. Turn a private resolve into a public action — something someone could actually observe. Let the growth leave your head.',
+    livityPrompt: 'Make your growth serve someone today. The truest sign that inner work is real is that it changes how you treat people. Let someone feel the difference in you.',
+    journalPrompt: 'What growth have I kept private because keeping it private kept it safe from being tested?',
+    closingText: "Inner work that never shows\nis rehearsal, not transformation.\n\n—\n\nThe caterpillar grows where everyone can see.\n\nNow it is your turn\nto let the change become a fact.",
+    published: true,
+  },
+  {
+    dayNumber: 77,
+    phase: 'CATERPILLAR',
+    title: 'Small Reps Beat Big Intentions',
+    lie: 'I’m waiting for the big moment to change.',
+    truth: 'You become through small reps, not grand gestures.',
+    body: `You have a big intention.
+
+You have had it for a while.
+
+The dramatic change. The clean break. The day you finally become the person you mean to be — all at once, completely, for good.
+
+—
+
+And you are waiting for it.
+
+For the motivation. For the right conditions. For the moment big enough to match the size of the intention.
+
+—
+
+That moment is not coming.
+
+—
+
+Not because you are not capable.
+
+Because that is not how people change.
+
+—
+
+Nobody becomes anything through a single grand gesture.
+
+The grand gesture feels like change
+
+but it is usually just feeling — intensity mistaken for transformation.
+
+It burns hot and dies fast and leaves you exactly where you were.
+
+—
+
+You become through small reps.
+
+The unremarkable action, repeated.
+
+The thing so small it feels like it could not possibly matter,
+
+done again the next day, and the next.
+
+—
+
+The caterpillar does not become a butterfly in a leap.
+
+It eats one leaf. Then another. Then another.
+
+Ten thousand unremarkable bites
+
+become wings.
+
+—
+
+Stop waiting for the big moment.
+
+The big moment is a distraction from the small reps
+
+that are the only thing that has ever actually worked.
+
+Do the small thing.
+
+Today. Again tomorrow.
+
+That is the whole secret.`,
+    daddyManism: 'Big intention nah build yuh. Small reps build yuh. Ten thousand bites mek di wings.',
+    reflectionPrompt: 'What big change have you been waiting to make all at once? What is the smallest version of it you could do today — so small it feels like it barely counts?',
+    challengePrompt: 'Do the smallest possible rep of your big intention today. Not the whole thing — the tiniest piece. Then commit to doing that same small rep again tomorrow. Reps, not leaps.',
+    livityPrompt: 'Encourage someone today who is discouraged that their small efforts are not adding up. Remind them: the small reps are the only thing that ever builds anything. Be specific about progress you see in them.',
+    journalPrompt: 'What small rep, repeated daily, would actually build the change I keep waiting for a big moment to deliver?',
+    closingText: "The big moment is not coming.\n\nThe small rep is already here.\n\n—\n\nTen thousand unremarkable bites\nbecome wings.\n\nTake one.",
+    published: true,
+  },
+  {
+    dayNumber: 78,
+    phase: 'CATERPILLAR',
+    title: 'Earned in the Boring Middle',
+    lie: 'I’ll do it when I feel inspired.',
+    truth: 'Mastery is built in the boring middle, not the inspired start.',
+    body: `Inspiration is real.
+
+It is also a liar about its own importance.
+
+—
+
+Inspiration shows up at the beginning.
+
+It makes the start feel electric — the new plan, the fresh notebook, the first day of the new you.
+
+And then, somewhere around day nine,
+
+it leaves.
+
+—
+
+And you are standing in the boring middle.
+
+No spark. No high. Just the work, repeating, without the feeling that made it easy.
+
+—
+
+This is where most people stop.
+
+They mistake the leaving of the inspiration
+
+for the leaving of the meaning.
+
+They think: I lost my motivation, so I must be doing the wrong thing.
+
+—
+
+But the boring middle is not the sign you are failing.
+
+The boring middle is the actual work.
+
+—
+
+Anybody can do it inspired.
+
+The thing that separates the person who becomes something
+
+from the person who keeps starting over
+
+is the willingness to keep going
+
+when the feeling that started it is long gone.
+
+—
+
+Mastery is not built in the inspired start.
+
+It is built in the unglamorous, unwitnessed, unmotivated middle —
+
+the reps you do precisely on the days you do not feel like it.
+
+—
+
+When the inspiration leaves, do not leave with it.
+
+Stay in the boring middle.
+
+That is where you are actually being made.`,
+    daddyManism: 'Inspiration start di thing. Discipline finish it. Di boring middle is where yuh actually get made.',
+    reflectionPrompt: 'What have you abandoned in the boring middle because the inspiration ran out? Was the work wrong — or did you just confuse the loss of the feeling with the loss of the point?',
+    challengePrompt: 'Do one thing today that you started inspired and have since lost the feeling for. Show up to the boring middle on purpose. Notice that you can do it without the feeling — that is the skill.',
+    livityPrompt: 'Stand with someone today who is in their boring middle — discouraged, unmotivated, ready to quit. Do not hype them up. Just remind them the boring middle is the work, and walk a step of it with them.',
+    journalPrompt: 'Where am I in a boring middle right now — and what would staying in it make me into?',
+    closingText: "Inspiration leaves around day nine.\n\nThe work stays.\n\n—\n\nThe boring middle is not the sign you are failing.\n\nIt is where you are being made.\n\nStay.",
+    published: true,
+  },
+  {
+    dayNumber: 79,
+    phase: 'CATERPILLAR',
+    title: 'Keeping Your Word to Yourself',
+    lie: 'Breaking promises to myself doesn’t really matter.',
+    truth: 'Keeping your word to yourself is how you learn to trust yourself.',
+    body: `You keep your word to other people.
+
+Mostly.
+
+You show up when you said you would. You do what you promised. You would feel the weight of letting them down.
+
+—
+
+But the promises you make to yourself?
+
+Those you break without a second thought.
+
+"I'll start tomorrow." "I'll do it later." "This time will be different."
+
+And then it isn't.
+
+And something in you barely notices anymore —
+
+because you have broken those promises so many times
+
+that you have stopped expecting yourself to keep them.
+
+—
+
+Here is what that costs you, quietly:
+
+You have stopped trusting yourself.
+
+—
+
+Every promise you make to yourself and break
+
+teaches you, a little more, that your own word means nothing.
+
+Until you do not even believe yourself when you decide to change.
+
+—
+
+This is why change feels impossible for so many people.
+
+Not because they can't.
+
+Because they have no faith left in their own commitments —
+
+they have broken too many to believe the next one.
+
+—
+
+The repair is not dramatic.
+
+It is small promises, kept.
+
+Tiny commitments to yourself, honored, over and over,
+
+until you slowly become someone whose word — even to themselves —
+
+actually means something.
+
+—
+
+Keep one small promise to yourself today.
+
+You are not just doing the task.
+
+You are rebuilding your ability to trust yourself at all.`,
+    daddyManism: 'Every promise yuh break to yuhself teach yuh seh yuh word worth nothing. Keep one. Start dere.',
+    reflectionPrompt: 'How many promises have you broken to yourself lately? And how much do you actually trust yourself when you decide to change now?',
+    challengePrompt: 'Make one small, specific promise to yourself today — something you are certain you can do. Then keep it, no matter how small. You are not doing a task. You are rebuilding self-trust one kept word at a time.',
+    livityPrompt: 'Keep your word to someone today — especially a small thing you might normally let slide. Be someone whose word holds. And notice: the way you treat your word to others is the way to learn to keep it to yourself.',
+    journalPrompt: 'What small promise to myself, kept daily, would teach me to trust myself again?',
+    closingText: "You have broken your own word so often\nyou stopped believing yourself.\n\n—\n\nKeep one small promise today.\n\nYou are not just doing the thing.\n\nYou are learning to trust the one who promised.",
+    published: true,
+  },
+  {
+    dayNumber: 80,
+    phase: 'CATERPILLAR',
+    title: 'Beginner in Public',
+    lie: 'I won’t try until I’m good at it.',
+    truth: 'Growth requires being a beginner where people can see.',
+    body: `You have a rule you may not have noticed you made:
+
+Do not let them see you be bad at something.
+
+—
+
+So you only show people what you are already good at.
+
+You practice in private. You prepare until it is safe. You wait until you are competent before you let anyone watch.
+
+And the things you cannot quickly become good at,
+
+you simply never start —
+
+because starting means being a visible beginner,
+
+and being a visible beginner feels like exposure.
+
+—
+
+But here is the cost of that rule:
+
+You can only ever grow in the areas where you are willing to be seen failing.
+
+—
+
+And since you are not willing to be seen failing anywhere new,
+
+your growth quietly shrinks
+
+to the size of what you already do well.
+
+—
+
+Everyone who is good at anything
+
+was once visibly, awkwardly, publicly bad at it.
+
+The master was a clumsy beginner where people could see.
+
+There is no other path. That is the only door.
+
+—
+
+The caterpillar does not hide while it grows.
+
+It molts in the open — soft, exposed, vulnerable, mid-change —
+
+right where the world can see.
+
+—
+
+Let yourself be a beginner in public.
+
+Not recklessly. But really.
+
+Try the thing you are not good at yet, where someone might see you fail.
+
+—
+
+That willingness — to be seen as unfinished —
+
+is the entire price of growth.
+
+Pay it.`,
+    daddyManism: 'Every master did a clumsy beginner inna public first. No other door exist. Walk through it.',
+    reflectionPrompt: 'What have you refused to start because starting means being visibly bad at it? What is your growth costing you because you will only be seen doing what you already do well?',
+    challengePrompt: 'Be a beginner in public today. Try something you are not good at where someone can see — ask the question, take the class, attempt the thing. Let yourself be visibly unfinished. That is the price of growing.',
+    livityPrompt: 'Make it safe for someone to be a beginner today. Encourage someone trying something new and clumsy. Do not let them be embarrassed for being where everyone has to start. Be the safe place to be unfinished.',
+    journalPrompt: 'What would I start today if I were willing to be seen being bad at it first?',
+    closingText: "You only grow where you are willing to be seen failing.\n\n—\n\nThe caterpillar molts in the open.\n\nSoft. Exposed. Mid-change.\n\nBe a beginner in public.\n\nIt is the whole price.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

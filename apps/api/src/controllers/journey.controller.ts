@@ -6061,6 +6061,421 @@ Pay it.`,
     closingText: "You only grow where you are willing to be seen failing.\n\n—\n\nThe caterpillar molts in the open.\n\nSoft. Exposed. Mid-change.\n\nBe a beginner in public.\n\nIt is the whole price.",
     published: true,
   },
+  {
+    dayNumber: 81,
+    phase: 'CATERPILLAR',
+    title: 'The Molt',
+    lie: 'I have to hold on to who I’ve been.',
+    truth: 'Growth requires shedding the version of you that you have outgrown.',
+    body: `There is a version of you that got you here.
+
+It had its strategies. Its defenses. Its ways of surviving.
+
+And it worked — you are still here because of it.
+
+—
+
+But the thing that got you here
+
+cannot get you there.
+
+—
+
+The caterpillar grows by molting.
+
+It does not stretch the old skin to fit the new size.
+
+It sheds it. Completely. Repeatedly.
+
+Each time it outgrows a shell, it breaks out of it and leaves it behind —
+
+soft and exposed until the new one forms.
+
+—
+
+You have a shell you have outgrown.
+
+A way of being that fit who you were
+
+and is now too small for who you are becoming.
+
+—
+
+It might be a defense that protected you once and now isolates you.
+
+A role you played that the room no longer needs.
+
+An identity built around a wound that is starting to heal.
+
+—
+
+And shedding it feels like loss.
+
+Like betrayal of the self that survived.
+
+—
+
+But honoring the old self
+
+does not mean wearing it forever.
+
+You can be grateful for the shell that protected you
+
+and still break out of it
+
+because you have grown too large to stay inside.
+
+—
+
+What version of you are you holding onto
+
+that you have already outgrown?
+
+—
+
+Thank it.
+
+Then molt.`,
+    daddyManism: 'Di skin that fit yuh yesterday will choke yuh tomorrow. Thank it, then shed it.',
+    reflectionPrompt: 'What version of yourself got you here but cannot take you further? What old shell — a defense, a role, an identity — have you outgrown but are still wearing?',
+    challengePrompt: 'Name one outgrown way of being and act against it once today. Respond differently than the old self would. Break the shell in one small place and notice you survive being exposed.',
+    livityPrompt: 'Give someone room to change today. Do not hold them to the old version of themselves. Let someone be who they are becoming, not who they used to be — that is a rare and freeing gift.',
+    journalPrompt: 'What old shell am I ready to thank and shed?',
+    closingText: "The thing that got you here\ncannot get you there.\n\n—\n\nThank the shell that protected you.\n\nThen break it.\n\nYou have grown too large to stay inside.",
+    published: true,
+  },
+  {
+    dayNumber: 82,
+    phase: 'CATERPILLAR',
+    title: 'Identity Follows Action',
+    lie: 'I’ll act like it once I believe I am it.',
+    truth: 'You become it by doing it. Action writes identity, not the reverse.',
+    body: `You have the order backwards.
+
+You think: first I have to believe I am a disciplined person,
+
+then I will act with discipline.
+
+First I have to feel like a creator,
+
+then I will create.
+
+First I have to become confident,
+
+then I will do the brave thing.
+
+—
+
+So you wait to feel like the person
+
+before you do what the person does.
+
+And the feeling never comes,
+
+so the doing never starts.
+
+—
+
+But identity does not work front to back.
+
+It works back to front.
+
+—
+
+You do not do the thing because you are the person.
+
+You become the person because you do the thing.
+
+—
+
+Every action is a vote for who you are becoming.
+
+Not a reflection of who you already are —
+
+a vote for who you are turning into.
+
+—
+
+Do one push-up and you have voted, however slightly, for being someone who trains.
+
+Write one paragraph and you have voted for being a writer.
+
+Keep one hard promise and you have voted for being someone whose word holds.
+
+—
+
+You will not think your way into a new identity.
+
+You will act your way into it,
+
+one vote at a time,
+
+until one day the identity is simply true —
+
+not because you finally believed it,
+
+but because you built it with your hands.
+
+—
+
+Stop waiting to feel like the person.
+
+Do what the person does.
+
+The identity is on the other side of the action.`,
+    daddyManism: 'Yuh nuh do it because yuh are it. Yuh become it because yuh do it. Every action is a vote.',
+    reflectionPrompt: 'What are you waiting to feel like before you act? What identity have you been waiting to believe instead of building it through action?',
+    challengePrompt: 'Cast one vote today for who you are becoming. Do one thing the person you want to be would do — before you feel like that person. Act first; the identity follows the action.',
+    livityPrompt: 'Help someone today act their way toward who they want to be. Do not just tell them to believe in themselves — invite them to take one small action that votes for it. Action over affirmation.',
+    journalPrompt: 'What action, repeated, would vote me into the person I want to become?',
+    closingText: "You become the person by doing the thing.\n\nNot the other way around.\n\n—\n\nEvery action is a vote.\n\nStop waiting to feel like it.\n\nCast one today.",
+    published: true,
+  },
+  {
+    dayNumber: 83,
+    phase: 'CATERPILLAR',
+    title: 'The Only Comparison',
+    lie: 'I measure myself against everyone else.',
+    truth: 'The only honest comparison is who you were yesterday.',
+    body: `You are running someone else's race.
+
+Measuring your progress against theirs.
+
+Checking your chapter one against their chapter twenty.
+
+Feeling behind, feeling less, feeling like everyone else got a head start you missed.
+
+—
+
+Comparison is the fastest way to poison growth.
+
+—
+
+Because the comparison is never fair.
+
+You compare your insides to their outsides.
+
+Your struggle to their highlight reel.
+
+Your full, messy, complicated reality
+
+to the small polished sliver of theirs that you can see.
+
+—
+
+And it does nothing but steal.
+
+It steals your joy in your own progress.
+
+It steals your patience with your own timeline.
+
+It makes real growth feel like failure
+
+simply because someone else is further along a road
+
+you cannot even be sure is the same road.
+
+—
+
+There is exactly one honest comparison:
+
+You, today, against you, yesterday.
+
+—
+
+That is the only race that is actually yours.
+
+The only one where you have all the information.
+
+The only one where progress is real and measurable and unstolen.
+
+—
+
+The caterpillar does not measure itself against the other caterpillars.
+
+It eats. It grows. It molts.
+
+On its own timeline, toward its own wings.
+
+—
+
+Stop checking everyone else's position on the road.
+
+Ask only: am I further than I was yesterday?
+
+That is the only comparison that builds instead of steals.`,
+    daddyManism: 'Yuh comparing yuh chapter one to dem chapter twenty. Run yuh own race. Yuh only rival is yesterday yuh.',
+    reflectionPrompt: 'Who are you comparing yourself to that makes your real progress feel like failure? What are you measuring against their outside while you live your inside?',
+    challengePrompt: 'Today, catch yourself comparing — and redirect. Ask only one question: am I further than I was yesterday? Measure against your own past self and nobody else. Notice the difference in how it feels.',
+    livityPrompt: 'Lift someone who feels behind today. Remind them they are running their own race, on their own timeline. Celebrate their progress against their own past — not against anyone else.',
+    journalPrompt: 'How far have I come from who I was — measured against me, not anyone else?',
+    closingText: "You compare your insides to their outsides.\n\nIt only steals.\n\n—\n\nThe only honest race is you against yesterday.\n\nRun that one.\n\nIt is the only one that is yours.",
+    published: true,
+  },
+  {
+    dayNumber: 84,
+    phase: 'CATERPILLAR',
+    title: 'Failure Is Data',
+    lie: 'Failing means I’m not cut out for this.',
+    truth: 'Failure is information, not a verdict.',
+    body: `You treat failure like a courtroom.
+
+Every time something does not work, the gavel comes down:
+
+Guilty. Not good enough. Not cut out for this. Should have known better.
+
+—
+
+And so failure becomes unbearable —
+
+not because of what it costs you,
+
+but because of what you make it mean about you.
+
+—
+
+But failure is not a verdict.
+
+Failure is data.
+
+—
+
+The rep that did not work told you something.
+
+The attempt that fell short showed you where the edge is.
+
+The thing that broke revealed exactly what needs to be stronger.
+
+—
+
+This is how anything is ever built.
+
+Try. Fail. Read the data. Adjust. Try again.
+
+The failure is not the opposite of progress.
+
+The failure is part of the mechanism of progress.
+
+—
+
+The people who become masters
+
+did not fail less than you.
+
+They failed more —
+
+because they tried more, and they read each failure as information
+
+instead of as a verdict on their worth.
+
+—
+
+The caterpillar that falls off the leaf
+
+does not conclude it was never meant to climb.
+
+It climbs again.
+
+The fall was just information about the grip.
+
+—
+
+Stop sentencing yourself every time something does not work.
+
+Pick up the data.
+
+Ask what it is telling you.
+
+Adjust.
+
+And take the next rep.`,
+    daddyManism: 'Failure nuh a verdict. A just information. Pick it up, read it, adjust, go again.',
+    reflectionPrompt: 'What failure have you been treating as a verdict on your worth instead of as information? What was it actually trying to teach you?',
+    challengePrompt: 'Take one recent failure and mine it for data today. Not "what does this say about me" — but "what does this tell me to adjust?" Write down the lesson. Then take the next rep with that lesson applied.',
+    livityPrompt: 'Be a safe place for someone to fail today. When someone falls short, do not let them sentence themselves. Help them read the data instead. Show them failure is information, not a verdict.',
+    journalPrompt: 'What is my most recent failure actually trying to teach me?',
+    closingText: "Failure is not the gavel.\n\nIt is the data.\n\n—\n\nThe masters failed more, not less.\n\nThey just read each one as information.\n\nPick it up. Adjust. Go again.",
+    published: true,
+  },
+  {
+    dayNumber: 85,
+    phase: 'CATERPILLAR',
+    title: 'Tired, Scared, Anyway',
+    lie: 'I’ll do it when I feel able.',
+    truth: 'The rep you do when you don’t feel like it counts double.',
+    body: `You are waiting to feel able.
+
+Rested enough. Confident enough. Clear enough. Ready enough.
+
+You will do the thing — once the feeling cooperates.
+
+—
+
+But the feeling is not coming to cooperate.
+
+Some days you will be tired. Some days afraid. Some days flat and unmotivated and certain it does not matter.
+
+—
+
+And here is the truth that changes everything:
+
+Those are the most important days.
+
+—
+
+Anybody can take the rep when they feel able.
+
+That rep barely counts. It cost nothing.
+
+—
+
+The rep that builds you
+
+is the one you take tired.
+
+Scared. Unmotivated. Certain it is pointless.
+
+—
+
+Because that rep teaches your body and your mind a lesson
+
+that the easy reps never can:
+
+*I do this regardless of how I feel.*
+
+—
+
+That lesson is the whole foundation of a changed life.
+
+The person who only acts when they feel able
+
+is ruled by their feelings.
+
+The person who can act while tired, scared, and unmotivated
+
+is finally free of them.
+
+—
+
+You are not waiting to feel able.
+
+You are learning to act without needing to.
+
+—
+
+Do the rep today — especially if you do not feel like it.
+
+That is the one that counts double.
+
+That is the one that sets you free.`,
+    daddyManism: 'Di rep yuh tek when yuh nuh feel like it count double. Dat is di one weh set yuh free.',
+    reflectionPrompt: 'What are you putting off until you feel able? And who would you become if you learned to act without waiting for the feeling?',
+    challengePrompt: "Take one rep today specifically because you don't feel like it. Tired, unmotivated, doubtful — do it anyway. Teach yourself the lesson: I act regardless of how I feel. That is freedom.",
+    livityPrompt: 'Show up for someone today even though you are tired. Especially then. The presence you give when it costs you something is worth more than the presence that costs you nothing.',
+    journalPrompt: 'What would change if I stopped letting my feelings decide whether I act?',
+    closingText: "The easy rep barely counts.\n\nThe rep you take tired and scared\nteaches the lesson that frees you:\n\n—\n\nI do this regardless of how I feel.\n\nTake that one today.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

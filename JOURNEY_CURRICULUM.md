@@ -146,7 +146,12 @@ Theme: *"What am I becoming through repetition?"*
 | 78 | Earned in the Boring Middle | I'll do it when I feel inspired. | Mastery is built in the boring middle, not the inspired start. | ✅ WRITTEN |
 | 79 | Keeping Your Word to Yourself | Breaking promises to myself doesn't matter. | Keeping your word to yourself is how you learn to trust yourself. | ✅ WRITTEN |
 | 80 | Beginner in Public | I won't try until I'm good at it. | Growth requires being a beginner where people can see. | ✅ WRITTEN |
-| 81–95 | *(Ring 2 continues)* | — | — | 🗺️ TO WRITE |
+| 81 | The Molt | I have to hold on to who I've been. | Growth requires shedding the version of you that you have outgrown. | ✅ WRITTEN |
+| 82 | Identity Follows Action | I'll act like it once I believe I am it. | You become it by doing it. Action writes identity, not the reverse. | ✅ WRITTEN |
+| 83 | The Only Comparison | I measure myself against everyone else. | The only honest comparison is who you were yesterday. | ✅ WRITTEN |
+| 84 | Failure Is Data | Failing means I'm not cut out for this. | Failure is information, not a verdict. | ✅ WRITTEN |
+| 85 | Tired, Scared, Anyway | I'll do it when I feel able. | The rep you do when you don't feel like it counts double. | ✅ WRITTEN |
+| 86–95 | *(Ring 2 continues)* | — | — | 🗺️ TO WRITE |
 
 ## RING 3 — BEGINNING TO GIVE (Days 96–110)
 Theme: *"What can I give from what I've grown?"* — Livity primary. Ends at the J-Shape handoff. — 🗺️ TO WRITE

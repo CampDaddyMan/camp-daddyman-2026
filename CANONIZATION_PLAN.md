@@ -1,0 +1,109 @@
+# CANONIZATION PLAN — Moving Camp DaddyMan from Chat to Canon
+
+> **Purpose:** Get the project out of chat memory and into permanent, version-controlled
+> canon. This plan audits every meaningful document in (and missing from) the repository
+> and assigns each to one of the five canon books in `/ARK_CANON`. **No content is moved
+> in this pass — this is the map, not the migration.**
+
+---
+
+## The Canon Structure (`/ARK_CANON`)
+
+| File | Holds | The question it answers |
+|------|-------|-------------------------|
+| `01_THE_ARK_CONSTITUTION.md` | Locked law: principles, the Four Tests, Witness-not-Confer, safeguarding & evidence doctrine, the non-negotiables | *What may never be violated?* |
+| `02_WORLD_BIBLE.md` | The universe: 8 stations, butterfly lifecycle, bait strategy, corporate structure, brand, language | *What is this world and how does it work?* |
+| `03_CURRICULUM_BIBLE.md` | The 365-day Journey: phases, rings, day structure, the full map | *What does the user actually experience, day by day?* |
+| `04_TECHNICAL_BIBLE.md` | Stack, architecture, data models, deploy, CI/CD, infra, ops decisions | *How is it built and run?* |
+| `05_HISTORY_AND_DECISIONS.md` | Decision log: discoveries, amendments, Counsel deliberations, the *why* | *How did we get here, and why was it decided?* |
+
+---
+
+## ⚠️ Critical Findings (read first)
+
+1. **The four foundational documents do not exist in the repo.**
+   `CLAUDE.md` references `The_Ark_Constitution`, `THE_FOUR_TESTS.md`,
+   `The_Service_to_Rank_Rule_Set`, and `First_Acts_Loop_One_Playbook` as governing canon
+   "read on demand." **None are committed.** They live only in chat / external / memory.
+   This is the single biggest canon risk. They must be **located and recovered** into
+   `01` (Constitution) and `02/03` before anything else.
+
+2. **The actual curriculum content lives in code, not in a document.**
+   The 85 written day-entries (full body, prompts, DaddyManisms) live in
+   `apps/api/src/controllers/journey.controller.ts` (`SEED_DAYS`). `JOURNEY_CURRICULUM.md`
+   is only the *map*. The Curriculum Bible must declare the controller as the **source of
+   record for day content**, with the map as the index — or the day text risks being seen
+   as "just code" and lost in a refactor.
+
+3. **Decision history lives outside the repo, in Claude memory.**
+   `~/.claude/.../memory/` holds `project_camp_daddyman.md`, `project_creator_is_paid.md`,
+   etc. These hold real decisions (e.g., *creator is a paid tier, by design*) not captured
+   in repo docs. They should be folded into `04` (Technical) and `05` (History).
+
+---
+
+## Document-by-Document Audit
+
+| Document | In repo? | Primary canon | Secondary | Action |
+|----------|----------|---------------|-----------|--------|
+| `CLAUDE.md` | ✅ | **Split source** | 01 (principles), 02 (framework/brand/structure), 04 (stack notes) | Extract content into 01/02/04. **Keep the file** as the lean operational pointer Claude loads each session. |
+| `JOURNEY_CURRICULUM.md` | ✅ | **03 Curriculum** | — | Becomes the spine of the Curriculum Bible (the map). |
+| `journey.controller.ts` → `SEED_DAYS` | ✅ (code) | **03 Curriculum** | 04 (it's the data source) | Declare as **source of record for day content**; Curriculum Bible references it. Do not duplicate 85 days into markdown — point to it. |
+| `CATERPILLAR_FRAMEWORK_PROPOSAL.md` | ✅ | **03 Curriculum** | 05 (the proposal as history) | Locked framework → fold into 03. Keep proposal text in 05 as the historical record of how it was decided. |
+| `SAFEGUARDING_ARCHITECTURE.md` | ✅ | **01 Constitution** (doctrine + amendment) | 04 (MVP build plan), 05 (Counsel analysis) | Doctrine → 01. Build plan → 04. Counsel deliberation → 05. |
+| `EVIDENCE_ARCHITECTURE.md` | ✅ | **01 Constitution** (doctrines) | 04 (3 layers / 5 kinds as future data model), 05 (Counsel analysis) | Doctrines → 01. Layers/kinds → 04. Deliberation → 05. |
+| `disaster-recovery/RESTORE.md` | ✅ | **04 Technical** | — | Reference from Technical Bible; leave file in place (it's live ops). |
+| `The_Ark_Constitution` | ❌ MISSING | **01 Constitution** | 02 | **RECOVER** from chat/external, then canonize into 01. |
+| `THE_FOUR_TESTS.md` | ❌ MISSING | **01 Constitution** | — | **RECOVER** — the Butterfly/Egg/Field/Father tests are cited everywhere. |
+| `The_Service_to_Rank_Rule_Set` | ❌ MISSING | **01 Constitution** | 02 | **RECOVER** — "service earns rank, never money." |
+| `First_Acts_Loop_One_Playbook` | ❌ MISSING | **02 World Bible** | 05 | **RECOVER** — the real-world pilot. |
+| `~/.claude/.../memory/project_creator_is_paid.md` | ✅ (outside repo) | **04 Technical** | 05 | Fold creator-paid decision into 04 + 05. |
+| `~/.claude/.../memory/project_camp_daddyman.md` | ✅ (outside repo) | **04 Technical** | — | Fold stack/infra facts into 04. |
+| `.vercel/README.txt` | ✅ (gitignored) | **Discard** | — | Auto-generated. Ignore. |
+| `apps/mobile/.expo/README.md` | ✅ | **Discard** | — | Auto-generated by Expo. Ignore. |
+
+---
+
+## Sources Outside the Repo to Recover (before canon can be complete)
+
+1. **The four missing governing docs** — from prior chats, Drive, or Drew's files.
+2. **Claude memory files** (`~/.claude/.../memory/`) — decisions not yet in repo.
+3. **This session's chat** — the Circle, Witness-not-Confer, Safeguarding, Evidence
+   discoveries are partly captured in the architecture docs, but the *narrative of how they
+   emerged* belongs in `05`.
+
+---
+
+## Recommended Migration Sequence (for a future session — not now)
+
+1. **Recover the four missing docs** into `01`/`02`. Nothing else is solid until the
+   foundation is actually in the repo.
+2. **Populate `02_WORLD_BIBLE`** from CLAUDE.md (stations, lifecycle, bait strategy,
+   structure, brand). The world has to be defined before the law that governs it.
+3. **Populate `01_CONSTITUTION`** — the Four Tests + locked principles + the two new
+   doctrines (Witness-not-Confer, Safeguarding, Evidence). The law.
+4. **Populate `03_CURRICULUM_BIBLE`** — fold in the curriculum map; point to the controller
+   as source of record.
+5. **Populate `04_TECHNICAL_BIBLE`** — stack, deploy, CI/CD, data models, creator-paid.
+6. **Populate `05_HISTORY_AND_DECISIONS`** — the decision log and Counsel archive.
+7. **Slim `CLAUDE.md`** to a pointer that references `/ARK_CANON` (keeps session context
+   lean; canon holds the depth).
+
+---
+
+## Discard List
+
+- `.vercel/README.txt` — auto-generated, gitignored.
+- `apps/mobile/.expo/README.md` — auto-generated by Expo tooling.
+
+*(Nothing else is discarded. Every other document has a canonical home.)*
+
+---
+
+## What This Pass Did / Did Not Do
+
+- ✅ Created `/ARK_CANON` with five titled, **unpopulated** books.
+- ✅ Audited and classified every document, in repo and missing.
+- ✅ Flagged the critical gaps (missing foundation, curriculum-in-code, external memory).
+- ❌ Did **not** move or write any canon content (next session).
+- ❌ No code, no curriculum, no features.

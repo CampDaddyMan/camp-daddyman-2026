@@ -8146,6 +8146,390 @@ You are closer to it than you think.`,
     closingText: "You can love someone with your whole strength\nand still not be able to save them.\n\n—\n\nThat is not failure.\n\nIt is the edge of what one human can do alone.\n\nAnd that edge\nis where the next part of the journey begins.",
     published: true,
   },
+  {
+    dayNumber: 106,
+    phase: 'CATERPILLAR',
+    title: 'What You Built Was Not Enough',
+    lie: 'If I just build enough, I will be complete.',
+    truth: 'Everything you built matters — and none of it makes you self-sufficient.',
+    body: `Look at what you have built.
+
+A hundred and five days of it.
+
+You learned to feed yourself well. To do the reps. To finish. To outlast the plateau.
+
+To keep your word. To become reliable. To give, and to give without owning.
+
+—
+
+It all matters. Do not let anyone — including the voice in your own head —
+
+tell you it was nothing. It was real. It changed you.
+
+—
+
+But there is something you need to hear now,
+
+and it will sound strange after everything you have done:
+
+It was never going to be enough.
+
+—
+
+Not because you failed. Because it was never *meant* to be enough.
+
+—
+
+Everything you built was preparation.
+
+It made you capable. It did not make you complete.
+
+—
+
+There is a quiet belief hiding under all that effort —
+
+the belief that if you just build enough, fix enough, grow enough,
+
+you will finally arrive at a place where you no longer need anything
+
+or anyone. Self-contained. Self-sufficient. Done.
+
+—
+
+That place does not exist.
+
+—
+
+The strongest, most disciplined, most capable version of you
+
+is still a person with a limit.
+
+And you are about to meet it.
+
+—
+
+This is not a failure of your building.
+
+It is the whole point of it.
+
+You did not build all of this to become self-sufficient.
+
+You built it to become *ready* —
+
+ready for the one thing that cannot be built,
+
+which is exactly where this is going.
+
+—
+
+Honor everything you made.
+
+And then loosen your grip on the idea
+
+that making more of it will complete you.
+
+It won't.
+
+Something else has to happen now.`,
+    daddyManism: 'Everything yuh build matter. But yuh never did building it fi become self-sufficient. Yuh was building fi become ready.',
+    reflectionPrompt: 'What have you been believing you could build your way to completeness with? Where have you been treating self-sufficiency as the goal — as if needing nothing and no one were the finish line?',
+    challengePrompt: 'Today, honor what you have built — name it honestly — and then say out loud: "this is not enough by itself, and that is okay." Loosen the grip on self-sufficiency. Notice what that admission opens.',
+    livityPrompt: 'Serve someone today from a place of humility, not mastery. Let the service remind you that even at your most capable, you are one person with limits — and that is exactly as designed. Log it.',
+    journalPrompt: 'What have I been trying to build my way to that building can never deliver?',
+    closingText: "Everything you built was real.\n\nAnd it was preparation, not arrival.\n\n—\n\nYou were never building toward self-sufficiency.\n\nYou were building toward ready.\n\nSomething else has to happen now.",
+    published: true,
+  },
+  {
+    dayNumber: 107,
+    phase: 'CATERPILLAR',
+    title: 'The Strength That Runs Out',
+    lie: 'My own strength will carry me the rest of the way.',
+    truth: 'There is a place your own strength cannot take you.',
+    body: `Your strength has carried you a long way.
+
+It got you off the floor. Through the lies. Past the plateau.
+
+It made you the reliable one, the giver, the one others lean on.
+
+—
+
+And because it has always worked, you assume it always will.
+
+That if the road gets harder, you simply summon more of it —
+
+more discipline, more effort, more will — and push through, as you always have.
+
+—
+
+But you are approaching a stretch of road
+
+where that no longer works.
+
+—
+
+There is a place your own strength cannot take you.
+
+—
+
+It is the strangest discovery for a strong person to make,
+
+and the hardest, because strength has been your whole identity —
+
+the thing that saved you, the thing you are proud of, the thing that makes you *you.*
+
+—
+
+But the next stage of becoming is not crossed by force.
+
+It cannot be pushed through, willed through, or out-disciplined.
+
+The harder you push, the more stuck you become —
+
+like a man trying to force his way out of a current by swimming straight against it,
+
+exhausting himself, going nowhere.
+
+—
+
+The strong have the hardest time here.
+
+The weak, oddly, sometimes pass through more easily,
+
+because they already know they cannot do it alone —
+
+a thing the strong have spent their whole lives refusing to admit.
+
+—
+
+This is not the end of your strength being useful.
+
+It is the discovery of where its usefulness ends.
+
+—
+
+And meeting that edge is not your defeat.
+
+It is the beginning of the deepest thing this whole journey was built to do.
+
+You cannot strong-arm your way into transformation.
+
+You are about to learn the one thing strength cannot teach.`,
+    daddyManism: 'Yuh strength bring yuh far. But some doors nuh open by force. Di harder yuh push, di more yuh stuck.',
+    reflectionPrompt: 'Where has "just try harder" always worked for you — and where is it starting to fail? What would it mean to meet a place your own strength cannot take you?',
+    challengePrompt: 'Notice today one place where pushing harder is making things worse, not better. Instead of summoning more force, stop pushing. Just for today, stop trying to strong-arm it. See what happens when you ease off the current.',
+    livityPrompt: 'Help someone today who is exhausting themselves pushing against something that will not move by force. Do not tell them to try harder. Be a steadying presence as they discover the limit. Log it.',
+    journalPrompt: 'Where am I swimming straight against the current, getting nowhere by force?',
+    closingText: "Your strength brought you far.\n\nBut some doors do not open by force.\n\n—\n\nThe strong have the hardest time here,\nbecause they have spent their lives\nrefusing to admit\nthere is a place strength cannot reach.\n\nYou are at it.",
+    published: true,
+  },
+  {
+    dayNumber: 108,
+    phase: 'CATERPILLAR',
+    title: 'The Thing You Cannot Manufacture',
+    lie: 'I can produce whatever I need by effort.',
+    truth: 'Some things cannot be built, earned, or forced — only received.',
+    body: `Everything this journey asked of you so far,
+
+you could produce by effort.
+
+—
+
+Discipline — you manufactured it, rep by rep.
+
+Reliability — you built it, kept promise by kept promise.
+
+Even service — you chose it, act by act.
+
+All of it came from your own doing. You made it happen.
+
+—
+
+And so you have come to believe, deep down,
+
+that anything you truly need, you can produce —
+
+that effort is the answer to everything,
+
+that there is no problem hard work cannot solve.
+
+—
+
+But you are arriving at the one thing
+
+that does not work that way.
+
+—
+
+The transformation ahead cannot be manufactured.
+
+—
+
+You cannot effort your way into it. You cannot earn it, build it, or force it.
+
+It is not a skill to be drilled or a habit to be installed.
+
+—
+
+Think of the caterpillar in the chrysalis.
+
+It does not *work* at becoming a butterfly.
+
+It cannot try harder at dissolving. It cannot discipline its way into wings.
+
+It surrenders to a process it does not control and cannot speed up,
+
+and the becoming happens *to* it, in the dark, beyond its effort.
+
+—
+
+This is the hardest truth for someone who has just spent a hundred days
+
+learning the power of their own effort:
+
+The deepest changes cannot be produced.
+
+They can only be received.
+
+—
+
+And receiving is a different posture than producing.
+
+Producing is gripping. Receiving is opening.
+
+Producing is doing. Receiving is surrendering.
+
+—
+
+You have mastered producing.
+
+The next thing will ask you to do something you are far less practiced at:
+
+to stop manufacturing,
+
+open your hands,
+
+and let something happen that you cannot make happen.
+
+—
+
+That is not weakness.
+
+That is the doorway.`,
+    daddyManism: 'Some things yuh cyaa build. Yuh can only open yuh hand and receive dem. Dat is a different posture than yuh know.',
+    reflectionPrompt: 'What in your life have you been trying to manufacture by effort that may only be able to be received? Where is your instinct to grip and produce when the moment calls for opening and receiving?',
+    challengePrompt: 'Practice receiving today. Accept one thing you would normally insist on earning or producing — help, rest, a gift, grace. Open your hands instead of gripping. Notice how much harder receiving is than producing.',
+    livityPrompt: 'Let someone give to you today — fully, without earning it or paying it back. Receiving graciously is its own gift to the giver. Practice the posture the next stage will require. Log what it stirred.',
+    journalPrompt: 'What am I trying to manufacture that I may only be able to receive?',
+    closingText: "The caterpillar does not work at becoming a butterfly.\n\nIt surrenders to a process it cannot control,\nand the becoming happens to it, in the dark.\n\n—\n\nYou have mastered producing.\n\nNow open your hands.\n\nThe deepest things can only be received.",
+    published: true,
+  },
+  {
+    dayNumber: 109,
+    phase: 'CATERPILLAR',
+    title: 'You Cannot Do This Alone',
+    lie: 'Needing someone means I have failed.',
+    truth: 'The next stage cannot be entered alone — and that is by design.',
+    body: `You have learned to stand on your own.
+
+That was the whole work of the Father Test — to make you capable,
+
+to free you from the kind of dependence that keeps a person small.
+
+—
+
+So what we are about to say may sound like a contradiction.
+
+It is not. It is the other half of the same truth.
+
+—
+
+The next stage of this journey cannot be entered alone.
+
+—
+
+Not because you are weak. You are not.
+
+Not because you failed. You did the opposite.
+
+—
+
+But because the thing ahead — the surrender, the dissolving, the becoming —
+
+is the one place a human being is not meant to go by themselves.
+
+—
+
+It is the hardest part of the whole journey.
+
+It is where the old self comes apart.
+
+It is the place, historically, where almost everyone quits —
+
+not for lack of strength, but because they tried to go through it alone,
+
+in the dark, with no one to witness that they were still there.
+
+—
+
+Here is what is true, and what the whole architecture of this journey rests on:
+
+A person cannot witness their own transformation.
+
+You cannot stamp your own passport.
+
+You cannot be, at the same time, the one dissolving
+
+and the one who sees that you are still you on the other side of it.
+
+—
+
+You need a witness.
+
+A real one. A human one.
+
+—
+
+Not to do it for you — no one can do it for you.
+
+But to be there. To see. To say: *I am here. I see you. You are not alone in this. Keep hanging on.*
+
+—
+
+Needing that is not the failure of your independence.
+
+It is the maturity of it.
+
+The most capable thing a strong person ever learns
+
+is the difference between the weakness that clings
+
+and the wisdom that knows when a thing cannot be done alone —
+
+and lets another in.
+
+—
+
+You have become strong enough to stand on your own.
+
+Now you must become wise enough to admit
+
+that this next part, you cannot.
+
+—
+
+Tomorrow, the Caterpillar ends.
+
+And what waits is not another lesson.
+
+It is a hand.`,
+    daddyManism: 'Yuh learn fi stand alone. Now learn di harder thing — fi know when yuh cyaa, and let somebody in.',
+    reflectionPrompt: 'Where did you learn that needing someone means failure? Can you feel the difference between the weakness that clings and the wisdom that knows when a thing cannot be done alone?',
+    challengePrompt: 'Admit one thing today that you cannot do alone — and let one person in to it. Not the whole of it. One real admission, to one trusted human. Practice the maturity of needing another.',
+    livityPrompt: 'Be the human someone else cannot do it without today. Show up for a person in a place they cannot reach by themselves. Be a witness. Tomorrow you will need one; today, be one. Log it.',
+    journalPrompt: 'What is the next thing I cannot do alone — and who could witness me through it?',
+    closingText: "You became strong enough to stand on your own.\n\nNow become wise enough to admit\nthat this next part, you cannot.\n\n—\n\nA person cannot witness their own transformation.\n\nTomorrow the Caterpillar ends.\n\nWhat waits is not another lesson.\n\nIt is a hand.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

@@ -156,7 +156,11 @@ Theme: *"What am I becoming through repetition?"*
 | 88 | The Plateau | Nothing is happening, so I should stop. | Growth compounds invisibly long before it shows. | ✅ WRITTEN |
 | 89 | Let It Be Seen | I'll keep my growth to myself. | What is witnessed gets built; what stays hidden quietly dies. | ✅ WRITTEN |
 | 90 | Who You Are in the Dark | It only counts when someone's watching. | Who you are unwitnessed is who you actually are. | ✅ WRITTEN |
-| 91–95 | *(Ring 2 continues)* | — | — | 🗺️ TO WRITE |
+| 91 | Reliable | I show up when I feel like it. | Reliability is being the same person on the days you don't. | ✅ WRITTEN |
+| 92 | Go Deep, Not Wide | I need to keep starting new things to grow. | Growth becomes mastery when you go deep, not wide. | ✅ WRITTEN |
+| 93 | You Are the Project | I've been building skills. | The reps were building you, not just your skills. | ✅ WRITTEN |
+| 94 | Growth That Stays Curdles | I'll give once I've grown enough. | Growth that never overflows turns rotten. | ✅ WRITTEN |
+| 95 | For the Field | I became stronger for myself. | What grew in you was always meant for the field. *(Ring 2 capstone → turns to Ring 3)* | ✅ WRITTEN |
 
 ## RING 3 — BEGINNING TO GIVE (Days 96–110)
 Theme: *"What can I give from what I've grown?"* — Livity primary. Ends at the J-Shape handoff. — 🗺️ TO WRITE

@@ -6873,6 +6873,423 @@ That one needs no watching.`,
     closingText: "The witness was the scaffolding.\n\nThe building is who you are alone.\n\n—\n\nBecome the kind of person\nwho does right in an empty room.\n\nThat one needs no watching.",
     published: true,
   },
+  {
+    dayNumber: 91,
+    phase: 'CATERPILLAR',
+    title: 'Reliable',
+    lie: 'I show up when I feel like it.',
+    truth: 'Reliability is being the same person on the days you don’t.',
+    body: `Somewhere in these ninety days, something has quietly changed.
+
+You have been showing up. Doing the reps. Finishing. Staying through the plateau.
+
+And a new thing has started to form in you —
+
+something steadier than motivation.
+
+—
+
+It has a plain name: reliability.
+
+—
+
+Reliability is not exciting. Nobody writes songs about it.
+
+But it is one of the rarest and most valuable things a person can become.
+
+—
+
+Most people are weather.
+
+Warm when things are good. Cold when things are hard.
+
+Present when they feel like it. Gone when they don't.
+
+You never quite know which version you will get.
+
+—
+
+A reliable person is different.
+
+They are the same person on the bad day as the good one.
+
+Not because they always feel like it — they don't —
+
+but because who they are stopped depending on how they feel.
+
+—
+
+This is what all the reps were secretly building.
+
+Not just the skill. The steadiness.
+
+The kind of character a person — or a whole field — can lean their weight on
+
+and trust that it will hold.
+
+—
+
+You are becoming someone who holds.
+
+—
+
+That is not a small thing. That is the foundation of everything that comes next.
+
+Because a field cannot be built on weather.
+
+It can only be built on someone who stays the same
+
+whether the sun is out or not.`,
+    daddyManism: 'Most people a weather — hot and cold. Become di one who stay di same when di day turn bad.',
+    reflectionPrompt: 'Are you weather, or are you reliable? Where do people get a different version of you depending on your mood — and what would change if they could count on the same person every time?',
+    challengePrompt: 'Be reliable in one specific way today, especially if you do not feel like it. Show up the same as you would on a good day. Be the steady version on a hard day. Notice that you can.',
+    livityPrompt: 'Be the one someone can count on today. Keep a small commitment to another person without being reminded. Let one person experience you as steady, not as weather.',
+    journalPrompt: 'Where in my life am I becoming someone people can lean their weight on?',
+    closingText: "A field cannot be built on weather.\n\nIt is built on someone who holds.\n\n—\n\nYou are becoming that someone.\n\nSteady on the bad days.\n\nThat is the foundation of all that comes next.",
+    published: true,
+  },
+  {
+    dayNumber: 92,
+    phase: 'CATERPILLAR',
+    title: 'Go Deep, Not Wide',
+    lie: 'I need to keep starting new things to grow.',
+    truth: 'Growth becomes mastery when you go deep, not wide.',
+    body: `There is a temptation that looks like growth and is actually avoidance.
+
+The temptation to keep going wide.
+
+A new skill. A new interest. A new project. A new version of the plan.
+
+Always beginning, always adding, always reaching for the next new thing.
+
+—
+
+It feels like growth because there is always motion.
+
+But motion is not the same as depth.
+
+—
+
+The person who is a beginner at twenty things
+
+is master of none of them.
+
+And the reason is rarely lack of talent.
+
+It is the refusal to stay long enough with one thing
+
+to pass through the boring part and out the other side
+
+into the depth where mastery lives.
+
+—
+
+Going wide is safe.
+
+You never have to be exposed as not-yet-good, because you are always at the start,
+
+where everyone is allowed to be clumsy.
+
+Going deep is where it gets uncomfortable —
+
+past the beginner's grace, into the long middle
+
+where the only way forward is to keep refining the same thing.
+
+—
+
+But depth is where the real value is.
+
+The world has endless dabblers.
+
+It is starving for people who went deep —
+
+who stayed with one thing long enough to truly understand it,
+
+to do it excellently, to have something real to offer because of it.
+
+—
+
+You have learned to start. You have learned to finish.
+
+Now learn to stay.
+
+Pick the thing that matters and go down into it.
+
+Not wider.
+
+Deeper.
+
+That is where you stop being someone who grows
+
+and become someone who has something to give.`,
+    daddyManism: 'A beginner at twenty things is master of none. Pick one and go down, not out.',
+    reflectionPrompt: 'Where have you been going wide instead of deep — collecting new beginnings to avoid the discomfort of the long middle? What one thing deserves your depth?',
+    challengePrompt: 'Choose one thing today to go deeper on instead of starting something new. Resist the pull of the next shiny beginning. Refine what you already have. Stay where it gets uncomfortable.',
+    livityPrompt: 'Share the depth you do have today. Teach someone one thing you actually understand well. Depth is only valuable when it is given — let yours serve someone.',
+    journalPrompt: 'What is the one thing I should stop dabbling at and finally go deep into?',
+    closingText: "The world has endless dabblers.\n\nIt is starving for people who went deep.\n\n—\n\nYou learned to start. You learned to finish.\n\nNow learn to stay.\n\nDepth is where you get something worth giving.",
+    published: true,
+  },
+  {
+    dayNumber: 93,
+    phase: 'CATERPILLAR',
+    title: 'You Are the Project',
+    lie: 'I’ve been building skills.',
+    truth: 'The reps were building you, not just your skills.',
+    body: `You thought you were building a habit.
+
+Or a skill. Or a discipline. Or a body. Or a craft.
+
+And you were.
+
+But that was never the real project.
+
+—
+
+While you were building the skill,
+
+the skill was building you.
+
+—
+
+Every rep you did when you did not feel like it
+
+was not just training your body or your craft.
+
+It was training *you* — teaching you that you are someone who follows through.
+
+Every promise you kept to yourself
+
+did not just complete a task.
+
+It rebuilt your ability to trust yourself.
+
+Every plateau you stayed on
+
+did not just advance the work.
+
+It made you into someone with the patience to outlast the flat parts of a life.
+
+—
+
+This is the secret hidden inside all repetition:
+
+The visible thing you are working on is the cover story.
+
+The real thing being formed is your character.
+
+—
+
+You set out to get something done.
+
+What actually happened is that you became someone different in the doing.
+
+—
+
+Look back at who started Day 1 — the egg, the lies, the not-yet.
+
+The person reading this is not that person.
+
+Not because the circumstances changed.
+
+Because *you* did. In the reps. In the staying. In the dark rooms with no witness.
+
+—
+
+You are the project.
+
+You always were.
+
+And the project is going well.`,
+    daddyManism: 'While yuh did building di skill, di skill did building yuh. Yuh is di real project.',
+    reflectionPrompt: 'Look back at who you were before these ninety days. What changed in *you* — not in your circumstances, but in your character — through the reps?',
+    challengePrompt: 'Today, do your work with this awareness: you are not just doing the task, you are forming the person. Notice the difference it makes to know the rep is shaping who you are, not just what you produce.',
+    livityPrompt: 'Tell someone today who they are becoming — not just what they are doing. Help one person see that their effort is forming their character, not just their output. Name the person, not just the work.',
+    journalPrompt: 'Who have I become through the doing that I was not before?',
+    closingText: "The skill was the cover story.\n\nYou were the real project all along.\n\n—\n\nYou did not just get things done.\n\nYou became someone different in the doing.\n\nAnd the project is going well.",
+    published: true,
+  },
+  {
+    dayNumber: 94,
+    phase: 'CATERPILLAR',
+    title: 'Growth That Stays Curdles',
+    lie: 'I’ll give once I’ve grown enough.',
+    truth: 'Growth that never overflows turns rotten.',
+    body: `You have a quiet plan.
+
+First I will get strong enough. Healed enough. Skilled enough. Ready enough.
+
+*Then* I will give. Then I will help. Then I will pour into others.
+
+Later. Once the growing is finished.
+
+—
+
+But the growing is never finished.
+
+And growth that is hoarded, waiting for a someday that never comes,
+
+does not stay fresh.
+
+It curdles.
+
+—
+
+Think of what happens to water that only flows in
+
+and never flows out.
+
+It does not stay clean and ready.
+
+It goes stagnant. It rots. It breeds sickness.
+
+—
+
+The lake that stays alive is the one with an outlet —
+
+the one that gives away its water even as it receives it.
+
+A sea with no outlet becomes a dead sea.
+
+—
+
+The same is true of a person.
+
+Everything you have been taking in — the discipline, the depth, the strength, the healing —
+
+was never meant to only accumulate inside you.
+
+If it only flows in, it stagnates.
+
+It becomes self-improvement that curves in on itself
+
+until even the growth starts to smell of self.
+
+—
+
+You do not give *after* you have grown enough.
+
+You give *as part of* growing — because the giving is what keeps the growth alive.
+
+—
+
+You are closer to having something worth giving than you think.
+
+In fact you have been ready for a while.
+
+The plan to wait until later was always the lie.
+
+—
+
+Open the outlet.
+
+Let some of what has grown in you start to flow toward someone else.
+
+Not because you are finished.
+
+Because that is the only way to stay alive.`,
+    daddyManism: 'Water weh only flow in and never out, rotten. Open di outlet before di growth start smell of self.',
+    reflectionPrompt: 'What have you been waiting to be "ready enough" to give? And is it possible you have been ready for a while — that the waiting was the lie?',
+    challengePrompt: 'Open the outlet today. Give away one thing you have grown — knowledge, strength, time, encouragement — without waiting until you feel finished. Let some of what flowed in begin to flow out.',
+    livityPrompt: 'Pour into someone today from what has grown in you these ninety days. Teach what you learned, lift with the strength you built, steady someone with the steadiness you found. Let the growth flow outward.',
+    journalPrompt: 'What has grown in me that is ready to start flowing toward someone else?',
+    closingText: "A lake with no outlet becomes a dead sea.\n\nSo does a person.\n\n—\n\nYou do not give after you have grown enough.\n\nYou give to stay alive.\n\nOpen the outlet.",
+    published: true,
+  },
+  {
+    dayNumber: 95,
+    phase: 'CATERPILLAR',
+    title: 'For the Field',
+    lie: 'I became stronger for myself.',
+    truth: 'What grew in you was always meant for the field.',
+    body: `You have reached the end of Growing Visibly.
+
+Thirty-five days of becoming.
+
+Look at what has formed in you since Day 1:
+
+You learned to consume well. To do the reps. To finish. To outlast the plateau.
+
+To keep your word. To be a beginner in public. To be steady when you did not feel like it.
+
+To go deep. And to see, finally, that you were the project all along.
+
+—
+
+You have grown.
+
+Visibly. Really. Not in your imagination — in your actual life.
+
+—
+
+And now comes the turn that the whole caterpillar has been building toward:
+
+What grew in you was never only for you.
+
+—
+
+The caterpillar does not eat and grow and molt and strengthen
+
+so it can be a bigger, stronger caterpillar.
+
+All of that consuming, all of that growing,
+
+was preparation for one thing:
+
+to become something that gives itself away.
+
+The butterfly does not exist to fly.
+
+It exists to pollinate — to carry life from one flower to the next —
+
+and to lay the eggs that become the next generation.
+
+—
+
+Everything you built in these ninety-five days
+
+was strength gathered for a purpose larger than yourself.
+
+You were not getting strong to win.
+
+You were getting strong enough to *carry someone.*
+
+—
+
+That is where the journey turns now.
+
+Out of growing-for-yourself.
+
+Toward giving-to-the-field.
+
+—
+
+You are not finished becoming.
+
+But you have become enough to begin.
+
+The next stretch is not about what you can build in yourself.
+
+It is about what you can now give —
+
+the first real turn from the one who is served
+
+to the one who serves.
+
+—
+
+You grew.
+
+Now the field is waiting.`,
+    daddyManism: 'Yuh never get strong fi win. Yuh get strong enough fi carry somebody. Now di field a wait.',
+    reflectionPrompt: 'Look at everything that has grown in you across ninety-five days. Who could that strength now serve? Who is in a field that you are now strong enough to help tend?',
+    challengePrompt: 'Name one person or one corner of your field that what you have grown could now serve. Do not act on the whole of it yet — just see it clearly. Tomorrow the giving begins. Today, recognize that you are ready for it.',
+    livityPrompt: 'Take your first deliberate step toward serving the field today. Offer one thing you have grown to someone who needs exactly that. Let this be the hinge — the moment the growth turns outward for good.',
+    journalPrompt: 'What did I grow strong enough to carry — and who is waiting for me to carry it?',
+    closingText: "Ring 2 is complete.\n\nYou grew — really, visibly, in your actual life.\n\n—\n\nBut you were never growing only for yourself.\n\nThe caterpillar gathers its whole strength\nfor the one thing that gives itself away.\n\nYou have become enough to begin.\n\nNow — to the field.\n\nRing 3 begins: Beginning to Give.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

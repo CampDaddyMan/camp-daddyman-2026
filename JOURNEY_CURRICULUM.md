@@ -163,4 +163,18 @@ Theme: *"What am I becoming through repetition?"*
 | 95 | For the Field | I became stronger for myself. | What grew in you was always meant for the field. *(Ring 2 capstone → turns to Ring 3)* | ✅ WRITTEN |
 
 ## RING 3 — BEGINNING TO GIVE (Days 96–110)
-Theme: *"What can I give from what I've grown?"* — Livity primary. Ends at the J-Shape handoff. — 🗺️ TO WRITE
+Theme: *"What can I give from what I've grown?"* — Livity primary. Ends OPEN, handing off to the J-Shape (a human Elder). Governed by `RING3_DESIGN_BRIEF.md`.
+
+| Day | Title | The Hunger | The Nourishment | Status |
+|-----|-------|-----------|-----------------|--------|
+| 96 | The First Gift | I have nothing worth giving yet. | You have exactly what someone behind you needs. | ✅ WRITTEN |
+| 97 | Give From the Overflow | To serve, I have to empty myself. | Give from your overflow, not your reserves. | ✅ WRITTEN |
+| 98 | Service Has a Cost | Real giving should be easy and feel good. | Real service costs you something — that is how you know it is real. | ✅ WRITTEN |
+| 99 | Reach Back | Everyone has to figure it out alone, like I did. | Reach back for the one who is where you used to be. | ✅ WRITTEN |
+| 100 | They Owe You Nothing | If I help you, you belong to me. | The one you carry owes you nothing. It is mentorship, not ownership. | ✅ WRITTEN |
+| 101 | The Whole Field | I serve my own. | Service to the stranger counts as much as service to your own. | ✅ WRITTEN |
+| 102 | Now You Are the Witness | I'm still the one who needs to be seen. | You have become someone who can see others. | ✅ WRITTEN |
+| 103 | You Are a Giver | I do generous things sometimes. | You are no longer someone who gives — you are a giver. | ✅ WRITTEN |
+| 104 | Become the Tending | I have nothing of my own to give. | Give the exact thing you most needed and never got. | ✅ WRITTEN |
+| 105 | You Cannot Save Them | If I give enough, I can fix them. | You can serve completely and still not control the outcome. *(the limit appears)* | ✅ WRITTEN |
+| 106–110 | *(Ring 3 finale → J-Shape handoff)* | — | — | 🗺️ TO WRITE |

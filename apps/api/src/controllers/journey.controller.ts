@@ -7717,6 +7717,435 @@ And it never, ever sends a bill.`,
     closingText: "Giving has a shadow, and the shadow is ownership.\n\n—\n\nThe one you carry owes you nothing.\n\nGive like the rain:\nit feeds everything,\nclaims nothing,\nand never sends a bill.",
     published: true,
   },
+  {
+    dayNumber: 101,
+    phase: 'CATERPILLAR',
+    title: 'The Whole Field',
+    lie: 'I serve my own.',
+    truth: 'Service to the stranger counts as much as service to your own.',
+    body: `It is natural to give to your own first.
+
+Your family. Your friends. Your circle. Your people.
+
+That giving is real and it is good.
+
+—
+
+But there is a quiet trap inside it.
+
+When all your giving stays inside your own circle,
+
+something subtle happens:
+
+the giving starts to serve *you* again.
+
+—
+
+Because giving to your own comes back to you.
+
+It strengthens your circle, your name, your standing, your tribe.
+
+It feels like service, but the field it waters is the one you already live in.
+
+—
+
+Real service — the kind that heals more than your own corner —
+
+reaches past the people who can give you anything back.
+
+—
+
+The stranger who will never join your circle.
+
+The person who cannot return the favor.
+
+The one who will never know your name, never thank you, never repay you,
+
+never make you look good for having helped.
+
+—
+
+Serving them is the purest test of whether you are giving
+
+or just feeding your own field through a generous-looking door.
+
+—
+
+This is what keeps service from collapsing inward into a private club —
+
+a hive that only pollinates itself.
+
+The butterfly does not pollinate only the flowers near its own home.
+
+It carries life across the whole field,
+
+including to flowers it will never see bloom.
+
+—
+
+Give to your own — yes.
+
+But do not let your giving stop at the edge of your circle.
+
+Reach past it, to the one who can give you nothing.
+
+That is where service stops serving you
+
+and starts healing the field.`,
+    daddyManism: 'Serving only fi yuh own a just feeding yuh own field. Reach di stranger who cyaa pay yuh back.',
+    reflectionPrompt: 'Does your giving mostly stay inside your own circle — where it quietly comes back to you? Who outside your circle, who can give you nothing back, could you serve?',
+    challengePrompt: 'Serve one stranger today — someone outside your circle who cannot repay you, thank you usefully, or make you look good. Give where nothing comes back. Notice how different it feels.',
+    livityPrompt: 'Do an act of Livity today for someone completely outside your circle — a stranger, an outsider, someone who will never join your world. Service to the whole field, not just your hive. Log it honestly.',
+    journalPrompt: 'Where does my giving stop — and who is just past that edge?',
+    closingText: "The butterfly carries life across the whole field —\neven to flowers it will never see bloom.\n\n—\n\nReach past your own circle.\n\nThat is where service stops serving you\nand starts healing the field.",
+    published: true,
+  },
+  {
+    dayNumber: 102,
+    phase: 'CATERPILLAR',
+    title: 'Now You Are the Witness',
+    lie: 'I’m still the one who needs to be seen.',
+    truth: 'You have become someone who can see others.',
+    body: `For a hundred days, you were the one being witnessed.
+
+Someone saw your first small step. Someone named the growth you couldn't see in yourself.
+
+Someone stamped what you could not stamp alone.
+
+You needed that. Everyone does.
+
+—
+
+But something has quietly turned.
+
+You are now far enough along
+
+that you can do for someone else
+
+what was done for you.
+
+—
+
+You can be the witness now.
+
+—
+
+There are people all around you doing quiet, unseen work —
+
+trying, struggling, growing in the dark with no one noticing.
+
+The same invisibility you knew. The same ache of going unseen.
+
+—
+
+And you — you now have the eyes to see it.
+
+You know what real effort looks like from the inside.
+
+You know what it costs. You know how much one word of being-seen would mean,
+
+because you remember exactly how much it meant to you.
+
+—
+
+To witness someone is not to judge them.
+
+It is not to rank them, fix them, or decide whether they have done enough.
+
+It is simply to *see* — and to say what you see.
+
+*I notice what you're doing. I see how hard it is. I see you growing. Keep going.*
+
+—
+
+That is one of the most powerful things one human can give another,
+
+and it costs nothing but attention.
+
+—
+
+You spent a hundred days being seen into existence.
+
+Now turn your eyes outward.
+
+Catch someone in the act of trying,
+
+and tell them you saw.
+
+You have become a witness.
+
+Start witnessing.`,
+    daddyManism: 'Yuh spend a hundred days being seen. Now turn yuh eyes outward and see somebody else.',
+    reflectionPrompt: 'Who around you is growing in the dark, unseen, the way you once were? You now have the eyes to see it. What would it mean to them to be witnessed by you?',
+    challengePrompt: 'Witness one person today. Catch someone in the act of trying or growing, and name it to them specifically — what you see, how hard it is, that it matters. See them, the way you needed to be seen.',
+    livityPrompt: 'Be a witness for someone today. Notice a real act of effort or service that would otherwise go unseen, and acknowledge it — to them, sincerely. To witness another is itself an act of Livity. Log it.',
+    journalPrompt: 'Who needs to be witnessed right now — and what would I say if I told them I see them?',
+    closingText: "You were seen into existence.\n\nNow you can do that for someone else.\n\n—\n\nTo witness is not to judge.\n\nIt is to see, and to say so.\n\nTurn your eyes outward.",
+    published: true,
+  },
+  {
+    dayNumber: 103,
+    phase: 'CATERPILLAR',
+    title: 'You Are a Giver',
+    lie: 'I do generous things sometimes.',
+    truth: 'You are no longer someone who gives. You are a giver.',
+    body: `Watch your language, because it reveals where you still live.
+
+"I did a generous thing today."
+
+"I helped someone this week."
+
+"I gave, that one time."
+
+—
+
+That is the language of someone who *visits* giving —
+
+who travels there occasionally and then returns home to themselves.
+
+—
+
+But something has changed in you across these days,
+
+and it is time to name it.
+
+—
+
+Giving has stopped being something you *do*.
+
+It is becoming something you *are*.
+
+—
+
+There is a difference, and it is everything.
+
+A person who gives occasionally returns, between gifts, to a self that is the center.
+
+A giver has moved the center. Service is no longer a trip they take.
+
+It is the ground they stand on.
+
+—
+
+This is what all the reps were for.
+
+Remember: you become what you repeat. Identity follows action.
+
+A hundred days of turning toward others, of witnessed service, of reaching back —
+
+has not just produced a pile of good deeds.
+
+It has produced a *person.*
+
+—
+
+You are not someone who sometimes gives.
+
+You are becoming a giver.
+
+—
+
+And that is not pride — pride curves back to the self.
+
+This curves outward. It is the quiet, settled identity of someone
+
+whose default has changed:
+
+who now meets a need by instinct, who reaches back without being asked,
+
+who sees a field and thinks *how do I tend this* before thinking *what's in it for me.*
+
+—
+
+Say it plainly, not as a boast but as a fact you have earned:
+
+*I am a giver.*
+
+Then go live like the thing you have become.`,
+    daddyManism: 'Yuh nuh visit giving no more. Yuh live dere now. Yuh is a giver. Say it plain.',
+    reflectionPrompt: 'Has giving become something you visit, or something you are? Where has serving others quietly become your default instead of an occasional trip?',
+    challengePrompt: 'Live today from the identity, not the task. Do not "do a generous thing." Be a giver — meet needs as they appear, by instinct, because that is who you are now. Notice the shift from doing to being.',
+    livityPrompt: 'Give today not as an item to check off, but as an expression of who you have become. Let service flow from identity. Log the act — but know the real change is that you no longer have to be reminded to give.',
+    journalPrompt: 'Can I honestly say "I am a giver" yet — and if not quite, what is the gap?',
+    closingText: "A hundred days did not just make a pile of good deeds.\n\nIt made a person.\n\n—\n\nYou no longer visit giving.\n\nYou live there now.\n\nYou are a giver. Go live like it.",
+    published: true,
+  },
+  {
+    dayNumber: 104,
+    phase: 'CATERPILLAR',
+    title: 'Become the Tending',
+    lie: 'I have nothing of my own to give.',
+    truth: 'Give the exact thing you most needed and never got.',
+    body: `You may still feel, even now, that you have nothing uniquely yours to offer.
+
+Others have money, skills, connections, eloquence, time.
+
+What do you have that is truly yours to give?
+
+—
+
+You have the most precise gift there is.
+
+You have the shape of your own wound.
+
+—
+
+Think about what you most needed and never got.
+
+The father who wasn't there. The hand that never reached back. The one adult who could have
+
+seen you and didn't. The word you waited your whole childhood to hear.
+
+—
+
+That absence carved a specific hole in you.
+
+And the exact shape of that hole
+
+is the exact shape of what you are now equipped to give.
+
+—
+
+You do not need to have received good fathering to give it.
+
+You need to know — from the inside, in your bones — what its absence cost,
+
+because that knowing is a blueprint no trained expert can match.
+
+—
+
+The one who was not tended
+
+knows precisely what tending should have looked like.
+
+Not from a book. From the shape of what was missing.
+
+—
+
+So here is the turn that breaks the longest chain:
+
+You do not pass on what was done to you.
+
+You give what you most needed and never received.
+
+—
+
+The untended becomes the tending.
+
+The unfathered becomes the father.
+
+The one who waited for someone who never came
+
+becomes the one who comes.
+
+—
+
+That is not a consolation prize for your pain.
+
+It is the most powerful thing your pain can become.
+
+Give the gift shaped exactly like your wound.
+
+No one on earth can give it better than you.`,
+    daddyManism: 'Di hole dem leave in yuh is di exact shape of what yuh born fi give. Become di tending.',
+    reflectionPrompt: 'What did you most need and never get? Name it precisely. That exact thing — that is what you are now most equipped to give someone else.',
+    challengePrompt: 'Give someone today the exact thing you most needed and never received. The word, the presence, the belief, the hand. Give from the shape of your own wound. No one can give it better than you.',
+    livityPrompt: 'Find someone in the situation you once stood in — unseen, unfathered, unhelped — and be for them what no one was for you. Become the tending. This is the deepest Livity: the wound turned into a gift. Log it.',
+    journalPrompt: 'What is the gift shaped exactly like my wound — and who needs it right now?',
+    closingText: "The unfathered becomes the father.\n\nThe one who waited for someone who never came\nbecomes the one who comes.\n\n—\n\nGive the gift shaped exactly like your wound.\n\nNo one can give it better than you.",
+    published: true,
+  },
+  {
+    dayNumber: 105,
+    phase: 'CATERPILLAR',
+    title: 'You Cannot Save Them',
+    lie: 'If I give enough, I can fix them.',
+    truth: 'You can serve someone completely and still not control the outcome.',
+    body: `Now that you are truly giving, you will meet the wall.
+
+You will pour into someone.
+
+Really pour — your time, your wisdom, your wound turned to gift, everything you have.
+
+And they will not change.
+
+Or they will change and then fall back.
+
+Or they will take what you gave and walk a road that breaks your heart.
+
+—
+
+And something in you will be tempted to give *harder* —
+
+to believe that if you just love enough, help enough, sacrifice enough,
+
+you can reach in and *make* the change happen.
+
+—
+
+You cannot.
+
+—
+
+This is the wall every real giver hits, and it must be named now,
+
+because it is the doorway to everything that comes next:
+
+You can serve someone completely and not control the outcome.
+
+—
+
+You are the gardener. You can prepare the soil, pull the weeds, water faithfully.
+
+But you cannot reach into the seed and force the plant to grow.
+
+The growing is not yours. It was never yours.
+
+It belongs to them, and to something larger than you.
+
+—
+
+This is the hardest lesson in all of service,
+
+and it is where many givers break —
+
+because they tied their own worth to outcomes they were never able to control,
+
+and when the outcome went wrong, they collapsed, or hardened, or quit.
+
+—
+
+There is another way, and it is the beginning of the deepest part of the journey:
+
+You give everything you can —
+
+and then you release what was never yours to carry.
+
+—
+
+You can love someone with your whole strength
+
+and still not be able to save them.
+
+—
+
+That is not failure.
+
+That is the edge of what one human can do alone.
+
+And standing at that edge — having given all you have and met the limit of your own power —
+
+is exactly where the next part of the journey begins.
+
+You are closer to it than you think.`,
+    daddyManism: 'Yuh can water di seed wid everything yuh have. Yuh cyaa reach inside it and mek it grow. Dat part nuh belong to yuh.',
+    reflectionPrompt: 'Who have you been trying to save by giving harder — as if enough love could force their change? What would it mean to give everything and release the outcome you cannot control?',
+    challengePrompt: 'Today, give fully to someone — and then consciously release the outcome. Do your whole part: water, weed, tend. Then let go of the part that was never yours. Notice the grief in it, and the freedom.',
+    livityPrompt: 'Serve someone today whose outcome you cannot control — and serve them anyway, fully, releasing the result. This is mature Livity: giving without owning what happens next. Log it, and sit with what it costs.',
+    journalPrompt: 'Where have I tied my worth to an outcome that was never mine to control?',
+    closingText: "You can love someone with your whole strength\nand still not be able to save them.\n\n—\n\nThat is not failure.\n\nIt is the edge of what one human can do alone.\n\nAnd that edge\nis where the next part of the journey begins.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

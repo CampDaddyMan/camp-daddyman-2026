@@ -7290,6 +7290,433 @@ Now the field is waiting.`,
     closingText: "Ring 2 is complete.\n\nYou grew — really, visibly, in your actual life.\n\n—\n\nBut you were never growing only for yourself.\n\nThe caterpillar gathers its whole strength\nfor the one thing that gives itself away.\n\nYou have become enough to begin.\n\nNow — to the field.\n\nRing 3 begins: Beginning to Give.",
     published: true,
   },
+
+  // ── RING 3 — BEGINNING TO GIVE (Days 96–110) ─────────────────────────────
+  // "What can I give from what I've grown?"
+  // Livity becomes the primary currency. XP no longer matters here.
+  // Day 110 hands off to the J-Shape — a human Elder, never automated.
+
+  {
+    dayNumber: 96,
+    phase: 'CATERPILLAR',
+    title: 'The First Gift',
+    lie: 'I have nothing worth giving yet.',
+    truth: 'You have exactly what someone behind you needs.',
+    body: `Here, at the start of the turn outward, the old lie comes back wearing new clothes.
+
+It does not say "you don't matter" anymore — you have walked too far for that.
+
+Now it says something subtler:
+
+*Who am I to give anything? I'm still figuring it out myself.*
+
+—
+
+That sounds like humility.
+
+It is actually the last hiding place.
+
+—
+
+You do not need to be finished to give.
+
+You do not need to be an expert, a master, a person who has it all together.
+
+—
+
+You need only to be one step ahead of someone
+
+and willing to turn around.
+
+—
+
+Think about it honestly:
+
+ninety-five days ago you were at Day 1.
+
+Somewhere right now, someone is at *their* Day 1 —
+
+carrying the exact lie you have already walked through,
+
+believing the exact thing you no longer believe.
+
+—
+
+To that person, you are not a fraud who hasn't arrived.
+
+You are someone who is *further down the same road* —
+
+close enough to understand, far enough to help.
+
+—
+
+That is the most useful kind of helper there is.
+
+Not the distant expert who forgot what the bottom felt like.
+
+The one who was just there, who still remembers, who can say:
+
+*I know exactly where you are. I was there. Here is the next step.*
+
+—
+
+You have something worth giving.
+
+It is the road you already walked.
+
+Turn around.
+
+Someone is right behind you.`,
+    daddyManism: 'Yuh nuh haffi reach di top fi help. Yuh just haffi be one step ahead and turn around.',
+    reflectionPrompt: 'Who is at their Day 1 right now, carrying a lie you have already walked through? You are not too unfinished to help them — you are exactly the right distance ahead.',
+    challengePrompt: 'Identify one person who is a step behind you on a road you have walked. Today, offer them the one thing you wish someone had given you when you were where they are.',
+    livityPrompt: 'Give your first deliberate gift to someone behind you today — the encouragement, the next step, the truth you learned the hard way. This is the beginning of your real service. Make it count, and log it honestly.',
+    journalPrompt: 'What road have I already walked that someone behind me is just beginning?',
+    closingText: "You do not need to be finished to give.\n\nYou need only be one step ahead, and willing to turn around.\n\n—\n\nSomeone is at their Day 1 right now.\n\nTurn around.\n\nThey are right behind you.",
+    published: true,
+  },
+  {
+    dayNumber: 97,
+    phase: 'CATERPILLAR',
+    title: 'Give From the Overflow',
+    lie: 'To serve, I have to empty myself.',
+    truth: 'Give from your overflow, not your reserves.',
+    body: `Now a warning, before the giving runs away with you.
+
+There is a way of giving that looks holy and is actually a slow self-destruction.
+
+The giving that empties you to the bottom.
+
+That says yes to everything. That pours out until there is nothing left,
+
+and then pours out the reserves too,
+
+and calls the exhaustion love.
+
+—
+
+You may know this giving well. Many good people do.
+
+They give and give until they have nothing left to give from —
+
+and then they collapse, or grow bitter, or quietly resent the very people they served.
+
+—
+
+That is not the giving the field needs.
+
+—
+
+Picture a cup under a fountain.
+
+When the cup is full, it overflows, and the overflow spills out endlessly,
+
+feeding everything around it — without the cup ever emptying.
+
+The cup keeps itself full. The world drinks from the overflow.
+
+—
+
+That is sustainable service.
+
+You keep your own cup full — through rest, through the things that feed you,
+
+through the disciplines of these ninety-six days —
+
+and you give from what spills over the top.
+
+—
+
+The depleted giver helps no one for long.
+
+They burn bright and burn out, and the field loses them.
+
+—
+
+The lasting giver protects their own fullness *so that* they can keep giving —
+
+not out of selfishness, but out of math.
+
+A dry well serves no one.
+
+—
+
+Give generously.
+
+Give from the overflow.
+
+And guard the source,
+
+because the field needs you for the long road, not the short blaze.`,
+    daddyManism: 'A dry well serve nobody. Keep yuh own cup full, and give from what spill over di top.',
+    reflectionPrompt: 'Do you give from overflow or from depletion? Where have you emptied yourself to the bottom and called the exhaustion love? What keeps your own cup full?',
+    challengePrompt: 'Today, give generously from your overflow AND protect your source. Do one act of service — and also do one thing that refills your own cup. Practice giving that does not destroy the giver.',
+    livityPrompt: 'Serve someone today from a full cup, not an empty one. Give freely — but notice the difference between giving from overflow and giving from your reserves. Sustainable service is the kind the field can count on for years.',
+    journalPrompt: 'How do I keep my own cup full so I can give without running dry?',
+    closingText: "The depleted giver burns out and the field loses them.\n\n—\n\nKeep your cup full.\n\nGive from the overflow.\n\nGuard the source —\nthe field needs you for the long road.",
+    published: true,
+  },
+  {
+    dayNumber: 98,
+    phase: 'CATERPILLAR',
+    title: 'Service Has a Cost',
+    lie: 'Real giving should be easy and feel good.',
+    truth: 'Real service costs you something — that is how you know it is real.',
+    body: `There is a kind of giving that costs nothing.
+
+The leftover time you weren't using anyway.
+
+The spare change you won't miss.
+
+The kind word that was easy to say.
+
+—
+
+None of that is wrong. But do not confuse it with the real thing.
+
+—
+
+Because real service — the kind that actually moves something in the field —
+
+costs the giver something.
+
+—
+
+It costs time you wanted for yourself.
+
+Energy you would rather have kept.
+
+Money that you would have noticed.
+
+Comfort you had to set down to show up.
+
+—
+
+The cost is not a flaw in the giving.
+
+The cost is the proof that it is real.
+
+—
+
+Anybody can give from the leftovers.
+
+The leftovers cost nothing, so they prove nothing.
+
+But when you give something that you feel —
+
+when the giving requires you to go without, to be inconvenienced, to sacrifice —
+
+something real has passed from you to the field.
+
+—
+
+This is why the witnessed act matters more than the easy gesture.
+
+A pattern of service that cost you something
+
+is the evidence that you have actually begun to give,
+
+not just to perform generosity from your surplus.
+
+—
+
+You do not have to bankrupt yourself — yesterday taught you that.
+
+But do not flinch from the cost either.
+
+When the giving starts to cost you something and you do it anyway,
+
+that is the moment you stop being a consumer who occasionally shares
+
+and become a person who actually serves.
+
+—
+
+Let it cost you a little today.
+
+That is how you will know it was real.`,
+    daddyManism: 'Giving weh cost yuh nothing prove nothing. Mek it cost yuh likkle — dat is how yuh know it real.',
+    reflectionPrompt: 'When was the last time your giving actually cost you something — time, comfort, money you noticed? Or has your giving mostly come from the leftovers that cost you nothing?',
+    challengePrompt: 'Give something today that costs you something real — time you wanted, comfort you would rather keep, a resource you would notice. Feel the cost, and give anyway. That is real service.',
+    livityPrompt: 'Perform one act of service today that genuinely costs you — your time, your energy, your convenience. Not from the leftovers. From something you feel. Then log it: this is the evidence that your giving has become real.',
+    journalPrompt: 'What would I give if I let it actually cost me something?',
+    closingText: "Leftovers cost nothing, so they prove nothing.\n\n—\n\nReal service costs the giver.\n\nThat cost is not a flaw.\n\nIt is the proof that something real\npassed from you to the field.",
+    published: true,
+  },
+  {
+    dayNumber: 99,
+    phase: 'CATERPILLAR',
+    title: 'Reach Back',
+    lie: 'Everyone has to figure it out alone, like I did.',
+    truth: 'Reach back for the one who is where you used to be.',
+    body: `There is a bitterness that hides inside survivors.
+
+It sounds like this:
+
+*Nobody helped me. I clawed my way up alone. Let them do the same.*
+
+—
+
+It feels like strength. Like fairness. Like respect for the struggle.
+
+But underneath, it is the wound talking —
+
+the wound of having been left untended, now passing itself forward
+
+dressed up as a life lesson.
+
+—
+
+Here is the truth that breaks the cycle:
+
+The fact that no one reached back for you
+
+is exactly why you must reach back for the next one.
+
+—
+
+You know that bottom. You know how alone it felt.
+
+You know what one hand reaching down would have meant —
+
+and that no hand came.
+
+—
+
+That memory is not a reason to withhold.
+
+It is the precise blueprint of what to give.
+
+—
+
+The whole circle depends on this single motion:
+
+the one who climbed turning around and reaching back down
+
+for the one still in the place they just left.
+
+—
+
+Not lifting them out — they have to climb too.
+
+But reaching. Being the hand that says: *I see you. I was there. Take hold. Keep coming.*
+
+—
+
+The hand you needed and never got —
+
+become it.
+
+Not because they earned it.
+
+Because someone should have done it for you,
+
+and the cycle of no-one-coming ends the moment you decide to be the one who comes.
+
+—
+
+Reach back.
+
+There is someone in the dark you just climbed out of,
+
+and your hand is the one they are waiting for.`,
+    daddyManism: 'Nobody reach back fi yuh? Dat is exactly why yuh haffi reach back fi di next one. End di cycle.',
+    reflectionPrompt: 'Is there a bitterness in you that says "I did it alone, let them too"? Where did that come from — and what would it mean to break it by becoming the hand you never had?',
+    challengePrompt: 'Reach back today. Find one person in a place you have climbed out of and extend a hand — not to lift them out, but to let them know they are seen and the climb is possible. Be the hand you needed.',
+    livityPrompt: 'Reach back for someone still in a place you have left — an addiction, a doubt, a hard season you survived. Offer them what no one offered you. This is the cycle breaking. Witness it, and log it.',
+    journalPrompt: 'Whose hand am I — who is in the dark I just climbed out of, waiting for someone to reach back?',
+    closingText: "The hand you needed and never got —\nbecome it.\n\n—\n\nThe cycle of no-one-coming\nends the moment you decide to be the one who comes.\n\nReach back.\n\nSomeone is waiting.",
+    published: true,
+  },
+  {
+    dayNumber: 100,
+    phase: 'CATERPILLAR',
+    title: 'They Owe You Nothing',
+    lie: 'If I help you, you belong to me.',
+    truth: 'The one you carry owes you nothing. It is mentorship, not ownership.',
+    body: `One hundred days.
+
+And here, right as you begin to give, is the most dangerous turn in the entire journey.
+
+Because giving has a shadow.
+
+The shadow is ownership.
+
+—
+
+It is subtle. It feels natural. It even feels deserved.
+
+You help someone. You pour into them. You reach back and lift.
+
+And slowly, quietly, a ledger forms in you:
+
+*After all I did for them… they owe me. Their loyalty. Their gratitude. Their staying.*
+
+—
+
+The moment that ledger opens,
+
+the giving has curdled into control.
+
+The mentor has become an owner.
+
+The father has become a captor.
+
+—
+
+This is the exact place where good movements rot into something ugly —
+
+where helping becomes a hook, and gratitude becomes a debt,
+
+and the one who was lifted is never allowed to leave.
+
+—
+
+So hear this clearly, because the whole future depends on it:
+
+The one you carry owes you nothing.
+
+—
+
+Not loyalty. Not gratitude. Not staying. Not becoming what you want.
+
+You give freely, or you have not given at all —
+
+you have only made a loan and called it love.
+
+—
+
+The proof that it was real mentorship and not ownership
+
+is the open door:
+
+the one you raised can walk away, owing you nothing,
+
+and you bless them as they go.
+
+—
+
+If that thought stings — if some part of you needs them to stay,
+
+to credit you, to remain yours —
+
+that is the owner in you, and it must be starved.
+
+—
+
+Give like the rain gives.
+
+It falls, it feeds, it asks nothing, it claims nothing.
+
+And it never, ever sends a bill.`,
+    daddyManism: 'Di one yuh carry owe yuh nothing. Give like di rain — it feed everything and never send a bill.',
+    reflectionPrompt: 'When you help someone, does a quiet ledger form — a sense that they now owe you? Where might your giving be turning into a hook? What would it mean to give and claim nothing?',
+    challengePrompt: 'Give something today and consciously release any claim on the result. No expectation of thanks, loyalty, or return. Notice if it stings — and give anyway, with the door wide open.',
+    livityPrompt: 'Serve someone today expecting absolutely nothing back — no gratitude, no loyalty, no acknowledgment. Give like the rain. This is the purest Livity there is: good done with no bill attached.',
+    journalPrompt: 'Where am I keeping a ledger on the people I have helped — and what would it take to tear it up?',
+    closingText: "Giving has a shadow, and the shadow is ownership.\n\n—\n\nThe one you carry owes you nothing.\n\nGive like the rain:\nit feeds everything,\nclaims nothing,\nand never sends a bill.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

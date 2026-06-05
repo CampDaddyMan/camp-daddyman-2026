@@ -177,4 +177,12 @@ Theme: *"What can I give from what I've grown?"* — Livity primary. Ends OPEN, 
 | 103 | You Are a Giver | I do generous things sometimes. | You are no longer someone who gives — you are a giver. | ✅ WRITTEN |
 | 104 | Become the Tending | I have nothing of my own to give. | Give the exact thing you most needed and never got. | ✅ WRITTEN |
 | 105 | You Cannot Save Them | If I give enough, I can fix them. | You can serve completely and still not control the outcome. *(the limit appears)* | ✅ WRITTEN |
-| 106–110 | *(Ring 3 finale → J-Shape handoff)* | — | — | 🗺️ TO WRITE |
+| 106 | What You Built Was Not Enough | If I just build enough, I will be complete. | Everything you built matters — and none of it makes you self-sufficient. | ✅ WRITTEN |
+| 107 | The Strength That Runs Out | My own strength will carry me the rest of the way. | There is a place your own strength cannot take you. | ✅ WRITTEN |
+| 108 | The Thing You Cannot Manufacture | I can produce whatever I need by effort. | Some things cannot be built, earned, or forced — only received. | ✅ WRITTEN |
+| 109 | You Cannot Do This Alone | Needing someone means I have failed. | The next stage cannot be entered alone — and that is by design. | ✅ WRITTEN |
+| 110 | The Hand in the Dark | I should be able to finish this myself. | You were never meant to enter the next room alone. *(Caterpillar capstone → ends OPEN, hands off to a human at the J-Shape)* | ✅ WRITTEN |
+
+---
+
+### 🐛→🔄 CATERPILLAR COMPLETE (Days 61–110). Next: the J-Shape — human Elder, never automated (see `SAFEGUARDING_ARCHITECTURE.md`).

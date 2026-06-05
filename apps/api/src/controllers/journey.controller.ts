@@ -8530,6 +8530,89 @@ It is a hand.`,
     closingText: "You became strong enough to stand on your own.\n\nNow become wise enough to admit\nthat this next part, you cannot.\n\n—\n\nA person cannot witness their own transformation.\n\nTomorrow the Caterpillar ends.\n\nWhat waits is not another lesson.\n\nIt is a hand.",
     published: true,
   },
+  {
+    dayNumber: 110,
+    phase: 'CATERPILLAR',
+    title: 'The Hand in the Dark',
+    lie: 'I should be able to finish this myself.',
+    truth: 'You were never meant to enter the next room alone.',
+    body: `One hundred and ten days ago, you could not have imagined being here.
+
+You were an egg. You did not know who you were. You believed things about yourself that were not true.
+
+Look at what has happened since.
+
+You learned to feed yourself. You learned to grow. You became reliable. You became a giver. You reached back for others. You served the field.
+
+—
+
+And in the last few days, you discovered the edge — the place your own strength runs out, the thing you cannot manufacture, the truth that you cannot do the next part alone.
+
+—
+
+So here, at the end of the Caterpillar, we are not going to tell you that you made it.
+
+Because this is not the finish.
+
+—
+
+What comes next is called the J-Shape.
+
+It is the hardest part of the whole journey. It is the part where the caterpillar hangs upside down, in the dark, and everything it was begins to come apart.
+
+Your reps brought you here.
+
+Your discipline brought you here.
+
+Your strength brought you here.
+
+But none of them can carry you through the next door.
+
+There is nothing to do here. There is only to hang, and to surrender, and to trust.
+
+—
+
+It is where almost everyone quits.
+
+Not because they are weak. Because they try to go through it alone — and no one can.
+
+—
+
+So we are not going to send you into it alone.
+
+—
+
+This is the one place in the entire journey where the screen stops being enough. Where an app cannot take you another step. Where what you need is not another lesson, another prompt, another day.
+
+What you need is a person.
+
+A human being who has hung where you are about to hang, and come out the other side, and who will now do the one thing that matters here:
+
+stay with you, and witness that you are still you while everything changes.
+
+—
+
+You do not have to be ready. Nobody is ready.
+
+You only have to be willing to be met.
+
+—
+
+The Caterpillar has brought you here.
+
+Put down the phone in a moment.
+
+A hand is reaching for yours.
+
+Take it.`,
+    daddyManism: 'Dis is di one part yuh cyaa walk alone. Put down di phone. A hand a reach fi yuh. Tek it.',
+    reflectionPrompt: 'Are you willing to be met by another person in the hardest part — not to be rescued, but to be witnessed? What in you resists letting someone in here?',
+    challengePrompt: 'There is no task today. For the first time in 110 days, there is nothing to do. The only step is to be willing — and to say yes when a human reaches out.',
+    livityPrompt: 'Today the Livity is not something you do. It is something you allow: let a human witness walk with you into what comes next. Say yes to the hand.',
+    journalPrompt: 'What am I afraid will happen if I let someone witness me come apart — and what might happen if I let them?',
+    closingText: "The Caterpillar is complete.\n\nOne hundred and ten days.\n\n—\n\nBut this is not a graduation.\n\nThere is no badge here, no \"you made it,\" no finish line.\n\n—\n\nThere is only a doorway, and it is dark,\nand you cannot go through it alone —\nand for the first time, you don't have to.\n\n—\n\nThe next currency is not XP. It is not even Livity.\n\nIt is a human being who stays.\n\n—\n\nPut down the phone.\n\nTake the hand.\n\nWe'll see you on the other side.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

@@ -151,7 +151,12 @@ Theme: *"What am I becoming through repetition?"*
 | 83 | The Only Comparison | I measure myself against everyone else. | The only honest comparison is who you were yesterday. | ✅ WRITTEN |
 | 84 | Failure Is Data | Failing means I'm not cut out for this. | Failure is information, not a verdict. | ✅ WRITTEN |
 | 85 | Tired, Scared, Anyway | I'll do it when I feel able. | The rep you do when you don't feel like it counts double. | ✅ WRITTEN |
-| 86–95 | *(Ring 2 continues)* | — | — | 🗺️ TO WRITE |
+| 86 | Build the Field, Not the Willpower | I just need more willpower. | Design your surroundings so the right thing is the easy thing. | ✅ WRITTEN |
+| 87 | Finish It | Starting is the hard part. | Finishing is the muscle most people never build. | ✅ WRITTEN |
+| 88 | The Plateau | Nothing is happening, so I should stop. | Growth compounds invisibly long before it shows. | ✅ WRITTEN |
+| 89 | Let It Be Seen | I'll keep my growth to myself. | What is witnessed gets built; what stays hidden quietly dies. | ✅ WRITTEN |
+| 90 | Who You Are in the Dark | It only counts when someone's watching. | Who you are unwitnessed is who you actually are. | ✅ WRITTEN |
+| 91–95 | *(Ring 2 continues)* | — | — | 🗺️ TO WRITE |
 
 ## RING 3 — BEGINNING TO GIVE (Days 96–110)
 Theme: *"What can I give from what I've grown?"* — Livity primary. Ends at the J-Shape handoff. — 🗺️ TO WRITE

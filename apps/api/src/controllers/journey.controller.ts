@@ -6476,6 +6476,403 @@ That is the one that sets you free.`,
     closingText: "The easy rep barely counts.\n\nThe rep you take tired and scared\nteaches the lesson that frees you:\n\n—\n\nI do this regardless of how I feel.\n\nTake that one today.",
     published: true,
   },
+  {
+    dayNumber: 86,
+    phase: 'CATERPILLAR',
+    title: 'Build the Field, Not the Willpower',
+    lie: 'I just need more willpower.',
+    truth: 'Design your surroundings so the right thing is the easy thing.',
+    body: `You keep losing the same fight.
+
+And every time you lose it, you draw the same conclusion:
+
+I need more willpower. I need to be more disciplined. I need to try harder.
+
+—
+
+But willpower is a terrible foundation.
+
+It runs out. It fades when you are tired, stressed, hungry, alone.
+
+It is strongest in the morning when you make the plan
+
+and weakest at night when the plan is tested.
+
+—
+
+The people who seem to have endless discipline
+
+usually do not.
+
+They have something better:
+
+a field designed so the right thing is the easy thing.
+
+—
+
+They did not resist the junk food all day.
+
+They did not buy it, so it was not in the house to resist.
+
+They did not force themselves to focus past the distraction.
+
+They removed the distraction before they sat down.
+
+—
+
+This is the quiet secret of people who change:
+
+they stop relying on willpower in the moment
+
+and start designing their environment in advance.
+
+—
+
+You are not weak because you lose to temptation.
+
+You are human.
+
+And humans are shaped by their surroundings far more than by their intentions.
+
+—
+
+So stop trying to white-knuckle your way to a new life.
+
+Build a field where the new life grows almost by itself.
+
+Make the good thing easy and the bad thing hard,
+
+and let the environment do the work
+
+your willpower was never strong enough to do alone.`,
+    daddyManism: 'Stop fighting yuhself all day. Build di field so di right thing is di easy thing.',
+    reflectionPrompt: 'Where do you keep losing the same fight and blaming your willpower? What in your environment is making the wrong thing easy and the right thing hard?',
+    challengePrompt: 'Change one thing in your environment today so the right action becomes easier and the wrong one becomes harder. Remove the temptation, set out the tool, move the obstacle. Let the field carry the weight.',
+    livityPrompt: "Help someone build a better field today — not by lecturing them on discipline, but by helping them remove one obstacle or set up one good thing. Make the right path easier for someone.",
+    journalPrompt: 'What would I stop having to fight if I designed my surroundings differently?',
+    closingText: "Willpower runs out.\n\nA well-built field does not.\n\n—\n\nStop white-knuckling.\n\nMake the good thing easy,\nand let the field do the work.",
+    published: true,
+  },
+  {
+    dayNumber: 87,
+    phase: 'CATERPILLAR',
+    title: 'Finish It',
+    lie: 'Starting is the hard part.',
+    truth: 'Finishing is the muscle most people never build.',
+    body: `You are good at starting.
+
+The new plan. The new project. The new version of you.
+
+Starting is exciting. Starting is full of possibility.
+
+—
+
+But look behind you.
+
+The unfinished things. The abandoned plans. The projects that died at sixty percent.
+
+The graveyard of good beginnings.
+
+—
+
+Starting is not the hard part.
+
+Starting is the easy part dressed up as courage.
+
+—
+
+The hard part — the part almost nobody builds — is finishing.
+
+—
+
+Finishing means staying past the excitement.
+
+Past the boring middle. Past the point where a newer, shinier start
+
+is whispering that maybe *this* one is the real one.
+
+—
+
+Every time you abandon something at sixty percent
+
+and start something new,
+
+you are not being creative.
+
+You are practicing quitting.
+
+And quitting, like anything practiced, becomes a skill —
+
+until you are someone who cannot finish anything,
+
+with a hundred brilliant beginnings and nothing built.
+
+—
+
+Finishing is a muscle.
+
+It is built the same way every muscle is built:
+
+by doing the rep you do not feel like doing —
+
+the last twenty percent, when the excitement is gone
+
+and only the commitment remains.
+
+—
+
+Finish one thing.
+
+Even something small.
+
+Even something imperfect.
+
+A finished imperfect thing teaches you what a hundred perfect beginnings never will:
+
+that you are someone who completes what they start.`,
+    daddyManism: 'Anybody can start. Di finish is di muscle nobody build. Finish one thing.',
+    reflectionPrompt: 'What is your graveyard of unfinished things telling you? Where have you been practicing quitting by always chasing the next exciting start?',
+    challengePrompt: 'Finish one thing today — something you started and abandoned. Not perfectly. Just complete it. Choose something small enough to actually finish, and cross the last twenty percent. Feel what completion teaches.',
+    livityPrompt: 'Help someone finish something today. Come alongside someone stuck in the last stretch of a hard thing and help them complete it. The finish is lonely; be there for it.',
+    journalPrompt: 'What have I left unfinished that I could complete this week — and who would I become by finishing it?',
+    closingText: "You have a graveyard of good beginnings.\n\nWhat you need is one finish.\n\n—\n\nFinishing is the muscle.\n\nBuild it on something small today.",
+    published: true,
+  },
+  {
+    dayNumber: 88,
+    phase: 'CATERPILLAR',
+    title: 'The Plateau',
+    lie: 'Nothing is happening, so I should stop.',
+    truth: 'Growth compounds invisibly long before it shows.',
+    body: `You have hit the flat part.
+
+You are doing the work. The reps. The discipline. The showing up.
+
+And nothing is happening.
+
+No visible progress. No reward. No sign that any of it is working.
+
+—
+
+This is the plateau, and it is where most people quit.
+
+Not at the hard part — at the *flat* part.
+
+Where the effort stays high and the visible results go to zero.
+
+—
+
+But here is what is actually happening on the plateau:
+
+Growth is compounding underground, where you cannot see it.
+
+—
+
+The bamboo seed is planted, watered, tended — and for years, nothing.
+
+No shoot. No sign. Nothing above the soil.
+
+And then, in a single season, it shoots up dozens of feet.
+
+—
+
+It was not growing nothing those silent years.
+
+It was growing roots — the entire root system that the visible height would later require.
+
+The growth was real the whole time. It was just underground.
+
+—
+
+The plateau is not the absence of growth.
+
+The plateau is the root-growing season.
+
+The part nobody photographs. The part that feels like failure
+
+and is actually the foundation of everything that comes next.
+
+—
+
+When you hit the flat part, do not read it as a stop sign.
+
+Read it as the roots going down.
+
+Keep watering.
+
+What is compounding in the dark
+
+will surface when the roots can hold it.`,
+    daddyManism: 'Di flat part is not di end. A di roots growing weh yuh cyaa see. Keep watering.',
+    reflectionPrompt: 'Where are you on a plateau right now — doing the work with nothing visible to show? What might be growing underground that you cannot see yet?',
+    challengePrompt: 'Keep watering today. Do the rep on the flat part — precisely because nothing seems to be happening. Trust the roots you cannot see. Do not mistake the plateau for a stop sign.',
+    livityPrompt: 'Encourage someone stuck on a plateau today. Remind them the flat part is the root-growing season, not failure. Help one person keep watering when they were about to quit.',
+    journalPrompt: 'What am I tempted to quit right now that is actually just in its root-growing season?',
+    closingText: "The plateau is not the absence of growth.\n\nIt is the roots going down.\n\n—\n\nWhat compounds in the dark\nsurfaces when the roots can hold it.\n\nKeep watering.",
+    published: true,
+  },
+  {
+    dayNumber: 89,
+    phase: 'CATERPILLAR',
+    title: 'Let It Be Seen',
+    lie: 'I’ll keep my growth to myself.',
+    truth: 'What is witnessed gets built; what stays hidden quietly dies.',
+    body: `You prefer to do it privately.
+
+To make your commitment in secret, where no one can see you fail.
+
+To keep your goals to yourself, so that if you fall short, no one will know.
+
+—
+
+It feels safer.
+
+But it is also why so many of your commitments quietly died.
+
+—
+
+A commitment made only to yourself, in private,
+
+has no weight to hold it in place.
+
+When the hard day comes, you renegotiate with yourself in the dark,
+
+and no one is there to notice you let it go.
+
+—
+
+This is why the Ark stamps service with a witness, not a self-report.
+
+Not to police you — to *strengthen* you.
+
+What is witnessed gets built.
+
+What stays hidden quietly dies.
+
+—
+
+Let one person see what you are building.
+
+Not the whole world. Not for applause.
+
+One person who will ask you how it is going,
+
+who will notice if you disappear,
+
+who turns your private intention into a thing with weight.
+
+—
+
+This is not weakness. It is engineering.
+
+The same reason a witnessed act of service cannot be faked
+
+is the reason a witnessed commitment is harder to abandon:
+
+someone else is holding the other end of it.
+
+—
+
+Stop building in secret where quitting is free.
+
+Let it be seen.
+
+Let someone hold the other end.
+
+You will be amazed how much harder it is to quit
+
+when one person is watching you grow.`,
+    daddyManism: 'What get witnessed get built. What stay hidden quietly dead. Let one person see it.',
+    reflectionPrompt: 'What commitments have you let quietly die in private? What are you building right now that no one knows about — and would you be more likely to finish it if someone did?',
+    challengePrompt: 'Tell one trusted person today about something you are committed to building. Ask them to check on you. Hand someone the other end of the rope. Turn a private intention into a witnessed one.',
+    livityPrompt: "Be the witness for someone today. Ask a person what they are working toward, and then actually follow up on it. Hold the other end of someone's commitment so it does not quietly die.",
+    journalPrompt: 'What would I be far more likely to finish if I let one person witness it?',
+    closingText: "A commitment made in secret\nis a commitment with nothing holding it in place.\n\n—\n\nWhat is witnessed gets built.\n\nLet someone hold the other end.",
+    published: true,
+  },
+  {
+    dayNumber: 90,
+    phase: 'CATERPILLAR',
+    title: 'Who You Are in the Dark',
+    lie: 'It only counts when someone’s watching.',
+    truth: 'Who you are unwitnessed is who you actually are.',
+    body: `Yesterday you let someone witness your commitment.
+
+That was the scaffolding.
+
+Today we name what the scaffolding is *for.*
+
+—
+
+Being witnessed keeps you accountable while the new self is still weak.
+
+But the goal was never to perform for the witness.
+
+The goal is to become someone who does right
+
+even when no one will ever know.
+
+—
+
+Because here is the truth underneath all the reps:
+
+Who you are when no one is watching
+
+is who you actually are.
+
+—
+
+The version of you that shows up for the audience
+
+is a performance.
+
+The version that does the rep alone, in the dark, with no one to impress
+
+and no one to disappoint —
+
+that one is real.
+
+—
+
+This is the deepest kind of growth, and the quietest.
+
+The honesty you keep when a lie would never be caught.
+
+The standard you hold when no one would know you dropped it.
+
+The good you do that will never be seen, credited, or thanked.
+
+—
+
+There is a station in this whole journey, far ahead, with no badge and no applause —
+
+the one who tends and protects and asks for nothing,
+
+who cannot be performed because the moment you perform it, it is gone.
+
+You are not there yet. But the root of it is planted here:
+
+in the rep you do alone, for no audience,
+
+because it is simply who you have decided to be.
+
+—
+
+Let the witness fall away over time.
+
+Become the kind of person
+
+who does right in an empty room.
+
+That one needs no watching.`,
+    daddyManism: 'Who yuh are when nobody watching — dat is who yuh really are. Build dat one.',
+    reflectionPrompt: 'Who are you when absolutely no one is watching? Is it the same person you are in front of others — or is one of them the performance?',
+    challengePrompt: 'Do one good thing today that no one will ever know about. No credit, no witness, no thanks possible. Do it precisely because no one will see. Notice who you are when there is no audience.',
+    livityPrompt: 'Do an act of service today and tell no one. Not even logged for credit in your own mind. Let it be purely between you and the field. This is the seed of the unseen tending the Ark is built on.',
+    journalPrompt: 'What kind of person am I in the dark — and is that the person I want to be?',
+    closingText: "The witness was the scaffolding.\n\nThe building is who you are alone.\n\n—\n\nBecome the kind of person\nwho does right in an empty room.\n\nThat one needs no watching.",
+    published: true,
+  },
 ];
 
 // ── Seed utility — runs on every startup, skips days that already exist ────────

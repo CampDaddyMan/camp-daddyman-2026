@@ -1,31 +1,12 @@
 import { spawn } from 'child_process';
 import { createGzip } from 'zlib';
-import { PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { s3 } from '../config/storage';
 
 const BACKUP_PREFIX = 'db-backups';
 const RETAIN_DAYS   = 30;
 const BUCKET        = process.env.R2_BUCKET!;
-
-// Stream pg_dump stdout through gzip into a Buffer
-function pgDumpToBuffer(dbUrl: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const pg     = spawn('pg_dump', ['--no-password', '--format=plain', dbUrl]);
-    const gz     = createGzip({ level: 9 });
-    const chunks: Buffer[] = [];
-
-    pg.stdout.pipe(gz);
-    gz.on('data',  (chunk: Buffer) => chunks.push(chunk));
-    gz.on('end',   () => resolve(Buffer.concat(chunks)));
-    gz.on('error', reject);
-
-    pg.stderr.on('data', (d: Buffer) => console.error('[Backup] pg_dump:', d.toString().trim()));
-    pg.on('error', reject);
-    pg.on('close', (code) => {
-      if (code !== 0) reject(new Error(`pg_dump exited with code ${code}`));
-    });
-  });
-}
 
 // Delete backups older than RETAIN_DAYS
 async function pruneOldBackups(): Promise<void> {
@@ -52,17 +33,27 @@ export async function runDatabaseBackup(): Promise<void> {
 
   console.log(`[Backup] Starting → ${key}`);
 
-  const buffer = await pgDumpToBuffer(process.env.DATABASE_URL!);
+  // Stream pg_dump → gzip → R2 directly. Memory stays bounded (one multipart
+  // part at a time) instead of buffering the whole dump.
+  const pg = spawn('pg_dump', ['--no-password', '--format=plain', process.env.DATABASE_URL!]);
+  const gz = createGzip({ level: 9 });
+  pg.stdout.pipe(gz);
 
-  await s3.send(new PutObjectCommand({
-    Bucket:      BUCKET,
-    Key:         key,
-    Body:        buffer,
-    ContentType: 'application/gzip',
-  }));
+  pg.stderr.on('data', (d: Buffer) => console.error('[Backup] pg_dump:', d.toString().trim()));
+  pg.on('error', (err) => gz.destroy(err));
+  // If pg_dump fails mid-stream, tear down the gzip stream so the upload aborts
+  // rather than saving a truncated, corrupt backup that looks valid.
+  pg.on('close', (code) => {
+    if (code !== 0) gz.destroy(new Error(`pg_dump exited with code ${code}`));
+  });
 
-  const mb = (buffer.length / 1024 / 1024).toFixed(2);
-  console.log(`[Backup] ✓ ${mb} MB uploaded → ${key}`);
+  const upload = new Upload({
+    client: s3,
+    params: { Bucket: BUCKET, Key: key, Body: gz, ContentType: 'application/gzip' },
+  });
+
+  await upload.done();   // rejects and aborts the multipart upload if gz was destroyed
+  console.log(`[Backup] ✓ uploaded → ${key}`);
 
   await pruneOldBackups();
 }

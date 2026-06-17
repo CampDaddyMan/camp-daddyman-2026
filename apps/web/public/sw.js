@@ -1,5 +1,11 @@
 // Camp DaddyMan Service Worker
+//
+// INVARIANT: this worker is network-authoritative and caches NOTHING.
+// Do not add asset/HTML caching here — the app relies on Vercel's hashed assets
+// and revalidated HTML for freshness. Caching here would risk serving users a
+// stale version after a deploy. (Update behavior is driven by ServiceWorkerRegistrar.)
 
+// Activate updates immediately and take control of open pages.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
 
@@ -32,5 +38,6 @@ self.addEventListener('notificationclick', function (event) {
   );
 });
 
-// Passthrough fetch (no caching — server is authoritative)
+// Passthrough fetch — intentionally no respondWith(), so every request hits the
+// network. Present only to satisfy PWA installability; never serves from cache.
 self.addEventListener('fetch', function () {});
